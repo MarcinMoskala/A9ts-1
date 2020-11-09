@@ -3,14 +3,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.RegisterBinding
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.*
-import com.google.firebase.auth.R
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import org.jetbrains.anko.toast
@@ -41,23 +38,28 @@ class Register : AppCompatActivity() {
 
         auth = Firebase.auth
 
-//        var userPhone = auth.currentUser?.phoneNumber.toString()
-//        toast(userPhone)
+        getSupportActionBar()?.setTitle(R.string.your_phone)
 
-        getSupportActionBar()?.setTitle("Your phone");
-
-        binding.buttonNext.setOnClickListener {
+        binding.buttonGetSmsCode.setOnClickListener {
             val phoneNumber = binding.editTextPhoneNumber.text.toString().trim()
             val countryCode = binding.editTextCountryCode.text.toString().trim()
 
-            if (TextUtils.isEmpty(phoneNumber) || TextUtils.isEmpty(countryCode))
+            if (TextUtils.isEmpty(phoneNumber))
             {
-                binding.editTextPhoneNumber.setError("Number is required!")
+                binding.editTextPhoneNumber.setError("Phone number is required!")
                 binding.editTextPhoneNumber.requestFocus()
+            } else if (TextUtils.isEmpty(countryCode)) {
+                binding.editTextCountryCode.setError("Country code is required!")
+                binding.editTextCountryCode.requestFocus()
             } else {
-                val FullPhoneNumber = countryCode + phoneNumber
-                toast("Submitting $FullPhoneNumber")
-                startPhoneNumberVerification(FullPhoneNumber)
+                var fullPhoneNumber = countryCode + phoneNumber
+
+                if (!fullPhoneNumber.startsWith("+")) {
+                    fullPhoneNumber = "+$fullPhoneNumber"
+                }
+
+                toast("Submitting $fullPhoneNumber")
+                startPhoneNumberVerification(fullPhoneNumber)
             }
         }
 
@@ -72,28 +74,27 @@ class Register : AppCompatActivity() {
         }
 
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+
+            //ked sa overi cislo samo, bez potreby zadavat sms kod
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                //TODO: debug toast
                 toast("onVerificationCompleted")
 
-                // This callback will be invoked in two situations:
-                // 1 - Instant verification. In some cases the phone number can be instantly
-                //     verified without needing to send or enter a verification code.
-                // 2 - Auto-retrieval. On some devices Google Play services can automatically
-                //     detect the incoming verification SMS and perform verification without
-                //     user action.
                 Log.d(TAG, "onVerificationCompleted:$credential")
                 verificationInProgress = false
 
                 signInWithPhoneAuthCredential(credential)
             }
 
+            //ked nevie poslat SMS kod, lebo je napr. zle telefonne cislo
             override fun onVerificationFailed(e: FirebaseException) {
                 Log.w(TAG, "onVerificationFailed", e)
 
                 if (e is FirebaseAuthInvalidCredentialsException) {
-                    binding.editTextPhoneNumber.error = "Invalid phone number."
+                    binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
                 } else if (e is FirebaseTooManyRequestsException) {
-                    toast("Quota exceeded")
+                    //TODO: Iny text dat
+                    toast("Quota exceeded!")
                 }
                 toast("onVerificationFailed")
             }

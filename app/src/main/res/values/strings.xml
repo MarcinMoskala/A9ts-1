@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">A9ts</string>
+    <string name="your_phone">Your Phone</string>
+    <string name="get_sms_code">Get SMS code</string>
+    <string name="send_verification_code">Send Verification Code</string>
+    <string name="invalid_phone_number">Invalid phone number or country code.</string>
 </resources>
