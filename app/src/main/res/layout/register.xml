@@ -25,7 +25,7 @@
             android:layout_marginStart="24dp"
             android:inputType="phone"
             android:ems="3"
-            android:text="+421"
+            android:text="+1"
             android:maxLength="4"
 
             app:layout_constraintStart_toStartOf="parent"
@@ -39,7 +39,7 @@
             android:layout_marginEnd="24dp"
             android:layout_marginStart="4dp"
             android:inputType="phone"
-            android:text="+1 650-555-1234"
+            android:text="650-555-123X"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -55,12 +55,27 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/phone_number_linear_layout" />
 
+    <EditText
+        android:id="@+id/editTextVerificationCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:inputType="number"
+        android:text="123456"
+        android:maxLength="6"
+        android:digits="1234567890"
+        app:layout_constraintBottom_toTopOf="@+id/button_send_code"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/button_send_code"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:text="Send code 123456"
+        android:text="Send Verification Code"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
