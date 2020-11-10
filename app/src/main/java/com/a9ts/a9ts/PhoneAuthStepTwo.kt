@@ -1,11 +1,15 @@
 package com.a9ts.a9ts
 
+import android.R
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import androidx.core.content.ContextCompat
+import android.view.KeyEvent
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.ActivityPhoneAuthStepTwoBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -20,6 +24,8 @@ class PhoneAuthStepTwo : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     private var storedVerificationId: String? = ""
+    private var storedFullPhoneNumber: String? = ""
+
     private lateinit var mainActivityIntent: Intent
 
 
@@ -32,6 +38,11 @@ class PhoneAuthStepTwo : AppCompatActivity() {
         mainActivityIntent = Intent(this, MainActivity::class.java)
 
         storedVerificationId = intent.getStringExtra(PhoneAuthStepOne.INTENT_VERIFICATION_ID)
+        storedFullPhoneNumber = intent.getStringExtra(PhoneAuthStepOne.INTENT_FULL_PHONE_NUMBER)
+
+
+        supportActionBar?.setTitle(storedFullPhoneNumber)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.buttonSendCode.setOnClickListener {
             val code = binding.editTextVerificationCode.text.toString()
@@ -42,9 +53,48 @@ class PhoneAuthStepTwo : AppCompatActivity() {
                 verifyPhoneNumberWithCode(storedVerificationId, code)
             }
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.getItemId()) {
+            R.id.home -> {
+                showStopVerificationProcessDialog()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        return true
+    }
 
 
+    //aby klasicky back button tiez volal Dialog
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            showStopVerificationProcessDialog()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 
+    private fun showStopVerificationProcessDialog()
+    {
+        val myDialog = AlertDialog.Builder(this)
+
+        myDialog.setTitle("A9ts")
+        myDialog.setMessage("Do you want to stop the verification process?")
+
+        myDialog.setPositiveButton("Continue") { dialog, _ -> dialog.dismiss()
+        }
+
+        myDialog.setNegativeButton("Stop") { dialog, _ ->
+                finish()
+                dialog.dismiss()
+        }
+
+        myDialog.create().show()
     }
 
     private fun verifyPhoneNumberWithCode(verificationId: String?, code: String) {

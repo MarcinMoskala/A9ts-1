@@ -23,11 +23,14 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="4dp"
-            android:ems="3"
             android:inputType="phone"
             android:maxLength="4"
-            android:text="+1"
+            android:text="+421"
+            android:hint="+421"
 
+
+            android:textSize="24sp"
+            android:typeface="monospace"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,10 +42,12 @@
             android:layout_marginTop="24dp"
             android:layout_marginEnd="20dp"
             android:inputType="phone"
-            android:text="650-555-123X"
+            android:hint="9XX XXX XXX"
+            android:textSize="24dp"
+            android:maxLength="12"
+            android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </LinearLayout>
 
