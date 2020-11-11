@@ -21,34 +21,41 @@ import org.jetbrains.anko.toast
 
 class PhoneAuthStepTwo : AppCompatActivity() {
     private lateinit var binding : ActivityPhoneAuthStepTwoBinding
+
     private lateinit var auth: FirebaseAuth
-
-    private var storedVerificationId: String? = ""
-    private var storedFullPhoneNumber: String? = ""
-
-    private lateinit var mainActivityIntent: Intent
+    private lateinit var registerProfileIntent: Intent
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val storedVerificationId = intent.getStringExtra(PhoneAuthStepOne.INTENT_VERIFICATION_ID)
+        val storedFullPhoneNumber = intent.getStringExtra(PhoneAuthStepOne.INTENT_FULL_PHONE_NUMBER)
+
+        if (storedVerificationId == null || storedFullPhoneNumber == null) {
+            val phoneAuthStepOneIntent = Intent(this, PhoneAuthStepOne::class.java)
+            startActivity(phoneAuthStepOneIntent)
+        }
+
+
         binding = ActivityPhoneAuthStepTwoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         auth = Firebase.auth
-        mainActivityIntent = Intent(this, MainActivity::class.java)
+        registerProfileIntent = Intent(this, RegisterProfile::class.java)
 
-        storedVerificationId = intent.getStringExtra(PhoneAuthStepOne.INTENT_VERIFICATION_ID)
-        storedFullPhoneNumber = intent.getStringExtra(PhoneAuthStepOne.INTENT_FULL_PHONE_NUMBER)
 
 
         supportActionBar?.setTitle(storedFullPhoneNumber)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        binding.editTextVerificationCode.requestFocus()
+
         binding.buttonSendCode.setOnClickListener {
             val code = binding.editTextVerificationCode.text.toString()
 
             if (TextUtils.isEmpty(code)) {
-                binding.editTextVerificationCode.error = "Cannot be empty."
+                binding.editTextVerificationCode.setError("Cannot be empty.")
             } else {
                 verifyPhoneNumberWithCode(storedVerificationId, code)
             }
@@ -70,31 +77,31 @@ class PhoneAuthStepTwo : AppCompatActivity() {
     }
 
 
-    //aby klasicky back button tiez volal Dialog
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            showStopVerificationProcessDialog()
-            return true
-        }
-        return super.onKeyDown(keyCode, event)
+
+    override fun onBackPressed() {
+        showStopVerificationProcessDialog()
     }
+
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            showStopVerificationProcessDialog()
+//            return true
+//        }
+//        return super.onKeyDown(keyCode, event)
+//    }
 
     private fun showStopVerificationProcessDialog()
     {
-        val myDialog = AlertDialog.Builder(this)
-
-        myDialog.setTitle("A9ts")
-        myDialog.setMessage("Do you want to stop the verification process?")
-
-        myDialog.setPositiveButton("Continue") { dialog, _ -> dialog.dismiss()
-        }
-
-        myDialog.setNegativeButton("Stop") { dialog, _ ->
-                finish()
+        AlertDialog.Builder(this)
+            .setTitle("A9ts")
+            .setMessage("Do you want to stop the verification process?")
+            .setPositiveButton("Continue") { dialog, _ ->
+                dialog.dismiss() }
+            .setNegativeButton("Stop") { dialog, _ ->
                 dialog.dismiss()
-        }
-
-        myDialog.create().show()
+                super.onBackPressed() }
+            .create()
+            .show()
     }
 
     private fun verifyPhoneNumberWithCode(verificationId: String?, code: String) {
@@ -108,7 +115,7 @@ class PhoneAuthStepTwo : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Log.d(PhoneAuthStepOne.TAG, "signInWithCredential:success")
 
-                    startActivity(mainActivityIntent)
+                    startActivity(registerProfileIntent)
                     toast("Signin successfull: Verification code OK")
                 } else {
                     Log.w(PhoneAuthStepOne.TAG, "signInWithCredential:failure", task.exception)

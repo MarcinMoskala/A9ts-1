@@ -4,8 +4,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.a9ts.a9ts.databinding.PhoneAuthStepOneBinding
+import com.a9ts.a9ts.databinding.ActivityPhoneAuthStepOneBinding
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.*
@@ -16,13 +15,13 @@ import java.util.concurrent.TimeUnit
 
 class PhoneAuthStepOne : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var binding : PhoneAuthStepOneBinding
+    private lateinit var binding : ActivityPhoneAuthStepOneBinding
 
 //    private var verificationInProgress = false
     private var storedVerificationId: String = ""
     private var storedFullPhoneNumber: String = ""
 
-    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken //nerozumiem
+//    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken //nerozumiem
 
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var mainActivityIntent: Intent
@@ -34,8 +33,10 @@ class PhoneAuthStepOne : AppCompatActivity() {
         mainActivityIntent = Intent(this, MainActivity::class.java)
         phoneAuthStepTwoIntent = Intent(this, PhoneAuthStepTwo::class.java)
 
-        binding = PhoneAuthStepOneBinding.inflate(layoutInflater)
+        binding = ActivityPhoneAuthStepOneBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.editTextPhoneNumber.requestFocus()
 
         if (savedInstanceState != null) {
             onRestoreInstanceState(savedInstanceState)
@@ -43,7 +44,7 @@ class PhoneAuthStepOne : AppCompatActivity() {
 
         auth = Firebase.auth
 
-        getSupportActionBar()?.setTitle(R.string.your_phone)
+        supportActionBar?.setTitle(R.string.your_phone)
 
         binding.buttonGetSmsCode.setOnClickListener {
                 startPhoneNumberVerification()
@@ -122,34 +123,38 @@ class PhoneAuthStepOne : AppCompatActivity() {
         val phoneNumber = binding.editTextPhoneNumber.text.toString().trim()
         val countryCode = binding.editTextCountryCode.text.toString().trim()
 
-        if (TextUtils.isEmpty(phoneNumber)) {
-            binding.editTextPhoneNumber.setError("Phone number is required!")
-            binding.editTextPhoneNumber.requestFocus()
-        } else if (TextUtils.isEmpty(countryCode)) {
-            binding.editTextCountryCode.setError("Country code is required!")
-            binding.editTextCountryCode.requestFocus()
-        } else {
-            var fullPhoneNumber = countryCode + phoneNumber
-
-            if (!fullPhoneNumber.startsWith("+")) {
-                fullPhoneNumber = "+$fullPhoneNumber"
+        when {
+            TextUtils.isEmpty(phoneNumber) -> {
+                binding.editTextPhoneNumber.error = "Phone number is required!"
+                binding.editTextPhoneNumber.requestFocus()
             }
+            TextUtils.isEmpty(countryCode) -> {
+                binding.editTextCountryCode.error = "Country code is required!"
+                binding.editTextCountryCode.requestFocus()
+            }
+            else -> {
+                var fullPhoneNumber = countryCode + phoneNumber
 
-            //TODO remove toast
-            toast("Submitting $fullPhoneNumber")
+                if (!fullPhoneNumber.startsWith("+")) {
+                    fullPhoneNumber = "+$fullPhoneNumber"
+                }
+
+                //TODO remove toast
+                toast("Submitting $fullPhoneNumber")
 
 
-            val options = PhoneAuthOptions.newBuilder(auth)
-                .setPhoneNumber(fullPhoneNumber)       // Phone number to verify
-                .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-                .setActivity(this)                 // Activity (for callback binding)
-                .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks
-                .build()
+                val options = PhoneAuthOptions.newBuilder(auth)
+                    .setPhoneNumber(fullPhoneNumber)       // Phone number to verify
+                    .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
+                    .setActivity(this)                 // Activity (for callback binding)
+                    .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks
+                    .build()
 
-            PhoneAuthProvider.verifyPhoneNumber(options)
+                PhoneAuthProvider.verifyPhoneNumber(options)
 
-            storedFullPhoneNumber = fullPhoneNumber
-//            verificationInProgress = true
+                storedFullPhoneNumber = fullPhoneNumber
+    //            verificationInProgress = true
+            }
         }
     }
 
@@ -157,12 +162,12 @@ class PhoneAuthStepOne : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d(PhoneAuthStepOne.TAG, "signInWithCredential:success")
+                    Log.d(TAG, "signInWithCredential:success")
 
                     startActivity(mainActivityIntent)
                     toast("Signin successfull: Verification code OK")
                 } else {
-                    Log.w(PhoneAuthStepOne.TAG, "signInWithCredential:failure", task.exception)
+                    Log.w(TAG, "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
                         toast("Signin fail: Verification code WRONG")
                     }
@@ -175,7 +180,7 @@ class PhoneAuthStepOne : AppCompatActivity() {
         const val TAG = "FirebasePhoneAuth"
         const val INTENT_VERIFICATION_ID = "FirebaseAuthVerificationId"
         const val INTENT_FULL_PHONE_NUMBER = "FirebaseFullPhoneNumber"
-        private const val KEY_VERIFY_IN_PROGRESS = "key_verify_in_progress"
+//        private const val KEY_VERIFY_IN_PROGRESS = "key_verify_in_progress"
     }
 }
 

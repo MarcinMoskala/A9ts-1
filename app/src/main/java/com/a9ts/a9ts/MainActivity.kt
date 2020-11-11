@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -14,28 +13,39 @@ import org.jetbrains.anko.toast
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var auth: FirebaseAuth
     lateinit var binding : ActivityMainBinding
+
+    private lateinit var auth: FirebaseAuth
     private lateinit var registerIntent: Intent
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        registerIntent = Intent(this, PhoneAuthStepOne::class.java)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        // -- check if logged in, if not -> redirect to PhoneAuthStepOne
+        registerIntent = Intent(this, PhoneAuthStepOne::class.java)
 
         auth = Firebase.auth
 
         if (auth.currentUser == null) {
             startActivity(registerIntent)
         } else {
-            val user = auth.currentUser?.phoneNumber.toString()
-            toast(user)
+            val phoneNumber = auth.currentUser?.phoneNumber.toString()
+            toast("User: $phoneNumber")
         }
+        // -- end of check
+
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+
     }
+
+
+
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)

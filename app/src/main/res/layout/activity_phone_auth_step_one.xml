@@ -23,13 +23,13 @@
             android:layout_marginStart="20dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="4dp"
+            android:hint="+421"
             android:inputType="phone"
             android:maxLength="4"
-            android:text="+421"
-            android:hint="+421"
+            android:text="+1"
 
 
-            android:textSize="24sp"
+            android:textSize="18dp"
             android:typeface="monospace"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -41,10 +41,11 @@
             android:layout_marginStart="4dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="20dp"
-            android:inputType="phone"
             android:hint="9XX XXX XXX"
-            android:textSize="24dp"
+            android:text="650-555-1234"
+            android:inputType="phone"
             android:maxLength="12"
+            android:textSize="18dp"
             android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
