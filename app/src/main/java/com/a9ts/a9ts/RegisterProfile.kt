@@ -39,21 +39,21 @@ class RegisterProfile : AppCompatActivity() {
         binding = ActivityRegisterProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.setTitle("Profile")
+        supportActionBar?.title = "Profile"
         binding.editTextYourName.requestFocus();
 
-        binding.buttonDone.setOnClickListener() {
+        binding.buttonDone.setOnClickListener {
             val fullName = binding.editTextYourName.text.toString().trim()
             if (fullName.isEmpty()) {
                 binding.editTextYourName.error = "Name is required"
                 binding.editTextYourName.requestFocus()
             } else {
-//                dbSaveFullName(fullName)
-                updateUserEmail(fullName)
+                dbSaveFullName(fullName)
+                //updateUserEmail(fullName)
             }
         }
 
-        //TODO ak uz ma profil tak rovno na Main ist. Tu by sa mal vyskytnut iba ked prvy krat overuje cislo a nema profil
+        //TODO if profile is filled, redirect to Main
     }
 
     private fun updateUserEmail(email: String) {
@@ -65,7 +65,7 @@ class RegisterProfile : AppCompatActivity() {
             }
     }
 
-    fun dbSaveFullName(fullName : String) {
+    private fun dbSaveFullName(fullName : String) {
 
         if (auth.currentUser == null) return;
 

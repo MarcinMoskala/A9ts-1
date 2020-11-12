@@ -10,9 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.A9ts">
         <activity android:name=".RegisterProfile" />
-        <activity android:name=".MainActivity" />
+        <activity android:name=".PhoneAuthStepTwo" />
         <activity android:name=".PhoneAuthStepOne" />
-        <activity android:name=".PhoneAuthStepTwo">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

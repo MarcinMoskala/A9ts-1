@@ -1,11 +1,8 @@
 package com.a9ts.a9ts
-
-import android.R
 import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
@@ -19,9 +16,9 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import org.jetbrains.anko.toast
 
+
 class PhoneAuthStepTwo : AppCompatActivity() {
     private lateinit var binding : ActivityPhoneAuthStepTwoBinding
-
     private lateinit var auth: FirebaseAuth
     private lateinit var registerProfileIntent: Intent
 
@@ -37,16 +34,13 @@ class PhoneAuthStepTwo : AppCompatActivity() {
             startActivity(phoneAuthStepOneIntent)
         }
 
-
         binding = ActivityPhoneAuthStepTwoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         auth = Firebase.auth
         registerProfileIntent = Intent(this, RegisterProfile::class.java)
 
-
-
-        supportActionBar?.setTitle(storedFullPhoneNumber)
+        supportActionBar?.title = storedFullPhoneNumber
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         binding.editTextVerificationCode.requestFocus()
@@ -55,7 +49,7 @@ class PhoneAuthStepTwo : AppCompatActivity() {
             val code = binding.editTextVerificationCode.text.toString()
 
             if (TextUtils.isEmpty(code)) {
-                binding.editTextVerificationCode.setError("Cannot be empty.")
+                binding.editTextVerificationCode.error = "Cannot be empty."
             } else {
                 verifyPhoneNumberWithCode(storedVerificationId, code)
             }
@@ -63,7 +57,7 @@ class PhoneAuthStepTwo : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.home -> {
                 showStopVerificationProcessDialog()
                 return true
@@ -77,18 +71,10 @@ class PhoneAuthStepTwo : AppCompatActivity() {
     }
 
 
-
     override fun onBackPressed() {
         showStopVerificationProcessDialog()
     }
 
-//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-//        if (keyCode == KeyEvent.KEYCODE_BACK) {
-//            showStopVerificationProcessDialog()
-//            return true
-//        }
-//        return super.onKeyDown(keyCode, event)
-//    }
 
     private fun showStopVerificationProcessDialog()
     {
@@ -104,10 +90,12 @@ class PhoneAuthStepTwo : AppCompatActivity() {
             .show()
     }
 
+
     private fun verifyPhoneNumberWithCode(verificationId: String?, code: String) {
         val credential = PhoneAuthProvider.getCredential(verificationId!!, code)
         signInWithPhoneAuthCredential(credential)
     }
+
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
         auth.signInWithCredential(credential)

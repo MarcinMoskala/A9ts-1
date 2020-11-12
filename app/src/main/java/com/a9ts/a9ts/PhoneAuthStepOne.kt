@@ -17,11 +17,7 @@ class PhoneAuthStepOne : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var binding : ActivityPhoneAuthStepOneBinding
 
-//    private var verificationInProgress = false
-    private var storedVerificationId: String = ""
-    private var storedFullPhoneNumber: String = ""
-
-//    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken //nerozumiem
+    private var storedFullPhoneNumber = ""
 
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var mainActivityIntent: Intent
@@ -50,16 +46,12 @@ class PhoneAuthStepOne : AppCompatActivity() {
                 startPhoneNumberVerification()
         }
 
-
-
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             //ked sa overi cislo samo, bez potreby zadavat sms kod
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 Log.d(TAG, "onVerificationCompleted:$credential")
 
-                //TODO zistit naco je verificationInProgress
-//                verificationInProgress = false
                 signInWithPhoneAuthCredential(credential)
             }
 
@@ -78,46 +70,13 @@ class PhoneAuthStepOne : AppCompatActivity() {
                 Log.d(TAG, "onCodeSent:$verificationId")
                 toast("SMS Code sent: $verificationId")
 
-                storedVerificationId = verificationId
-//              resendToken = token
-//              Asi resendToken vobec nepotrebujem
-
-                // TODO prejdi na Step 2 a posli mu vsetky potrebne premenne t.j. storedVerificationId a resendToken (mozno)
-                phoneAuthStepTwoIntent.putExtra(INTENT_VERIFICATION_ID, storedVerificationId)
+                phoneAuthStepTwoIntent.putExtra(INTENT_VERIFICATION_ID, verificationId)
                 phoneAuthStepTwoIntent.putExtra(INTENT_FULL_PHONE_NUMBER, storedFullPhoneNumber)
 
                 startActivity(phoneAuthStepTwoIntent)
             }
         }
     }
-
-
-//    override fun onStart() {
-//        super.onStart()
-//
-//        val currentUser = auth.currentUser
-//
-//        if (currentUser != null) {
-//            startActivity(mainActivityIntent)
-//            return
-//        }
-//
-//        if (verificationInProgress) {
-//            startPhoneNumberVerification()
-//        }
-//    }
-
-
-
-//    override fun onSaveInstanceState(outState: Bundle) {
-//        super.onSaveInstanceState(outState)
-//        outState.putBoolean(KEY_VERIFY_IN_PROGRESS, verificationInProgress)
-//    }
-//
-//    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-//        super.onRestoreInstanceState(savedInstanceState)
-//        verificationInProgress = savedInstanceState.getBoolean(KEY_VERIFY_IN_PROGRESS)
-//    }
 
     private fun startPhoneNumberVerification() {
         val phoneNumber = binding.editTextPhoneNumber.text.toString().trim()
@@ -139,9 +98,7 @@ class PhoneAuthStepOne : AppCompatActivity() {
                     fullPhoneNumber = "+$fullPhoneNumber"
                 }
 
-                //TODO remove toast
                 toast("Submitting $fullPhoneNumber")
-
 
                 val options = PhoneAuthOptions.newBuilder(auth)
                     .setPhoneNumber(fullPhoneNumber)       // Phone number to verify
@@ -153,7 +110,6 @@ class PhoneAuthStepOne : AppCompatActivity() {
                 PhoneAuthProvider.verifyPhoneNumber(options)
 
                 storedFullPhoneNumber = fullPhoneNumber
-    //            verificationInProgress = true
             }
         }
     }
@@ -180,7 +136,6 @@ class PhoneAuthStepOne : AppCompatActivity() {
         const val TAG = "FirebasePhoneAuth"
         const val INTENT_VERIFICATION_ID = "FirebaseAuthVerificationId"
         const val INTENT_FULL_PHONE_NUMBER = "FirebaseFullPhoneNumber"
-//        private const val KEY_VERIFY_IN_PROGRESS = "key_verify_in_progress"
     }
 }
 
