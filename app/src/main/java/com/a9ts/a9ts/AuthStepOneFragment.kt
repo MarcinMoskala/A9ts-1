@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.a9ts.a9ts.databinding.RegisterStepOneFragmentBinding
+import com.a9ts.a9ts.databinding.AuthStepOneFragmentBinding
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -18,15 +18,15 @@ import org.jetbrains.anko.toast
 import java.util.concurrent.TimeUnit
 
 
-class RegisterStepOneFragment() : Fragment() {
-    private lateinit var binding : RegisterStepOneFragmentBinding
+class AuthStepOneFragment() : Fragment() {
+    private lateinit var binding : AuthStepOneFragmentBinding
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
     private lateinit var parentActivity : Authentication
     private var storedFullPhoneNumber = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
-        binding = RegisterStepOneFragmentBinding.inflate(inflater, container, false)
+        binding = AuthStepOneFragmentBinding.inflate(inflater, container, false)
         binding.editTextPhoneNumber.requestFocus()
         binding.buttonGetSmsCode.setOnClickListener { startPhoneNumberVerification() }
 
@@ -60,7 +60,7 @@ class RegisterStepOneFragment() : Fragment() {
                 parentActivity.toast("SMS Code sent: ${verificationId}. Phone number: ${storedFullPhoneNumber}")
 
 
-                this@RegisterStepOneFragment.findNavController().navigate(RegisterStepOneFragmentDirections.actionRegisterStepOneFragmentToRegisterStepTwoFragment(verificationId, storedFullPhoneNumber))
+                this@AuthStepOneFragment.findNavController().navigate(AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(verificationId, storedFullPhoneNumber))
             }
         }
 

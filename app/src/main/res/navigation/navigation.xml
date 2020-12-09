@@ -5,21 +5,20 @@
     xmlns:tools="http://schemas.android.com/tools"
 
     android:id="@+id/navigation"
-    app:startDestination="@id/registerStepOneFragment">
+    app:startDestination="@id/authStepOneFragment">
 
     <fragment
-        android:id="@+id/registerStepOneFragment"
-        android:name="com.a9ts.a9ts.RegisterStepOneFragment"
-        tools:layout="@layout/register_step_one_fragment">
+        android:id="@+id/authStepOneFragment"
+        android:name="com.a9ts.a9ts.AuthStepOneFragment"
+        tools:layout="@layout/auth_step_one_fragment">
         <action
-            android:id="@+id/action_registerStepOneFragment_to_registerStepTwoFragment"
-            app:destination="@id/registerStepTwoFragment" />
+            android:id="@+id/action_authStepOneFragment_to_authStepTwoFragment"
+            app:destination="@id/authStepTwoFragment" />
     </fragment>
     <fragment
-        android:id="@+id/registerStepTwoFragment"
-        android:name="com.a9ts.a9ts.RegisterStepTwoFragment"
-        android:label="register_step_two_fragment"
-        tools:layout="@layout/register_step_two_fragment" >
+        android:id="@+id/authStepTwoFragment"
+        android:name="com.a9ts.a9ts.AuthStepTwoFragment"
+        tools:layout="@layout/auth_step_two_fragment">
         <argument
             android:name="verificationId"
             app:argType="string" />
@@ -27,18 +26,17 @@
             android:name="fullPhoneNumber"
             app:argType="string" />
         <action
-            android:id="@+id/action_registerStepTwoFragment_to_registerStepThreeFragment"
-            app:destination="@id/registerStepThreeFragment"
-            app:popUpTo="@id/registerStepOneFragment"
+            android:id="@+id/action_authStepTwoFragment_to_authStepThreeFragment"
+            app:destination="@id/authStepThreeFragment"
+            app:popUpTo="@id/authStepOneFragment"
             app:popUpToInclusive="false" />
         <action
-            android:id="@+id/action_registerStepTwoFragment_to_registerStepOneFragment"
-            app:destination="@id/registerStepOneFragment"
-            app:popUpTo="@id/registerStepOneFragment" />
+            android:id="@+id/action_authStepTwoFragment_to_authStepOneFragment"
+            app:destination="@id/authStepOneFragment"
+            app:popUpTo="@id/authStepOneFragment" />
     </fragment>
     <fragment
-        android:id="@+id/registerStepThreeFragment"
-        android:name="com.a9ts.a9ts.RegisterStepThreeFragment"
-        android:label="register_step_three_fragment"
-        tools:layout="@layout/register_step_three_fragment" />
+        android:id="@+id/authStepThreeFragment"
+        android:name="com.a9ts.a9ts.AuthStepThreeFragment"
+        tools:layout="@layout/auth_step_three_fragment" />
 </navigation>

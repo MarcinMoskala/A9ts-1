@@ -5,14 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.a9ts.a9ts.databinding.RegisterStepThreeFragmentBinding
+import com.a9ts.a9ts.databinding.AuthStepThreeFragmentBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import org.jetbrains.anko.toast
 
-class RegisterStepThreeFragment : Fragment() {
+class AuthStepThreeFragment : Fragment() {
     private lateinit var parentActivity: Authentication
-    private lateinit var binding: RegisterStepThreeFragmentBinding
+    private lateinit var binding: AuthStepThreeFragmentBinding
     private lateinit var firestore: FirebaseFirestore
 
     override fun onCreateView(
@@ -20,7 +20,7 @@ class RegisterStepThreeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = RegisterStepThreeFragmentBinding.inflate(inflater, container, false)
+        binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
 
         parentActivity = (activity as Authentication)
 

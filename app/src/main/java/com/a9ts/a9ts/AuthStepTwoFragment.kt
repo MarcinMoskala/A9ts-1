@@ -6,15 +6,15 @@ import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.a9ts.a9ts.databinding.RegisterStepTwoFragmentBinding
+import com.a9ts.a9ts.databinding.AuthStepTwoFragmentBinding
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 import org.jetbrains.anko.toast
 
 
-class RegisterStepTwoFragment : Fragment() {
-    private lateinit var binding: RegisterStepTwoFragmentBinding
+class AuthStepTwoFragment : Fragment() {
+    private lateinit var binding: AuthStepTwoFragmentBinding
     private lateinit var parentActivity: Authentication
 
     override fun onCreateView(
@@ -22,13 +22,13 @@ class RegisterStepTwoFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = RegisterStepTwoFragmentBinding.inflate(inflater, container, false)
+        binding = AuthStepTwoFragmentBinding.inflate(inflater, container, false)
         parentActivity = (activity as Authentication)
 
-        val args = RegisterStepTwoFragmentArgs.fromBundle(requireArguments())
+        val args = AuthStepTwoFragmentArgs.fromBundle(requireArguments())
 
         if (args.fullPhoneNumber.isEmpty() || args.verificationId.isEmpty()) {
-            this.findNavController().navigate(RegisterStepTwoFragmentDirections.actionRegisterStepTwoFragmentToRegisterStepOneFragment())
+            this.findNavController().navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepOneFragment())
         }
 
         parentActivity.supportActionBar?.title = args.fullPhoneNumber
@@ -62,7 +62,7 @@ class RegisterStepTwoFragment : Fragment() {
                 if (task.isSuccessful) {
                     Log.d(Authentication.TAG, "signInWithCredential:success")
 
-                    this.findNavController().navigate(RegisterStepTwoFragmentDirections.actionRegisterStepTwoFragmentToRegisterStepThreeFragment())
+                    this.findNavController().navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
 
                     parentActivity.toast("Signin successfull: Verification code OK")
                 } else {

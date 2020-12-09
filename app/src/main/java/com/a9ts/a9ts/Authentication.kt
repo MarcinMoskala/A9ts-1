@@ -5,9 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import com.a9ts.a9ts.databinding.AuthenticationBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -31,10 +28,6 @@ class Authentication : AppCompatActivity() {
         mainActivityIntent = Intent(this, MainActivity::class.java)
 
         if (auth.currentUser != null) {
-            //iba docasne, lebo tu ma byt redirect na Main Activity
-//            binding = AuthenticationBinding.inflate(layoutInflater)
-//            setContentView(binding.root)
-//            findNavController(R.id.myNavHostFragment).navigate(RegisterStepOneFragmentDirections.actionRegisterStepOneFragmentToRegisterStepThreeFragment())
             startActivity(mainActivityIntent)
         } else {
             binding = AuthenticationBinding.inflate(layoutInflater)
