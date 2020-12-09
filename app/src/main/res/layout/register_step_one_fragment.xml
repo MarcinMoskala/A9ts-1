@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:label="@string/your_phone"
-    >
-
+    tools:context=".RegisterStepOneFragment">
 
     <LinearLayout
         android:id="@+id/phone_number_linear_layout"
@@ -14,7 +12,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintTop_toTopOf="parent">
-
 
         <EditText
             android:id="@+id/editTextCountryCode"
@@ -42,9 +39,9 @@
             android:layout_marginTop="24dp"
             android:layout_marginEnd="20dp"
             android:hint="9XX XXX XXX"
-            android:text="650-555-1234"
             android:inputType="phone"
             android:maxLength="12"
+            android:text="650-555-1234"
             android:textSize="18dp"
             android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
@@ -74,9 +71,4 @@
         android:text="@string/get_sms_code"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewExplanation" />
-
-
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

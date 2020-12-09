@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/navigation"
+    app:startDestination="@id/registerStepOneFragment">
+
+    <fragment
+        android:id="@+id/registerStepOneFragment"
+        android:name="com.a9ts.a9ts.RegisterStepOneFragment"
+        tools:layout="@layout/register_step_one_fragment">
+        <action
+            android:id="@+id/action_registerStepOneFragment_to_registerStepTwoFragment"
+            app:destination="@id/registerStepTwoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerStepTwoFragment"
+        android:name="com.a9ts.a9ts.RegisterStepTwoFragment"
+        android:label="register_step_two_fragment"
+        tools:layout="@layout/register_step_two_fragment" >
+        <argument
+            android:name="verificationId"
+            app:argType="string" />
+        <argument
+            android:name="fullPhoneNumber"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_registerStepTwoFragment_to_registerStepThreeFragment"
+            app:destination="@id/registerStepThreeFragment"
+            app:popUpTo="@id/registerStepOneFragment"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_registerStepTwoFragment_to_registerStepOneFragment"
+            app:destination="@id/registerStepOneFragment"
+            app:popUpTo="@id/registerStepOneFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerStepThreeFragment"
+        android:name="com.a9ts.a9ts.RegisterStepThreeFragment"
+        android:label="register_step_three_fragment"
+        tools:layout="@layout/register_step_three_fragment" />
+</navigation>
