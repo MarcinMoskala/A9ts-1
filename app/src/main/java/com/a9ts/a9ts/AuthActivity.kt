@@ -5,16 +5,16 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.a9ts.a9ts.databinding.AuthenticationBinding
+import com.a9ts.a9ts.databinding.AuthBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import org.jetbrains.anko.toast
 
 
-class Authentication : AppCompatActivity() {
+class AuthActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var binding: AuthenticationBinding
+    private lateinit var binding: AuthBinding
     private lateinit var mainActivityIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +30,7 @@ class Authentication : AppCompatActivity() {
         if (auth.currentUser != null) {
             startActivity(mainActivityIntent)
         } else {
-            binding = AuthenticationBinding.inflate(layoutInflater)
+            binding = AuthBinding.inflate(layoutInflater)
             setContentView(binding.root)
 
             if (savedInstanceState != null) {
@@ -71,11 +71,11 @@ class Authentication : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d(Authentication.TAG, "signInWithCredential:success")
+                    Log.d(AuthActivity.TAG, "signInWithCredential:success")
                     startActivity(mainActivityIntent)
                     toast("Signin successfull: Verification code OK")
                 } else {
-                    Log.w(Authentication.TAG, "signInWithCredential:failure", task.exception)
+                    Log.w(AuthActivity.TAG, "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
                         toast("Signin fail: Verification code WRONG")
                     }

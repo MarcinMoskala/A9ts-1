@@ -1,4 +1,5 @@
-package com.a9ts.a9ts
+package com.a9ts.a9ts.auth
+
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -7,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.a9ts.a9ts.AuthActivity
+import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AuthStepOneFragmentBinding
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -19,18 +22,22 @@ import java.util.concurrent.TimeUnit
 
 
 class AuthStepOneFragment() : Fragment() {
-    private lateinit var binding : AuthStepOneFragmentBinding
+    private lateinit var binding: AuthStepOneFragmentBinding
     private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    private lateinit var parentActivity : Authentication
+    private lateinit var parentActivity: AuthActivity
     private var storedFullPhoneNumber = ""
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
         binding = AuthStepOneFragmentBinding.inflate(inflater, container, false)
         binding.editTextPhoneNumber.requestFocus()
         binding.buttonGetSmsCode.setOnClickListener { startPhoneNumberVerification() }
 
-        parentActivity = (activity as Authentication)
+        parentActivity = (activity as AuthActivity)
 
         parentActivity.supportActionBar?.title = "Your Phone"
         parentActivity.supportActionBar?.setDisplayHomeAsUpEnabled(false)
@@ -40,13 +47,13 @@ class AuthStepOneFragment() : Fragment() {
 
             //ked sa overi cislo samo, bez potreby zadavat sms kod
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                Log.d(Authentication.TAG, "onVerificationCompleted:$credential")
+                Log.d(AuthActivity.TAG, "onVerificationCompleted:$credential")
                 parentActivity.signInWithPhoneAuthCredential(credential)
             }
 
             //ked nevie poslat SMS kod, lebo je napr. zle telefonne cislo
             override fun onVerificationFailed(e: FirebaseException) {
-                Log.w(Authentication.TAG, "onVerificationFailed", e)
+                Log.w(AuthActivity.TAG, "onVerificationFailed", e)
                 if (e is FirebaseAuthInvalidCredentialsException) {
                     binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
                 } else if (e is FirebaseTooManyRequestsException) {
@@ -54,13 +61,21 @@ class AuthStepOneFragment() : Fragment() {
                 }
             }
 
-            override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                Log.d(Authentication.TAG, "onCodeSent:$verificationId")
+            override fun onCodeSent(
+                verificationId: String,
+                token: PhoneAuthProvider.ForceResendingToken
+            ) {
+                Log.d(AuthActivity.TAG, "onCodeSent:$verificationId")
 
                 parentActivity.toast("SMS Code sent: ${verificationId}. Phone number: ${storedFullPhoneNumber}")
 
 
-                this@AuthStepOneFragment.findNavController().navigate(AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(verificationId, storedFullPhoneNumber))
+                this@AuthStepOneFragment.findNavController().navigate(
+                    AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(
+                        verificationId,
+                        storedFullPhoneNumber
+                    )
+                )
             }
         }
 

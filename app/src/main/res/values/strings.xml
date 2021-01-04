@@ -6,4 +6,6 @@
     <string name="invalid_phone_number">Invalid phone number or country code.</string>
     <string name="quota_exceeded">SMS quota exceeded, try later.</string>
     <string name="enter_the_sms_code">Enter the 6-digit verification code.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

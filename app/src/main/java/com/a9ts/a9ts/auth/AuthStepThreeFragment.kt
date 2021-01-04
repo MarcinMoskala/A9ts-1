@@ -1,17 +1,19 @@
-package com.a9ts.a9ts
+package com.a9ts.a9ts.auth
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.a9ts.a9ts.AuthActivity
+import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AuthStepThreeFragmentBinding
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import org.jetbrains.anko.toast
 
 class AuthStepThreeFragment : Fragment() {
-    private lateinit var parentActivity: Authentication
+    private lateinit var parentActivity: AuthActivity
     private lateinit var binding: AuthStepThreeFragmentBinding
     private lateinit var firestore: FirebaseFirestore
 
@@ -22,7 +24,7 @@ class AuthStepThreeFragment : Fragment() {
     ): View {
         binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
 
-        parentActivity = (activity as Authentication)
+        parentActivity = (activity as AuthActivity)
 
 
         parentActivity.supportActionBar?.title = "Profile"
@@ -71,7 +73,11 @@ class AuthStepThreeFragment : Fragment() {
         val userId = parentActivity.getAuth().currentUser!!.uid
         firestore.collection(USERS).document(userId)
             .set(hashMapOf("name" to fullName))
-            .addOnSuccessListener { parentActivity.toast("DocumentSnapshot successfully written!") }
+            .addOnSuccessListener {
+                parentActivity.toast("DocumentSnapshot successfully written!")
+                val mainActivity = Intent(parentActivity, MainActivity::class.java)
+                startActivity(mainActivity)
+            }
             .addOnFailureListener { parentActivity.toast("Error writing document") }
     }
 

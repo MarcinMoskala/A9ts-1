@@ -9,7 +9,7 @@
 
     <fragment
         android:id="@+id/authStepOneFragment"
-        android:name="com.a9ts.a9ts.AuthStepOneFragment"
+        android:name="com.a9ts.a9ts.auth.AuthStepOneFragment"
         tools:layout="@layout/auth_step_one_fragment">
         <action
             android:id="@+id/action_authStepOneFragment_to_authStepTwoFragment"
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/authStepTwoFragment"
-        android:name="com.a9ts.a9ts.AuthStepTwoFragment"
+        android:name="com.a9ts.a9ts.auth.AuthStepTwoFragment"
         tools:layout="@layout/auth_step_two_fragment">
         <argument
             android:name="verificationId"
@@ -37,6 +37,6 @@
     </fragment>
     <fragment
         android:id="@+id/authStepThreeFragment"
-        android:name="com.a9ts.a9ts.AuthStepThreeFragment"
+        android:name="com.a9ts.a9ts.auth.AuthStepThreeFragment"
         tools:layout="@layout/auth_step_three_fragment" />
 </navigation>

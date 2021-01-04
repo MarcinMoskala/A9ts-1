@@ -1,11 +1,14 @@
-package com.a9ts.a9ts
+package com.a9ts.a9ts.auth
 
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.a9ts.a9ts.AuthActivity
 import com.a9ts.a9ts.databinding.AuthStepTwoFragmentBinding
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
@@ -15,7 +18,7 @@ import org.jetbrains.anko.toast
 
 class AuthStepTwoFragment : Fragment() {
     private lateinit var binding: AuthStepTwoFragmentBinding
-    private lateinit var parentActivity: Authentication
+    private lateinit var parentActivity: AuthActivity
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -23,12 +26,13 @@ class AuthStepTwoFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = AuthStepTwoFragmentBinding.inflate(inflater, container, false)
-        parentActivity = (activity as Authentication)
+        parentActivity = (activity as AuthActivity)
 
         val args = AuthStepTwoFragmentArgs.fromBundle(requireArguments())
 
         if (args.fullPhoneNumber.isEmpty() || args.verificationId.isEmpty()) {
-            this.findNavController().navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepOneFragment())
+            this.findNavController()
+                .navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepOneFragment())
         }
 
         parentActivity.supportActionBar?.title = args.fullPhoneNumber
@@ -60,13 +64,14 @@ class AuthStepTwoFragment : Fragment() {
         parentActivity.getAuth().signInWithCredential(credential)
             .addOnCompleteListener(parentActivity) { task ->
                 if (task.isSuccessful) {
-                    Log.d(Authentication.TAG, "signInWithCredential:success")
+                    Log.d(AuthActivity.TAG, "signInWithCredential:success")
 
-                    this.findNavController().navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
+                    this.findNavController()
+                        .navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
 
                     parentActivity.toast("Signin successfull: Verification code OK")
                 } else {
-                    Log.w(Authentication.TAG, "signInWithCredential:failure", task.exception)
+                    Log.w(AuthActivity.TAG, "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
                         binding.editTextVerificationCode.error = "Invalid code."
                         parentActivity.toast("Signin fail: Verification code WRONG")

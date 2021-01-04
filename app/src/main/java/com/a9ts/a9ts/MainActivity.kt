@@ -5,20 +5,20 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import com.a9ts.a9ts.databinding.ActivityMainBinding
+import com.a9ts.a9ts.databinding.MainBinding
 import com.google.firebase.auth.FirebaseAuth
 import org.jetbrains.anko.toast
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: MainBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var authIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        authIntent = Intent(this, Authentication::class.java)
+        authIntent = Intent(this, AuthActivity::class.java)
 
         auth = FirebaseAuth.getInstance()
 
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
             toast("User: $phoneNumber") // just for debug
         }
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = MainBinding.inflate(layoutInflater)
         setContentView(binding.root)
     }
 
