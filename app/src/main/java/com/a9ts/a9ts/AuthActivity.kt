@@ -1,34 +1,23 @@
 package com.a9ts.a9ts
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.AuthBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.PhoneAuthCredential
-import org.jetbrains.anko.toast
+import com.a9ts.a9ts.model.FirebaseAuthService
 
 
 class AuthActivity : AppCompatActivity() {
-    private lateinit var auth: FirebaseAuth
     private lateinit var binding: AuthBinding
-    private lateinit var mainActivityIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        auth = FirebaseAuth.getInstance()
 
-        //testing
-        auth.signOut()
-
-        mainActivityIntent = Intent(this, MainActivity::class.java)
-
-        if (auth.currentUser != null) {
-            startActivity(mainActivityIntent)
+        if (FirebaseAuthService.auth.currentUser != null) {
+            MainActivity.start(this)
         } else {
             binding = AuthBinding.inflate(layoutInflater)
             setContentView(binding.root)
@@ -44,6 +33,7 @@ class AuthActivity : AppCompatActivity() {
         return true
     }
 
+    //TODO ugly hack
     override fun onBackPressed() {
         if (supportActionBar?.title != "Your Phone") {
             showStopVerificationProcessDialog()
@@ -67,30 +57,13 @@ class AuthActivity : AppCompatActivity() {
             .show()
     }
 
-    internal fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    Log.d(AuthActivity.TAG, "signInWithCredential:success")
-                    startActivity(mainActivityIntent)
-                    toast("Signin successfull: Verification code OK")
-                } else {
-                    Log.w(AuthActivity.TAG, "signInWithCredential:failure", task.exception)
-                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
-                        toast("Signin fail: Verification code WRONG")
-                    }
-                }
-            }
-    }
-
-    internal fun getAuth(): FirebaseAuth {
-        return auth
-    }
 
     companion object {
-        const val TAG = "FirebasePhoneAuth"
-        const val INTENT_VERIFICATION_ID = "FirebaseAuthVerificationId"
-        const val INTENT_FULL_PHONE_NUMBER = "FirebaseFullPhoneNumber"
+        const val TAG = "AuthActivity"
+
+        fun start(activity: Activity) {
+            activity.startActivity(Intent(activity, AuthActivity::class.java))
+        }
     }
 }
 

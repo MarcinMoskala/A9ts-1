@@ -16,6 +16,4 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
-    <style name="Theme.A9ts.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-    <style name="Theme.A9ts.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

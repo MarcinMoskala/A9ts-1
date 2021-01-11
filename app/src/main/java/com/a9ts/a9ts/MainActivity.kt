@@ -1,32 +1,28 @@
 package com.a9ts.a9ts
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.MainBinding
-import com.google.firebase.auth.FirebaseAuth
+import com.a9ts.a9ts.model.FirebaseAuthService
 import org.jetbrains.anko.toast
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: MainBinding
-    private lateinit var auth: FirebaseAuth
-    private lateinit var authIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        authIntent = Intent(this, AuthActivity::class.java)
 
-        auth = FirebaseAuth.getInstance()
-
-        if (auth.currentUser == null) {
-            startActivity(authIntent)
-        } else {
-            val phoneNumber = auth.currentUser?.phoneNumber.toString()
-            toast("User: $phoneNumber") // just for debug
+        if (FirebaseAuthService.auth.currentUser == null) {
+            AuthActivity.start(this)
+        } else { // just to know if it works
+            val phoneNumber = FirebaseAuthService.auth.currentUser?.phoneNumber.toString()
+            toast("Welcome user: $phoneNumber")
         }
 
         binding = MainBinding.inflate(layoutInflater)
@@ -39,21 +35,22 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-
+    //adding Logout to menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                firebaseLogout()
+                FirebaseAuthService.auth.signOut()
+                AuthActivity.start(this)
                 return true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-
-    private fun firebaseLogout() {
-        auth.signOut()
-        startActivity(authIntent)
+    companion object {
+        fun start(activity: Activity) {
+            activity.startActivity(Intent(activity, MainActivity::class.java))
+        }
     }
 
 }

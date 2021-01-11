@@ -15,6 +15,7 @@
             android:id="@+id/action_authStepOneFragment_to_authStepTwoFragment"
             app:destination="@id/authStepTwoFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/authStepTwoFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepTwoFragment"

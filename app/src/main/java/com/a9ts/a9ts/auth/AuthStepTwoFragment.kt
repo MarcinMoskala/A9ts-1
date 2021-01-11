@@ -10,10 +10,10 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.a9ts.a9ts.AuthActivity
 import com.a9ts.a9ts.databinding.AuthStepTwoFragmentBinding
+import com.a9ts.a9ts.model.FirebaseAuthService
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
-import org.jetbrains.anko.toast
+import org.jetbrains.anko.support.v4.toast
 
 
 class AuthStepTwoFragment : Fragment() {
@@ -46,37 +46,27 @@ class AuthStepTwoFragment : Fragment() {
             if (TextUtils.isEmpty(code)) {
                 binding.editTextVerificationCode.error = "Cannot be empty."
             } else {
-                verifyPhoneNumberWithCode(args.verificationId, code)
+                val credential = PhoneAuthProvider.getCredential(args.verificationId!!, code)
+
+                FirebaseAuthService.signInWithPhoneAuthCredential(
+                    parentActivity,
+                    credential,
+                    onSuccess = {
+                        Log.d(AuthActivity.TAG, "signInWithCredential:success")
+                        this.findNavController()
+                            .navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
+                        toast("Signin successfull: Verification code OK")
+                    },
+                    onFailure = { exception ->
+                        Log.w(AuthActivity.TAG, "signInWithCredential:failure", exception)
+                        if (exception is FirebaseAuthInvalidCredentialsException) {
+                            binding.editTextVerificationCode.error = "Invalid code."
+                            toast("Signin fail: Verification code WRONG")
+                        }
+                    })
             }
         }
 
         return binding.root
-    }
-
-
-    private fun verifyPhoneNumberWithCode(verificationId: String?, code: String) {
-        val credential = PhoneAuthProvider.getCredential(verificationId!!, code)
-        signInWithPhoneAuthCredential(credential)
-    }
-
-
-    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
-        parentActivity.getAuth().signInWithCredential(credential)
-            .addOnCompleteListener(parentActivity) { task ->
-                if (task.isSuccessful) {
-                    Log.d(AuthActivity.TAG, "signInWithCredential:success")
-
-                    this.findNavController()
-                        .navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
-
-                    parentActivity.toast("Signin successfull: Verification code OK")
-                } else {
-                    Log.w(AuthActivity.TAG, "signInWithCredential:failure", task.exception)
-                    if (task.exception is FirebaseAuthInvalidCredentialsException) {
-                        binding.editTextVerificationCode.error = "Invalid code."
-                        parentActivity.toast("Signin fail: Verification code WRONG")
-                    }
-                }
-            }
     }
 }

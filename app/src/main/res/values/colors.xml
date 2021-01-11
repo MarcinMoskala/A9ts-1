@@ -3,24 +3,19 @@
 
 
     <color name="primaryColor">#3f51b5</color>
-    <color name="primaryLightColor">#757de8</color>
     <color name="primaryDarkColor">#002984</color>
     <!--color name="secondaryColor">#3f51b5</color>
     <color name="secondaryLightColor">#757de8</color>
     <color name="secondaryDarkColor">#002984</color-->
-    <color name="primaryTextColor">#ffffff</color>
-    <color name="secondaryTextColor">#ffffff</color>
 
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="bgGreen">#FF2FD7A2</color>
-    <color name="yesGreen">#FF36D000</color>
-    <color name="noRed">#FFF35800</color>
-    <color name="shadow">#44000055</color>
-    <color name="niceBlue">#FF428EFF</color>
-    <color name="grey">#FF999999</color>
+    <color name="bgGrey">#EEEEEE</color>
+    <color name="textDark">#DE000000</color>
+    <color name="textLight">#8A000000</color>
 
-<!--https://material.io/resources/color/#!/?view.left=0&view.right=1&primary.color=3f51b5&secondary.color=53b584-->
+
+    <!--https://material.io/resources/color/#!/?view.left=0&view.right=1&primary.color=3f51b5&secondary.color=53b584-->
 </resources>
