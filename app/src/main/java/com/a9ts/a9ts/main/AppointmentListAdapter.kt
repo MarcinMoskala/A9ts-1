@@ -7,20 +7,18 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.databinding.AppointmentItemBinding
+import timber.log.Timber
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 class AppointmentListAdapter(private val appointments:ArrayList<Appointment>) : RecyclerView.Adapter<AppointmentListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        Log.i("AppointmentListAdapter", "ViewHolderCreated")
-
         val binding = AppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            Log.i("AppointmentListAdapter", appointments[position].toString())
             holder.bind(appointments[position])
         }
 
@@ -41,7 +39,7 @@ class AppointmentListAdapter(private val appointments:ArrayList<Appointment>) : 
         }
 
         override fun onClick(v: View?) {
-            Log.i("MainActivity", "Click")
+            Timber.d("Click")
         }
 
     }

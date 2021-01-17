@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.a9ts.a9ts.AuthActivity
-import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AuthStepThreeFragmentBinding
 import com.a9ts.a9ts.model.FirebaseAuthService
 import com.a9ts.a9ts.model.FirestoreService
@@ -47,10 +45,11 @@ class AuthStepThreeFragment : Fragment() {
                 FirestoreService.saveUser(userId, fullName,
                     success = {
                         toast("DocumentSnapshot successfully written!")
-                        MainActivity.start(parentActivity)
+                        //TODO navigate to main fragment
+
                     },
                     failure = {exception ->
-                        toast("Error writing document: ${exception.toString()}")
+                        toast("Error writing document: ${exception.message}")
                     })
             }
         }

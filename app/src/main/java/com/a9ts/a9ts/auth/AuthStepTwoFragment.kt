@@ -2,7 +2,6 @@ package com.a9ts.a9ts.auth
 
 import android.os.Bundle
 import android.text.TextUtils
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +13,7 @@ import com.a9ts.a9ts.model.FirebaseAuthService
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthProvider
 import org.jetbrains.anko.support.v4.toast
+import timber.log.Timber
 
 
 class AuthStepTwoFragment : Fragment() {
@@ -52,13 +52,13 @@ class AuthStepTwoFragment : Fragment() {
                     parentActivity,
                     credential,
                     onSuccess = {
-                        Log.d(AuthActivity.TAG, "signInWithCredential:success")
+                        Timber.d("signInWithCredential:success")
                         this.findNavController()
                             .navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
                         toast("Signin successfull: Verification code OK")
                     },
                     onFailure = { exception ->
-                        Log.w(AuthActivity.TAG, "signInWithCredential:failure", exception)
+                        Timber.d("signInWithCredential:failure : ${exception.message}")
                         if (exception is FirebaseAuthInvalidCredentialsException) {
                             binding.editTextVerificationCode.error = "Invalid code."
                             toast("Signin fail: Verification code WRONG")

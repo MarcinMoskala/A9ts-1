@@ -2,14 +2,12 @@ package com.a9ts.a9ts.auth
 
 import android.os.Bundle
 import android.text.TextUtils
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.a9ts.a9ts.AuthActivity
-import com.a9ts.a9ts.AuthActivity.Companion.TAG
 import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AuthStepOneFragmentBinding
 import com.a9ts.a9ts.model.FirebaseAuthService
@@ -20,6 +18,7 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import org.jetbrains.anko.support.v4.toast
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
@@ -54,25 +53,22 @@ class AuthStepOneFragment() : Fragment() {
             // automatic authentication without telephone number
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
 
-                Log.d(TAG, "onVerificationCompleted:$credential")
+                Timber.d("onVerificationCompleted:$credential")
 
                 FirebaseAuthService.signInWithPhoneAuthCredential(
                     parentActivity, // not sure why I can't just use 'activity'
                     credential,
                     onSuccess = {
-                        Log.d(TAG, "onVerificationCompleted - Automatic sign in success.")
+                        Timber.d("onVerificationCompleted - Automatic sign in success.")
                     },
                     onFailure = { exception ->
-                        Log.d(
-                            TAG,
-                            "onVerificationCompleted - Automatic sign in failure: ${exception.message}"
-                        )
+                        Timber.d("onVerificationCompleted - Automatic sign in failure: ${exception.message}")
                     })
             }
 
             //SMS cant be sent
             override fun onVerificationFailed(e: FirebaseException) {
-                Log.w(TAG, "onVerificationFailed", e)
+                Timber.w("onVerificationFailed : ${e.message}")
                 if (e is FirebaseAuthInvalidCredentialsException) {
                     binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
                 } else if (e is FirebaseTooManyRequestsException) {
@@ -84,7 +80,7 @@ class AuthStepOneFragment() : Fragment() {
                 verificationId: String,
                 token: PhoneAuthProvider.ForceResendingToken
             ) {
-                Log.d(AuthActivity.TAG, "onCodeSent:$verificationId")
+                Timber.d("onCodeSent : $verificationId")
 
                 toast("SMS Code sent: ${verificationId}. Phone number: ${storedFullPhoneNumber}")
 

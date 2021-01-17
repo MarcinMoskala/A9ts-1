@@ -1,8 +1,8 @@
 package com.a9ts.a9ts
 
-import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.a9ts.a9ts.databinding.AuthBinding
@@ -10,22 +10,10 @@ import com.a9ts.a9ts.model.FirebaseAuthService
 
 
 class AuthActivity : AppCompatActivity() {
-    private lateinit var binding: AuthBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-        if (FirebaseAuthService.auth.currentUser != null) {
-            MainActivity.start(this)
-        } else {
-            binding = AuthBinding.inflate(layoutInflater)
-            setContentView(binding.root)
-
-            if (savedInstanceState != null) {
-                onRestoreInstanceState(savedInstanceState)
-            }
-        }
+        setContentView(AuthBinding.inflate(layoutInflater).root)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -57,12 +45,20 @@ class AuthActivity : AppCompatActivity() {
             .show()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
 
-    companion object {
-        const val TAG = "AuthActivity"
-
-        fun start(activity: Activity) {
-            activity.startActivity(Intent(activity, AuthActivity::class.java))
+    //adding Logout to menu
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_logout -> {
+                FirebaseAuthService.auth.signOut()
+                //TODO navigate to first step of AUTH
+                return true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
