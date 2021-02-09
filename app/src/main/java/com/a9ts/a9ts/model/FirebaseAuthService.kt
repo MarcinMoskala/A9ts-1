@@ -4,35 +4,61 @@ import android.app.Activity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 
-object FirebaseAuthService {
-    val auth = FirebaseAuth.getInstance()
-
+interface AuthService {
+    val authUserId: String
+    fun getUser(): User
     fun signInWithPhoneAuthCredential(
         activity: Activity,
         credential: PhoneAuthCredential,
         onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onFailure: (Exception?) -> Unit)
+
+    fun isLogged() : Boolean
+    fun signOut()
+    fun getAuth() : FirebaseAuth
+    fun getPhoneNumber() : String
+}
+
+class FirebaseAuthService : AuthService {
+    private val auth = FirebaseAuth.getInstance()
+    override val authUserId: String
+        get() = auth.uid.toString()
+
+    override fun signInWithPhoneAuthCredential(
+        activity: Activity,
+        credential: PhoneAuthCredential,
+        onSuccess: () -> Unit,
+        onFailure: (Exception?) -> Unit
     ) {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
                     onSuccess()
                 } else {
-                    onFailure(task.exception as Exception)
+                    onFailure(task.exception)
                 }
             }
     }
 
-    // not used currently
-    private fun updateUserEmail(email: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
-        auth.currentUser!!.updateEmail(email)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    onSuccess()
-                } else {
-                    onFailure()
-                }
-            }
+    override fun signOut() {
+        auth.signOut()
+        // TODO: read somewhere this is needed too, have to read more about it
+        // Auth.GoogleSignInApi.signOut(apiClient);
     }
 
+    override fun getAuth(): FirebaseAuth {
+        return auth
+    }
+
+    override fun getPhoneNumber(): String {
+        return auth.currentUser?.phoneNumber.toString()
+    }
+
+    override fun getUser(): User {
+        TODO("Not yet implemented")
+    }
+
+    override fun isLogged(): Boolean {
+        return auth.currentUser != null
+    }
 }

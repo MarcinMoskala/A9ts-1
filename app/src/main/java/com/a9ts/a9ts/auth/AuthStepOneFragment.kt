@@ -7,27 +7,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.a9ts.a9ts.AuthActivity
+import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AuthStepOneFragmentBinding
-import com.a9ts.a9ts.model.FirebaseAuthService
+import com.a9ts.a9ts.model.AuthService
+import com.a9ts.a9ts.toast
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
-import org.jetbrains.anko.support.v4.toast
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
-class AuthStepOneFragment() : Fragment() {
-    private lateinit var binding: AuthStepOneFragmentBinding
-    private lateinit var callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
 
-    // I don't like this here, seems off - but not sure how to do thing requiring activity in Fragments ohterwise
-    private lateinit var parentActivity: AuthActivity
+
+class AuthStepOneFragment : Fragment() {
+    val authService: AuthService by inject()
 
     private var storedFullPhoneNumber = ""
 
@@ -37,32 +36,29 @@ class AuthStepOneFragment() : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        binding = AuthStepOneFragmentBinding.inflate(inflater, container, false)
-        binding.editTextPhoneNumber.requestFocus()
-        binding.buttonGetSmsCode.setOnClickListener { startPhoneNumberVerification() }
+        val binding = AuthStepOneFragmentBinding.inflate(inflater, container, false)
 
-        parentActivity = (activity as AuthActivity)
+        (activity as MainActivity).apply {
+            supportActionBar?.title = "Your Phone"
+            supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        }
 
-        // not sure why I can't just use 'activity'
-        parentActivity.supportActionBar?.title = "Your Phone"
-        parentActivity.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-
-
-        callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             // automatic authentication without telephone number
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
 
                 Timber.d("onVerificationCompleted:$credential")
 
-                FirebaseAuthService.signInWithPhoneAuthCredential(
-                    parentActivity, // not sure why I can't just use 'activity'
+                authService.signInWithPhoneAuthCredential(
+                    requireActivity(),
                     credential,
                     onSuccess = {
                         Timber.d("onVerificationCompleted - Automatic sign in success.")
+                        activity?.invalidateOptionsMenu()
                     },
                     onFailure = { exception ->
-                        Timber.d("onVerificationCompleted - Automatic sign in failure: ${exception.message}")
+                        Timber.d("onVerificationCompleted - Automatic sign in failure: ${exception?.message}")
                     })
             }
 
@@ -72,20 +68,17 @@ class AuthStepOneFragment() : Fragment() {
                 if (e is FirebaseAuthInvalidCredentialsException) {
                     binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
                 } else if (e is FirebaseTooManyRequestsException) {
-                    toast(R.string.quota_exceeded)
+                    toast(getString(R.string.quota_exceeded))
                 }
+
+                binding.progressBar.visibility = View.INVISIBLE
+                binding.buttonGetSmsCode.isEnabled =  true
             }
 
-            override fun onCodeSent(
-                verificationId: String,
-                token: PhoneAuthProvider.ForceResendingToken
-            ) {
-                Timber.d("onCodeSent : $verificationId")
+            override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
+                toast("SMS code sent to: $storedFullPhoneNumber")
 
-                toast("SMS Code sent: ${verificationId}. Phone number: ${storedFullPhoneNumber}")
-
-
-                this@AuthStepOneFragment.findNavController().navigate(
+                findNavController().navigate(
                     AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(
                         verificationId,
                         storedFullPhoneNumber
@@ -94,10 +87,16 @@ class AuthStepOneFragment() : Fragment() {
             }
         }
 
+
+        binding.apply {
+            editTextPhoneNumber.requestFocus()
+            buttonGetSmsCode.setOnClickListener { startPhoneNumberVerification(this, callbacks) }
+        }
+
         return binding.root
     }
 
-    private fun startPhoneNumberVerification() {
+    private fun startPhoneNumberVerification(binding: AuthStepOneFragmentBinding, callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks) {
         val phoneNumber = binding.editTextPhoneNumber.text.toString().trim()
         val countryCode = binding.editTextCountryCode.text.toString().trim()
 
@@ -119,12 +118,15 @@ class AuthStepOneFragment() : Fragment() {
 
                 toast("Submitting $fullPhoneNumber")
 
-                val options = PhoneAuthOptions.newBuilder(FirebaseAuthService.auth)
-                    .setPhoneNumber(fullPhoneNumber)       // Phone number to verify
+                val options = PhoneAuthOptions.newBuilder(authService.getAuth())
+                    .setPhoneNumber(fullPhoneNumber)   // Phone number to verify
                     .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-                    .setActivity(parentActivity)                 // Activity (for callback binding)
-                    .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks
+                    .setActivity(requireActivity())    // Activity (for callback binding)
+                    .setCallbacks(callbacks)           // OnVerificationStateChangedCallbacks
                     .build()
+
+                binding.progressBar.visibility = View.VISIBLE
+                binding.buttonGetSmsCode.isEnabled =  false
 
                 storedFullPhoneNumber = fullPhoneNumber
 
@@ -133,6 +135,5 @@ class AuthStepOneFragment() : Fragment() {
             }
         }
     }
-
 
 }

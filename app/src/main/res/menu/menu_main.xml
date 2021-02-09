@@ -6,5 +6,25 @@
         android:id="@+id/action_logout"
         android:orderInCategory="100"
         android:title="Log out"
-        app:showAsAction="never" />
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_write_to_db"
+        android:orderInCategory="200"
+        android:title="Write all to db"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_about"
+        android:orderInCategory="300"
+        android:title="About Currrent User"
+        app:showAsAction="never"
+        />
+
+    <item
+        android:id="@+id/befriend_marcin_and_igor"
+        android:orderInCategory="300"
+        android:title="Befriend Marcin &amp; Igor"
+        app:showAsAction="never"
+        />
 </menu>

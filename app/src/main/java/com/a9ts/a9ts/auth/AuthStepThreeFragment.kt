@@ -5,34 +5,31 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.a9ts.a9ts.AuthActivity
+import androidx.navigation.fragment.findNavController
+import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AuthStepThreeFragmentBinding
-import com.a9ts.a9ts.model.FirebaseAuthService
-import com.a9ts.a9ts.model.FirestoreService
-import org.jetbrains.anko.support.v4.toast
+import com.a9ts.a9ts.model.AuthService
+import com.a9ts.a9ts.model.DatabaseService
+import com.a9ts.a9ts.model.User
+import com.a9ts.a9ts.toast
+import org.koin.android.ext.android.inject
 
 class AuthStepThreeFragment : Fragment() {
-    private lateinit var parentActivity: AuthActivity
-    private lateinit var binding: AuthStepThreeFragmentBinding
+    private val authService: AuthService by inject()
+    private val databaseService: DatabaseService by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
 
-        //not sure why the casting has to be here, but without it I can't do things
-        //like activity.supportAtionBar?.title etc...
-        //probably the whole thing should be done in a different way? Somewhere in the activity...
+        (activity as MainActivity).apply {
+            supportActionBar?.title = "Profile"
+        }
 
-        parentActivity = (activity as AuthActivity)
-
-        parentActivity.supportActionBar?.title = "Profile"
-        parentActivity.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
+        val binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
         binding.editTextYourName.requestFocus();
-
         binding.buttonDone.setOnClickListener {
             val fullName = binding.editTextYourName.text.toString().trim()
 
@@ -40,19 +37,22 @@ class AuthStepThreeFragment : Fragment() {
                 binding.editTextYourName.error = "Name is required"
                 binding.editTextYourName.requestFocus()
             } else {
-                val userId = FirebaseAuthService.auth.uid.toString()
-
-                FirestoreService.saveUser(userId, fullName,
+                databaseService.createUserProfile(
+                    User(authService.authUserId, fullName, authService.getPhoneNumber()),
                     success = {
-                        toast("DocumentSnapshot successfully written!")
-                        //TODO navigate to main fragment
+                        toast("Fullname: '$fullName' Tel.: ${authService.getPhoneNumber()}")
 
+                        val navController = findNavController()
+
+                        navController.navigate(AuthStepThreeFragmentDirections.actionAuthStepThreeFragmentToMainFragment())
                     },
-                    failure = {exception ->
+                    failure = { exception ->
                         toast("Error writing document: ${exception.message}")
-                    })
+                    }
+                )
             }
         }
+
         return binding.root
     }
 }

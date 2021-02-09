@@ -5,11 +5,12 @@
     xmlns:tools="http://schemas.android.com/tools"
 
     android:id="@+id/navigation"
-    app:startDestination="@id/authStepOneFragment">
+    app:startDestination="@id/mainFragment">
 
     <fragment
         android:id="@+id/authStepOneFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepOneFragment"
+        android:label="authStepOne"
         tools:layout="@layout/auth_step_one_fragment">
         <action
             android:id="@+id/action_authStepOneFragment_to_authStepTwoFragment"
@@ -19,6 +20,7 @@
     <fragment
         android:id="@+id/authStepTwoFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepTwoFragment"
+        android:label="authStepTwo"
         tools:layout="@layout/auth_step_two_fragment">
         <argument
             android:name="verificationId"
@@ -29,15 +31,34 @@
         <action
             android:id="@+id/action_authStepTwoFragment_to_authStepThreeFragment"
             app:destination="@id/authStepThreeFragment"
-            app:popUpTo="@id/authStepOneFragment"
-            app:popUpToInclusive="false" />
+            app:popUpTo="@id/authStepTwoFragment"
+            app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_authStepTwoFragment_to_authStepOneFragment"
-            app:destination="@id/authStepOneFragment"
-            app:popUpTo="@id/authStepOneFragment" />
+            android:id="@+id/action_authStepTwoFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/authStepOneFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/authStepThreeFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepThreeFragment"
-        tools:layout="@layout/auth_step_three_fragment" />
+        android:label="authStepThree"
+        tools:layout="@layout/auth_step_three_fragment">
+        <action
+            android:id="@+id/action_authStepThreeFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/authStepOneFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.a9ts.a9ts.main.MainFragment"
+        android:label="mainFragment"
+        tools:layout="@layout/main_fragment">
+        <action
+            android:id="@+id/action_mainFragment_to_authStepOneFragment"
+            app:destination="@id/authStepOneFragment"
+            app:popUpTo="@id/authStepOneFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>

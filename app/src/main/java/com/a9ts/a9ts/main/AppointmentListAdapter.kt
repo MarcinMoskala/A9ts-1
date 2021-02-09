@@ -11,11 +11,11 @@ import timber.log.Timber
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-class AppointmentListAdapter(private val appointments:ArrayList<Appointment>) : RecyclerView.Adapter<AppointmentListAdapter.ViewHolder>() {
+class AppointmentListAdapter(private val appointments:List<Appointment>) : RecyclerView.Adapter<AppointmentListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = AppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+        return AppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            .let(::ViewHolder)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -25,23 +25,24 @@ class AppointmentListAdapter(private val appointments:ArrayList<Appointment>) : 
 
     override fun getItemCount() = appointments.size
 
-    class ViewHolder(private val itemBinding : AppointmentItemBinding) : RecyclerView.ViewHolder(itemBinding.root), View.OnClickListener {
+    class ViewHolder(private val itemBinding : AppointmentItemBinding) : RecyclerView.ViewHolder(itemBinding.root) {
 
         fun bind(appointment: Appointment) {
-            itemBinding.fullname.text = appointment.inviteeName
-            itemBinding.description.text = appointment.description
-            itemBinding.date.text = appointment.dateAndTime.format(DateTimeFormatter.ofPattern("E dd LLL")).toString()
-            itemBinding.time.text = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).format(appointment.dateAndTime).toString()
+            itemBinding.apply {
+                fullname.text = appointment.inviteeName
+                description.text = appointment.description
+                date.text = appointment.dateAndTime.format(DateTimeFormatter.ofPattern("E dd LLL"))
+                        .toString()
+                time.text = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+                    .format(appointment.dateAndTime).toString()
+            }
         }
 
         init {
-            itemBinding.root.setOnClickListener(this)
+            itemBinding.root.setOnClickListener {
+                Timber.d("Click")
+            }
         }
-
-        override fun onClick(v: View?) {
-            Timber.d("Click")
-        }
-
     }
 
 }

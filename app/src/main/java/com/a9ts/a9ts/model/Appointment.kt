@@ -9,7 +9,6 @@ data class Appointment(
     //this is not the final model... just something to try the RecyclerView on
     //i'll have to check how the NoSQL Firestore works, and what the best model should be
 
-    var id: Long,
     var dateAndTime: LocalDateTime,
     var description: String,
     var invitorName: String,
