@@ -10,9 +10,10 @@ data class Appointment(
     //i'll have to check how the NoSQL Firestore works, and what the best model should be
 
     var dateAndTime: LocalDateTime,
-    var description: String,
     var invitorName: String,
     var inviteeName: String,
+    var invitorUserId: String,
+    var inviteedUserId: String,
 
     var created: LocalDateTime,
     var accepted: LocalDateTime?,

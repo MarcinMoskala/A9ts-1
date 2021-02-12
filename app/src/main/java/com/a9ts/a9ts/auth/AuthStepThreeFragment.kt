@@ -24,9 +24,7 @@ class AuthStepThreeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        (activity as MainActivity).apply {
-            supportActionBar?.title = "Profile"
-        }
+        (activity as MainActivity).supportActionBar?.title = "Profile"
 
         val binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
         binding.editTextYourName.requestFocus();

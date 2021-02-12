@@ -2,6 +2,7 @@ package com.a9ts.a9ts.model
 
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -16,13 +17,27 @@ interface DatabaseService {
 
     fun fillDatabaseWithData()
     fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
-    suspend fun makeFriends(user1: User, user2: User) : Boolean
+    suspend fun makeFriends(user1: User, user2: User): Boolean
 
-    suspend fun getUser(authUserId: String) : User?
+    suspend fun getUser(authUserId: String): User?
+    suspend fun getFriends(authUserId: String): List<User>
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
+
+
+    override suspend fun getFriends(authUserId: String): List<User> {
+        return try {
+            val friends = db.collection(USER_PROFILE).document(authUserId).collection(FRIEND)
+                .get()
+                .await()
+                .toObjects<User>()
+            return friends
+        } catch (e : java.lang.Exception) {
+            listOf<User>()
+        }
+    }
 
     override suspend fun getUser(authUserId: String): User? {
         return try {
@@ -35,19 +50,18 @@ class FirestoreService : DatabaseService {
         }
     }
 
-
-    override suspend fun makeFriends(user1: User, user2: User) : Boolean  {
+    override suspend fun makeFriends(user1: User, user2: User): Boolean {
         try {
             if (user1.authUserId != null && user2.authUserId != null) {
                 db.collection(USER_PROFILE).document(user1.authUserId).collection(FRIEND)
                     .document(user2.authUserId)
                     .set(user2)
-                    .await()
+                    .await() // can throw exception
 
                 db.collection(USER_PROFILE).document(user2.authUserId).collection(FRIEND)
                     .document(user1.authUserId)
                     .set(user1)
-                    .await()
+                    .await() // can throw exception
                 return true
             } else {
                 return false

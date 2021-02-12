@@ -3,7 +3,6 @@ package com.a9ts.a9ts.main
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,18 +18,6 @@ class MainFragment : Fragment() {
         ViewModelProvider(this).get(MainViewModel::class.java)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-
-        if (!viewModel.isLogged()) {
-            findNavController().apply {
-                popBackStack(R.id.mainFragment, true);
-                navigate(R.id.authStepOneFragment)
-            }
-        }
-
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -38,16 +25,23 @@ class MainFragment : Fragment() {
         val adapter = AppointmentListAdapter(AppointmentRepository.appointmentList)
         val binding = MainFragmentBinding.inflate(layoutInflater, container, false)
 
-        setHasOptionsMenu(true);
+        binding.viewModel = viewModel
 
-        binding.fab.setOnClickListener {
-            viewModel.createUserProfile()
-        }
+        setHasOptionsMenu(true)
 
-        viewModel.showUser.observe(viewLifecycleOwner, Observer { user ->
+
+        // just testing the ViewBinding
+        viewModel.showUser.observe(viewLifecycleOwner,  { user ->
             user?.let {
                 toast("Username is ${user.fullName}")
                 viewModel.showUserDone()
+            }
+        })
+
+        viewModel.fabClicked.observe(viewLifecycleOwner, {
+            if (it == true) {
+                findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment())
+                viewModel.fabClickedDone()
             }
         })
 
@@ -60,24 +54,22 @@ class MainFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        if (viewModel.isLogged()) {
             inflater.inflate(R.menu.menu_main, menu)
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_write_to_db -> {
-                viewModel.fillDatabaseWithData()
+                viewModel.onMenuWriteToDb()
                 return true
             }
             R.id.action_about -> {
-                viewModel.showUser()
+                viewModel.onMenuAbout()
                 return true
             }
 
             R.id.befriend_marcin_and_igor -> {
-                viewModel.befriendMarcinAndIgor()
+                viewModel.onMenuBefriendMarcinAndIgor()
                 return true
             }
 

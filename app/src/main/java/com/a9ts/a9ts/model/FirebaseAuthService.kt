@@ -13,7 +13,6 @@ interface AuthService {
         onSuccess: () -> Unit,
         onFailure: (Exception?) -> Unit)
 
-    fun isLogged() : Boolean
     fun signOut()
     fun getAuth() : FirebaseAuth
     fun getPhoneNumber() : String
@@ -56,9 +55,5 @@ class FirebaseAuthService : AuthService {
 
     override fun getUser(): User {
         TODO("Not yet implemented")
-    }
-
-    override fun isLogged(): Boolean {
-        return auth.currentUser != null
     }
 }

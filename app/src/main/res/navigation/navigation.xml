@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
 
     android:id="@+id/navigation"
-    app:startDestination="@id/mainFragment">
+    app:startDestination="@id/stepTwoFragment">
 
     <fragment
         android:id="@+id/authStepOneFragment"
@@ -60,5 +60,30 @@
             app:destination="@id/authStepOneFragment"
             app:popUpTo="@id/authStepOneFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_mainFragment_to_stepOneFragment"
+            app:destination="@id/stepOneFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/stepOneFragment"
+        android:name="com.a9ts.a9ts.addappointment.StepOneFragment"
+        android:label="StepOneFragment"
+        tools:layout="@layout/add_appointment_step_one_fragment">
+        <action
+            android:id="@+id/action_stepOneFragment_to_stepTwoFragment"
+            app:destination="@id/stepTwoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/stepTwoFragment"
+        android:name="com.a9ts.a9ts.addappointment.StepTwoFragment"
+        android:label="StepTwoFragment" >
+        <argument
+            android:name="friendUserId"
+            app:argType="string"
+            android:defaultValue="  QTIFcGvQSJXLpr4pah8iOhFATyx1 " />
+        <argument
+            android:name="friendFullName"
+            app:argType="string"
+            android:defaultValue="Igor Križko" />
     </fragment>
 </navigation>

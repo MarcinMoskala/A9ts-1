@@ -30,9 +30,8 @@ class AuthStepTwoFragment : Fragment() {
 
         val args = AuthStepTwoFragmentArgs.fromBundle(requireArguments())
 
-        (activity as MainActivity).apply {
-            supportActionBar?.title = args.fullPhoneNumber
-        }
+        (activity as MainActivity).supportActionBar?.title = args.fullPhoneNumber
+
 
         val binding = AuthStepTwoFragmentBinding.inflate(inflater, container, false)
 

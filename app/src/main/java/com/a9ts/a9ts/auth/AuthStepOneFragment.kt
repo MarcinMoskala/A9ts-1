@@ -38,10 +38,7 @@ class AuthStepOneFragment : Fragment() {
 
         val binding = AuthStepOneFragmentBinding.inflate(inflater, container, false)
 
-        (activity as MainActivity).apply {
-            supportActionBar?.title = "Your Phone"
-            supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        }
+        (activity as MainActivity).supportActionBar?.title = "Your Phone"
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
