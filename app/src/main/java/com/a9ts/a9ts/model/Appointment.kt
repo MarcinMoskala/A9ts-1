@@ -1,6 +1,7 @@
 package com.a9ts.a9ts.model
 
-import java.time.LocalDateTime
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.ServerTimestamp
 
 
 data class Appointment(
@@ -9,14 +10,14 @@ data class Appointment(
     //this is not the final model... just something to try the RecyclerView on
     //i'll have to check how the NoSQL Firestore works, and what the best model should be
 
-    var dateAndTime: LocalDateTime,
-    var invitorName: String,
-    var inviteeName: String,
-    var invitorUserId: String,
-    var inviteedUserId: String,
+    var dateAndTime: Timestamp? = null,
+    var invitorName: String? = null,
+    var inviteeName: String? = null,
+    var invitorUserId: String? = null,
+    var inviteeUserId: String? = null,
 
-    var created: LocalDateTime,
-    var accepted: LocalDateTime?,
-    var canceledByInvitor: LocalDateTime?,
-    var canceledByInvitee: LocalDateTime?
+    @ServerTimestamp var created: Timestamp? = null,
+    var accepted: Timestamp? = null,
+    var canceledByInvitor: Timestamp? = null,
+    var canceledByInvitee: Timestamp? = null
 )

@@ -22,7 +22,6 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-        val adapter = AppointmentListAdapter(AppointmentRepository.appointmentList)
         val binding = MainFragmentBinding.inflate(layoutInflater, container, false)
 
         binding.viewModel = viewModel
@@ -45,12 +44,14 @@ class MainFragment : Fragment() {
             }
         })
 
+        viewModel.myAppointments.observe(viewLifecycleOwner, {myAppointments ->
+            binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
-        return binding.run {
-            recyclerView.layoutManager = LinearLayoutManager(context)
-            recyclerView.adapter = adapter
-            root
-        }
+            //askmarcin I need the authUserId in the Adapter, but not sure how to pass it there correctly
+            binding.recyclerView.adapter = AppointmentListAdapter(myAppointments, viewModel.authUserId)
+        })
+
+        return binding.root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

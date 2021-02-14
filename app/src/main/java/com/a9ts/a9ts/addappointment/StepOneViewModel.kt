@@ -23,7 +23,7 @@ class StepOneViewModel : ViewModel(), KoinComponent {
 
 
     init {
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch {
             _myFriends.value =  databaseService.getFriends(authService.authUserId)
         }
     }

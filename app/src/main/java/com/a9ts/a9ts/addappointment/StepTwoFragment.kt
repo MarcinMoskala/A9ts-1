@@ -7,9 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AddAppointmentStepTwoFragmentBinding
+import com.a9ts.a9ts.toast
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
@@ -20,16 +22,12 @@ class StepTwoFragment: Fragment() {
     private val args: StepTwoFragmentArgs by navArgs()
 
 
-//    private val viewModel: StepTwoViewModel by lazy {
-//        ViewModelProvider(this).get(StepTwoViewModel::class.java)
-//    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         val binding = AddAppointmentStepTwoFragmentBinding.inflate(layoutInflater, container, false)
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = this //askmarcin still not sure when I need to set the lifecycleOwner
 
         (activity as MainActivity).supportActionBar?.title = "New appo"
 
@@ -76,6 +74,16 @@ class StepTwoFragment: Fragment() {
 
                 timePicker.show(childFragmentManager, "time_picker_fragment")
                 viewModel.onTimeClickedDone()
+            }
+        })
+
+        // ---- SUBMIT BUTTON ----------------------------------------------------------------------
+        viewModel.submitClicked.observe(viewLifecycleOwner, {submitClickedAndAppointmentSent ->
+            if (submitClickedAndAppointmentSent == true) {
+                toast("Appovation sent!")
+                findNavController().navigate(StepTwoFragmentDirections.actionStepTwoFragmentToMainFragment())
+            } else {
+                toast("Appovation failed. Try again.")
             }
         })
 

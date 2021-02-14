@@ -1,30 +1,44 @@
 package com.a9ts.a9ts.model
 
-import java.time.LocalDateTime
+import com.google.firebase.Timestamp
 
 object AppointmentRepository {
-    val appointmentList = listOf(
+    const val JULY_FIRST_NOON = 1625133600L
+
+    val sampleDataAppointmentList = listOf(
         Appointment(
-            dateAndTime = LocalDateTime.of(2021, 3, 16, 19, 10, 0),
+            dateAndTime = Timestamp(JULY_FIRST_NOON, 0),
             invitorName = "Robert Veres",
             inviteeName = "Igor Krizko",
             invitorUserId = "n2ay6sQbEjOhTQjnupktOou1RoI3",
-            inviteedUserId = "QTIFcGvQSJXLpr4pah8iOhFATyx1",
-            created = LocalDateTime.of(2021, 3, 4, 19, 0),
+            inviteeUserId = "QTIFcGvQSJXLpr4pah8iOhFATyx1",
+            created = null,
             accepted = null,
             canceledByInvitor = null,
             canceledByInvitee = null
         ),
         Appointment(
-            dateAndTime = LocalDateTime.of(2021, 3, 21, 12, 30, 0),
+            dateAndTime = Timestamp(JULY_FIRST_NOON + 3600 * 24, 0),
             invitorName = "Robert Veres",
             inviteeName = "Marcin Moskala",
             invitorUserId = "n2ay6sQbEjOhTQjnupktOou1RoI3",
-            inviteedUserId = "X8kEtA1z9BUMhMceRfeZJFpQqmJ2",
-            created = LocalDateTime.of(2021, 3, 3, 16, 0),
-            accepted = LocalDateTime.of(2021, 3, 3, 16, 32),
+            inviteeUserId = "X8kEtA1z9BUMhMceRfeZJFpQqmJ2",
+            created = Timestamp(JULY_FIRST_NOON - 3600 * 2, 0),
+            accepted = Timestamp(JULY_FIRST_NOON + 3600 * 27, 0),
+            canceledByInvitor = null,
+            canceledByInvitee = null
+        ),
+        Appointment(
+            dateAndTime = Timestamp(JULY_FIRST_NOON + 3600 * 24*6, 0),
+            invitorName = "Robert Veres",
+            inviteeName = "Marcin Moskala",
+            invitorUserId = "n2ay6sQbEjOhTQjnupktOou1RoI3",
+            inviteeUserId = "X8kEtA1z9BUMhMceRfeZJFpQqmJ2",
+            created = null,
+            accepted = Timestamp(JULY_FIRST_NOON + 3600 * 24*5,0),
             canceledByInvitor = null,
             canceledByInvitee = null
         )
     )
+
 }

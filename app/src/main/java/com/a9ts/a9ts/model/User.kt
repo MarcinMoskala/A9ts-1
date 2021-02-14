@@ -6,5 +6,4 @@ data class User (
     @DocumentId val authUserId: String? = null,
     var fullName: String? = null,
     val telephone: String? = null
-
 )
