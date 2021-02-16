@@ -97,6 +97,10 @@ class FirestoreService : DatabaseService {
                 .get()
                 .await()
                 .toObjects()
+
+          // TODO
+          // not accepted invitations where authUserId == inviteeUserId should be on top, order by created time desc
+          // rest should be under it order by DateTime asc
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun getAcceptedAppointments: {${e.message}")
             listOf()

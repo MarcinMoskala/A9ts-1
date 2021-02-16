@@ -8,7 +8,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.MainFragmentBinding
-import com.a9ts.a9ts.model.AppointmentRepository
 import com.a9ts.a9ts.toast
 
 class MainFragment : Fragment() {
@@ -30,7 +29,7 @@ class MainFragment : Fragment() {
 
 
         // just testing the ViewBinding
-        viewModel.showUser.observe(viewLifecycleOwner,  { user ->
+        viewModel.showUser.observe(viewLifecycleOwner, { user ->
             user?.let {
                 toast("Username is ${user.fullName}")
                 viewModel.showUserDone()
@@ -44,18 +43,19 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.myAppointments.observe(viewLifecycleOwner, {myAppointments ->
+        viewModel.myAppointments.observe(viewLifecycleOwner, { myAppointments ->
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
             //askmarcin I need the authUserId in the Adapter, but not sure how to pass it there correctly
-            binding.recyclerView.adapter = AppointmentListAdapter(myAppointments, viewModel.authUserId)
+            binding.recyclerView.adapter =
+                AppointmentListAdapter(myAppointments, viewModel.authUserId)
         })
 
         return binding.root
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-            inflater.inflate(R.menu.menu_main, menu)
+        inflater.inflate(R.menu.menu_main, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
