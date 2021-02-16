@@ -43,7 +43,7 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.myAppointments.observe(viewLifecycleOwner, { myAppointments ->
+        viewModel.notificationsAndAppointments.observe(viewLifecycleOwner, { myAppointments ->
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
             //askmarcin I need the authUserId in the Adapter, but not sure how to pass it there correctly
@@ -60,10 +60,7 @@ class MainFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_write_to_db -> {
-                viewModel.onMenuWriteToDb()
-                return true
-            }
+
             R.id.action_about -> {
                 viewModel.onMenuAbout()
                 return true

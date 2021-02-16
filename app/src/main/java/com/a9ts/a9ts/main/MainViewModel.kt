@@ -28,9 +28,9 @@ class MainViewModel : ViewModel(), KoinComponent {
     val fabClicked: LiveData<Boolean>
         get() = _fabClicked
 
-    private val _myAppointments = MutableLiveData<List<Appointment>>()
-    val myAppointments : LiveData<List<Appointment>>
-        get() = _myAppointments
+    private val _notificationsAndAppointments = MutableLiveData<List<Any>>()
+    val notificationsAndAppointments : LiveData<List<Any>>
+        get() = _notificationsAndAppointments
 
     fun fabClicked(view: View) {
         _fabClicked.value = true
@@ -50,19 +50,10 @@ class MainViewModel : ViewModel(), KoinComponent {
 
     init {
         viewModelScope.launch {
-            _myAppointments.value =  databaseService.getAppointmentList(authUserId)
+            _notificationsAndAppointments.value =  databaseService.getNotificationsAndAppointments(authUserId)
         }
     }
 
-    //Menu
-
-    fun onMenuWriteToDb() {
-        //askmarcin when can/should I use launch (Dispatchers.IO)?
-        //I keep getting "Cannot invoke setValue on a background thread"
-        viewModelScope.launch {
-            databaseService.addSampleAppointments()
-        }
-    }
 
     fun onMenuAbout() {
         viewModelScope.launch {

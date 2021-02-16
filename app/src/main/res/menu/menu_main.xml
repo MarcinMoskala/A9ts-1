@@ -9,14 +9,8 @@
         app:showAsAction="never"
         />
     <item
-        android:id="@+id/action_write_to_db"
-        android:orderInCategory="200"
-        android:title="Write all to db"
-        app:showAsAction="never"
-        />
-    <item
         android:id="@+id/action_about"
-        android:orderInCategory="300"
+        android:orderInCategory="200"
         android:title="About Currrent User"
         app:showAsAction="never"
         />

@@ -17,14 +17,12 @@ interface DatabaseService {
         failure: (Exception) -> Unit
     )
 
-    suspend fun addSampleAppointments()
     fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
     suspend fun makeFriends(user1: User, user2: User): Boolean
 
     suspend fun getUser(authUserId: String): User?
     suspend fun getFriends(authUserId: String): List<User>
-    suspend fun writeAppointment(appointment: Appointment) : Boolean
-    suspend fun getAppointmentList(authUserId: String): List<Appointment>?
+    suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>?
     suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds : Long) : Boolean
 
 }
@@ -45,13 +43,13 @@ class FirestoreService : DatabaseService {
             // get friendUserName
             // write Appointment
 
-            val authUserDoc = db.collection(USER_PROFILE).document(authUserId)
-            val friendUserDoc = db.collection(USER_PROFILE).document(friendUserId)
-            val authUserAppointment = db.collection(USER_PROFILE).document(authUserId).collection(
-                APPOINTMENT
+            val authUserDoc = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+            val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
+            val authUserAppointment = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(
+                COLLECTION_APPOINTMENT
             ).document()
-            val friendUserAppointment = db.collection(USER_PROFILE).document(friendUserId).collection(
-                APPOINTMENT
+            val friendUserNotification = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(
+                COLLECTION_NOTIFICATION
             ).document()
 
             // askmarcin How to read the documentation for runTransaction, still not sure what it does
@@ -73,7 +71,16 @@ class FirestoreService : DatabaseService {
                 )
 
                 transaction.set(authUserAppointment, appointment)
-                transaction.set(friendUserAppointment, appointment)
+
+                val notification = hashMapOf(
+                    "dateAndTime" to Timestamp(dateTimeInSeconds, 0),
+                    "notificationType" to NOTIFICATION_TYPE_INVITATION,
+                    "fullName" to authUserFullName,
+                    "authUserId" to authUserId,
+                    "appointmentId" to authUserAppointment.id
+                )
+
+                transaction.set(friendUserNotification, notification)
 
                 // Success askmarcin: not sure whay it should return null, took from an example
                 null
@@ -88,15 +95,22 @@ class FirestoreService : DatabaseService {
     }
 
 
-    // get all users appointments that are Accepted
-    // plus all users appointments where he's the invitor and are not Accepted yet
-    override suspend fun getAppointmentList(authUserId: String): List<Appointment> {
+    override suspend fun getNotificationsAndAppointments(authUserId: String): List<Any> {
         return try {
-            return db.collection(USER_PROFILE).document(authUserId)
-                .collection(APPOINTMENT)
+
+            val notifications : List<Notification> = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+                .collection(COLLECTION_NOTIFICATION)
                 .get()
                 .await()
                 .toObjects()
+
+            val appoinments : List<Appointment> = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+                .collection(COLLECTION_APPOINTMENT)
+                .get()
+                .await()
+                .toObjects()
+
+            return notifications + appoinments
 
           // TODO
           // not accepted invitations where authUserId == inviteeUserId should be on top, order by created time desc
@@ -109,7 +123,7 @@ class FirestoreService : DatabaseService {
 
     override suspend fun getFriends(authUserId: String): List<User> {
         return try {
-            return db.collection(USER_PROFILE).document(authUserId).collection(FRIEND)
+            return db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_FRIEND)
                 .get()
                 .await()
                 .toObjects()
@@ -121,7 +135,7 @@ class FirestoreService : DatabaseService {
 
     override suspend fun getUser(authUserId: String): User? {
         return try {
-            db.document("$USER_PROFILE/$authUserId")
+            db.document("$COLLECTION_USER_PROFILE/$authUserId")
                 .get()
                 .await()
                 .toObject<User>()
@@ -134,12 +148,12 @@ class FirestoreService : DatabaseService {
     override suspend fun makeFriends(user1: User, user2: User): Boolean {
         try {
             return if (user1.authUserId != null && user2.authUserId != null) {
-                db.collection(USER_PROFILE).document(user1.authUserId).collection(FRIEND)
+                db.collection(COLLECTION_USER_PROFILE).document(user1.authUserId).collection(COLLECTION_FRIEND)
                     .document(user2.authUserId)
                     .set(user2)
                     .await() // can throw exception
 
-                db.collection(USER_PROFILE).document(user2.authUserId).collection(FRIEND)
+                db.collection(COLLECTION_USER_PROFILE).document(user2.authUserId).collection(COLLECTION_FRIEND)
                     .document(user1.authUserId)
                     .set(user1)
                     .await() // can throw exception
@@ -154,7 +168,7 @@ class FirestoreService : DatabaseService {
     }
 
     override fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit) {
-        db.collection(USER_PROFILE).document(authUserId)
+        db.collection(COLLECTION_USER_PROFILE).document(authUserId)
             .get()
             .addOnSuccessListener { doc ->
                 if (doc?.get("fullName") != null) {
@@ -169,37 +183,12 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun writeAppointment(appointment: Appointment): Boolean {
-        try {
-            db.runBatch { batch ->
-                val inviteeAppointmentDoc =
-                    db.collection(USER_PROFILE).document(appointment.inviteeUserId!!)
-                        .collection(APPOINTMENT).document()
-                batch.set(inviteeAppointmentDoc, appointment)
-                val invitorAppointmentDoc =
-                    db.collection(USER_PROFILE).document(appointment.invitorUserId!!)
-                        .collection(APPOINTMENT).document()
-                batch.set(invitorAppointmentDoc, appointment)
-            }.await()
-            return true
-        } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun writeAppointment: {${e.message}")
-            return false
-        }
-    }
-
-    override suspend fun addSampleAppointments() {
-        for (appointment in AppointmentRepository.sampleDataAppointmentList) {
-            writeAppointment(appointment)
-        }
-    }
-
     override fun createUserProfile(
         user: User,
         success: () -> Unit,
         failure: (Exception) -> Unit
     ) {
-        db.collection(USER_PROFILE).document(user.authUserId!!)
+        db.collection(COLLECTION_USER_PROFILE).document(user.authUserId!!)
             .set(user)
             .addOnSuccessListener { success() }
             .addOnFailureListener(failure)
@@ -207,7 +196,10 @@ class FirestoreService : DatabaseService {
 }
 
 
-private const val USER_PROFILE = "user_profile"
-private const val APPOINTMENT = "appointment"
-private const val FRIEND = "friend"
+private const val COLLECTION_USER_PROFILE = "user_profile"
+private const val COLLECTION_APPOINTMENT = "appointment"
+private const val COLLECTION_NOTIFICATION = "notification"
+private const val COLLECTION_FRIEND = "friend"
+
+const val NOTIFICATION_TYPE_INVITATION =  "invitation"
 

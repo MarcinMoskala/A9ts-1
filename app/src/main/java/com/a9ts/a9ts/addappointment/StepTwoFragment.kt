@@ -82,8 +82,6 @@ class StepTwoFragment: Fragment() {
             if (submitClickedAndAppointmentSent == true) {
                 toast("Appovation sent!")
                 findNavController().navigate(StepTwoFragmentDirections.actionStepTwoFragmentToMainFragment())
-            } else {
-                toast("Appovation failed. Try again.")
             }
         })
 

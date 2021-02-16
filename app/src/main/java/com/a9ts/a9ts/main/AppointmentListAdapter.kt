@@ -8,11 +8,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.a9ts.a9ts.databinding.AppointmentItemBinding
 import com.a9ts.a9ts.databinding.NotificationItemBinding
 import com.a9ts.a9ts.model.Appointment
+import com.a9ts.a9ts.model.NOTIFICATION_TYPE_INVITATION
+import com.a9ts.a9ts.model.Notification
 import timber.log.Timber
 
 
 class AppointmentListAdapter(
-    private val appointments: List<Appointment>,
+    private val appointments: List<Any>,
     private val authUserId: String
 
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -32,21 +34,22 @@ class AppointmentListAdapter(
         }
     }
 
+
     override fun getItemViewType(position: Int): Int {
-        if (appointments[position].inviteeUserId == authUserId
-            && appointments[position].accepted == null) {
-            return NOTIFICATION
+        return if (appointments[position] is Notification) {
+            NOTIFICATION
         } else {
-            return APPOINTMENT
+            APPOINTMENT
         }
     }
+
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder.itemViewType) {
             APPOINTMENT ->
-                (holder as AppointmentViewHolder).bind(appointments[position], authUserId)
+                (holder as AppointmentViewHolder).bind(appointments[position] as Appointment, authUserId)
             NOTIFICATION ->
-                (holder as NotificationViewHolder).bind(appointments[position], authUserId)
+                (holder as NotificationViewHolder).bind(appointments[position] as Notification, authUserId)
         }
     }
 
@@ -56,16 +59,30 @@ class AppointmentListAdapter(
     class NotificationViewHolder(private val itemBinding: NotificationItemBinding) :
         RecyclerView.ViewHolder(itemBinding.root) {
 
-        fun bind(appointment: Appointment, authUserId: String) {
+        fun bind(notification: Notification, authUserId: String) {
             itemBinding.apply {
+                if (notification.notificationType == NOTIFICATION_TYPE_INVITATION) {
+                    itemBinding.headingTextView.text = "Invitation from " + notification.fullName
+                }
 
+                val date = notification.dateAndTime!!.toDate()
+
+                val dateText = DateFormat.format("E dd LLL", date).toString()
+                val timeText = DateFormat.format("HH:mm", date).toString()
+
+                itemBinding.dateTimeTextView.text = dateText.plus(" ").plus(timeText)
             }
         }
 
         init {
-            itemBinding.root.setOnClickListener {
-                Timber.d("Click")
+            itemBinding.yesButton.setOnClickListener {
+                Timber.d("Approve!")
             }
+
+            itemBinding.noButton.setOnClickListener {
+                Timber.d("Cancel!")
+            }
+
         }
     }
 
@@ -100,46 +117,6 @@ class AppointmentListAdapter(
 }
 
 
-//class AppointmentListAdapter(private val appointments:List<Appointment>, private val authUserId: String) : RecyclerView.Adapter<AppointmentListAdapter.ViewHolder>() {
-//
-//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-//        return AppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-//            .let(::ViewHolder)
-//    }
-//
-//    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-//            holder.bind(appointments[position], authUserId)
-//        }
-//
-//
-//    override fun getItemCount() = appointments.size
-//
-//    class ViewHolder(private val itemBinding : AppointmentItemBinding) : RecyclerView.ViewHolder(itemBinding.root) {
-//
-//        fun bind(appointment: Appointment, authUserId: String) {
-//            itemBinding.apply {
-//
-//                if (authUserId == appointment.inviteeUserId) {
-//                    fullname.text = appointment.invitorName
-//                } else {
-//                    fullname.text = appointment.inviteeName
-//                }
-//
-//                val date = appointment.dateAndTime!!.toDate()
-//
-//                dateTextView.text = DateFormat.format("E dd LLL",date)
-//                timeTextView.text = DateFormat.format("HH:mm",date)
-//                waitingToAcceptTextView.visibility = if (appointment.accepted == null) View.VISIBLE else View.GONE
-//            }
-//        }
-//
-//        init {
-//            itemBinding.root.setOnClickListener {
-//                Timber.d("Click")
-//            }
-//        }
-//    }
-//
-//}
+
 
 
