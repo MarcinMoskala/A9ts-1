@@ -77,6 +77,7 @@ class AppointmentListAdapter(
         init {
             itemBinding.yesButton.setOnClickListener {
                 Timber.d("Approve!")
+                //aksmarcin how to have here a ViewModel "onMethodXY" called?
             }
 
             itemBinding.noButton.setOnClickListener {

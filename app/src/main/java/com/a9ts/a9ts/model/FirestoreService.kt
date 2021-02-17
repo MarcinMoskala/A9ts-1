@@ -20,6 +20,7 @@ interface DatabaseService {
     fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
     suspend fun makeFriends(user1: User, user2: User): Boolean
 
+    suspend fun getUsers(firstCharacters : String? = null): List<User>?
     suspend fun getUser(authUserId: String): User?
     suspend fun getFriends(authUserId: String): List<User>
     suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>?
@@ -30,7 +31,38 @@ interface DatabaseService {
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
 
+    override suspend fun getUsers(firstCharacters: String?) : List<User>? {
+        try {
+            val users : List<User>
 
+            if (firstCharacters == null || firstCharacters.isEmpty()) {
+                users = db.collection(COLLECTION_USER_PROFILE)
+                    .get()
+                    .await()
+                    .toObjects()
+            } else {
+
+                val stringStart = firstCharacters.subSequence(0, firstCharacters.length - 1).toString()
+                val lastChar = firstCharacters.subSequence(firstCharacters.length - 1, firstCharacters.length).toString()
+
+                val stringEnd = stringStart.plus((lastChar.first().toInt() + 1).toChar());
+
+                Timber.d("stringEnd = $stringEnd")
+
+                users = db.collection(COLLECTION_USER_PROFILE)
+                    .whereGreaterThanOrEqualTo("fullName", firstCharacters)
+                    .whereLessThan("fullName", stringEnd)
+                    .get()
+                    .await()
+                    .toObjects()
+            }
+
+            return users
+        } catch  (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun sendAppointment: {${e.message}")
+            return null
+        }
+    }
 
     // askmarcin Not sure if this whole transaction is OK. This is how I understood it from docs...
     override suspend fun sendAppointment(

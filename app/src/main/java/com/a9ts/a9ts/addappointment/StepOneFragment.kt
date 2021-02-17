@@ -33,6 +33,16 @@ class StepOneFragment : Fragment() {
             }
         })
 
+        viewModel.addFriendsClicked.observe(viewLifecycleOwner, {addFriendsClicked ->
+            if (addFriendsClicked == true) {
+                findNavController().navigate(StepOneFragmentDirections.actionStepOneFragmentToAddFriendsFragment())
+                viewModel.onAddFriendsClickedDone()
+            }
+        })
+
+
+        binding.viewModel = viewModel
+
         return binding.run {
             recyclerView.layoutManager = LinearLayoutManager(context)
             root

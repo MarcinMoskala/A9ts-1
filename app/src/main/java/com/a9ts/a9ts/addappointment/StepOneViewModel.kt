@@ -20,7 +20,19 @@ class StepOneViewModel : ViewModel(), KoinComponent {
     val myFriends : LiveData<List<User>>
         get() = _myFriends
 
+    private val _addFriendsClicked = MutableLiveData<Boolean>()
+    val addFriendsClicked : LiveData<Boolean>
+        get() = _addFriendsClicked
 
+
+
+    fun onAddFriendsClickedDone() {
+        _addFriendsClicked.value = false
+    }
+
+    fun onAddFriendsClicked() {
+        _addFriendsClicked.value = true
+    }
 
     init {
         viewModelScope.launch {

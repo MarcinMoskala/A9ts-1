@@ -87,7 +87,7 @@ package com.a9ts.a9ts.main
 //// That is the same as
 //
 //fun showAppointmentInfo(appointmentInfo: AppointmentInfo) {
-//    var itemAdapters = listOf<ItemAdapter>()
+//    val itemAdapters = mutableListOf<ItemAdapter>()
 //    for (rejectedAppointment in appointmentInfo.rejectedAppointments) {
 //        itemAdapters += AppointmentRejectedInfoItemAdapter(rejectedAppointment)
 //    }

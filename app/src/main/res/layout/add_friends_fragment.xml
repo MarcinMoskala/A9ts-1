@@ -5,9 +5,6 @@
 
     <data>
 
-        <variable
-            name="viewModel"
-            type="com.a9ts.a9ts.addappointment.StepOneViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -16,16 +13,25 @@
         android:background="@color/bgGrey"
         tools:context="addappointment.AddAppointmentStepOneFragment">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/addNewFriendsButton"
-            android:layout_width="wrap_content"
+        <EditText
+            android:id="@+id/searchNameEditText"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:onClick="@{() -> viewModel.onAddFriendsClicked()}"
-            android:text="Add new friends"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="20dp"
+            android:hint="Start typing name..."
+            android:inputType="textPersonName|textCapWords"
+            android:maxLength="12"
+            android:textSize="18dp"
+            android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:textColor="@color/textDark"
+            android:textColorHint="@color/textLight"
+            android:backgroundTint="@color/textDark"
+
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,21 +39,22 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
-            android:background="@color/black"
-            android:paddingTop="1dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/addNewFriendsButton">
+            app:layout_constraintTop_toBottomOf="@id/searchNameEditText"
+            android:background="@color/black"
+            android:paddingTop="1dp">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:itemCount="4"
                 tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/appointment_item"
+                tools:listitem="@layout/add_friends_item"
+                tools:itemCount="4"
                 tools:orientation="vertical"
-                tools:scrollbars="vertical" />
+                tools:scrollbars="vertical"
+                />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

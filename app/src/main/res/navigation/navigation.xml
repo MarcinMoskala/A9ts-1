@@ -72,6 +72,9 @@
         <action
             android:id="@+id/action_stepOneFragment_to_stepTwoFragment"
             app:destination="@id/stepTwoFragment" />
+        <action
+            android:id="@+id/action_stepOneFragment_to_addFriendsFragment"
+            app:destination="@id/addFriendsFragment" />
     </fragment>
     <fragment
         android:id="@+id/stepTwoFragment"
@@ -91,4 +94,9 @@
             app:popUpTo="@id/mainFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <fragment
+        android:id="@+id/addFriendsFragment"
+        android:name="com.a9ts.a9ts.addfriends.AddFriendsFragment"
+        android:label="AddFriendsFragment"
+        tools:layout="@layout/add_friends_fragment"/>
 </navigation>
