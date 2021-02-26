@@ -65,7 +65,7 @@ class AuthStepOneFragment : Fragment() {
                 if (e is FirebaseAuthInvalidCredentialsException) {
                     binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
                 } else if (e is FirebaseTooManyRequestsException) {
-                    toast(getString(R.string.quota_exceeded))
+                    Timber.d(getString(R.string.quota_exceeded))
                 }
 
                 binding.progressBar.visibility = View.INVISIBLE

@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.a9ts.a9ts.MainActivity
+import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AddAppointmentStepOneFragmentBinding
 import com.a9ts.a9ts.toast
 
@@ -25,15 +27,26 @@ class StepOneFragment : Fragment() {
 
         (activity as MainActivity).supportActionBar?.title = "Appointment with..."
 
-        viewModel.myFriends.observe(viewLifecycleOwner, {friendsList ->
+        viewModel.myFriends.observe(viewLifecycleOwner, { friendsList ->
             if (friendsList.isNotEmpty()) {
-                binding.recyclerView.adapter = FriendListAdapter(friendsList, { friendUserId, friendFullname ->
-                    findNavController().navigate(StepOneFragmentDirections.actionStepOneFragmentToStepTwoFragment(friendUserId, friendFullname))
-                })
+                binding.recyclerView.adapter = FriendListAdapter(
+                    friendsList,
+                    onClick = { friendUserId, friendFullname ->
+                        findNavController().navigate(StepOneFragmentDirections.actionStepOneFragmentToStepTwoFragment(friendUserId, friendFullname))
+                    },
+                    onClickInvited = { friendFullName ->
+                        AlertDialog.Builder(requireContext())
+                            .setMessage("$friendFullName haven't accepted your invitation yet 🙁.")
+                            .setPositiveButton("Okey") { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .create()
+                            .show()
+                    })
             }
         })
 
-        viewModel.addFriendsClicked.observe(viewLifecycleOwner, {addFriendsClicked ->
+        viewModel.addFriendsClicked.observe(viewLifecycleOwner, { addFriendsClicked ->
             if (addFriendsClicked == true) {
                 findNavController().navigate(StepOneFragmentDirections.actionStepOneFragmentToAddFriendsFragment())
                 viewModel.onAddFriendsClickedDone()

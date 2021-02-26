@@ -4,11 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.a9ts.a9ts.databinding.AddFriendsItemBinding
-import com.a9ts.a9ts.databinding.FriendsItemBinding
-import com.a9ts.a9ts.model.User
+import com.a9ts.a9ts.model.Friend
 
-class AddFriendsListAdapter (private val userList:List<User>
-//, val onClick: (friendUserId: String, friendFullName: String) -> Unit
+class AddFriendsListAdapter(private var friendList: List<Friend> = listOf(), private val onClick: (userId : String, position: Int) -> Unit
 ) : RecyclerView.Adapter<AddFriendsListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -17,19 +15,32 @@ class AddFriendsListAdapter (private val userList:List<User>
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(userList[position])
-//        holder.itemView.setOnClickListener { onClick(userList[position].authUserId!!, userList[position].fullName!!) }
-
+        holder.bind(friendList[position], position, onClick)
     }
 
+    fun updateList(newList : List<Friend>) {
+        friendList = newList
+        notifyDataSetChanged()
+    }
 
-    override fun getItemCount() = userList.size
+    override fun getItemCount() = friendList.size
+
+    fun setButtonToSent(viewHolderPosition: Int) {
+        friendList[viewHolderPosition].state = Friend.STATUS_I_INVITED
+        notifyItemChanged(viewHolderPosition)
+    }
 
     class ViewHolder(private val itemBinding : AddFriendsItemBinding) : RecyclerView.ViewHolder(itemBinding.root) {
 
-        fun bind(user: User) {
+        fun bind(friend : Friend, position: Int, onClick: (userId : String, position: Int) -> Unit) {
             itemBinding.apply {
-                fullname.text = user.fullName
+                fullname.text = friend.fullName
+
+                if (friend.state == Friend.STATUS_I_INVITED) {
+                    button.text = "Invited"
+                    button.isEnabled = false
+                }
+                button.setOnClickListener { onClick(friend.authUserId!!, position) } //send userId
             }
         }
     }

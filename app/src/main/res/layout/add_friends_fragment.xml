@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
+        <variable
+            name="viewModel"
+            type="com.a9ts.a9ts.addfriends.AddFriendsViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -13,17 +15,18 @@
         android:background="@color/bgGrey"
         tools:context="addappointment.AddAppointmentStepOneFragment">
 
+        <!-- askmarcin: is this @dimen/max_fullname_length a good idea? -->
         <EditText
             android:id="@+id/searchNameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="4dp"
             android:hint="Start typing name..."
             android:inputType="textPersonName|textCapWords"
-            android:maxLength="12"
-            android:textSize="18dp"
+            android:maxLength= "@string/max_fullname_length"
+            android:textSize="18sp"
             android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -34,6 +37,7 @@
             />
 
         <LinearLayout
+            android:id="@+id/linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -43,7 +47,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/searchNameEditText"
             android:background="@color/black"
-            android:paddingTop="1dp">
+            android:paddingTop="@{viewModel.hasResults ? @dimen/one_dp : 0}">
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"

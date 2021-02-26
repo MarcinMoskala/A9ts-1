@@ -6,38 +6,46 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.a9ts.a9ts.databinding.AppointmentItemBinding
-import com.a9ts.a9ts.databinding.NotificationItemBinding
+import com.a9ts.a9ts.databinding.NotificationFriendInvitationItemBinding
+import com.a9ts.a9ts.databinding.NotificationNewAppointmentItemBinding
 import com.a9ts.a9ts.model.Appointment
-import com.a9ts.a9ts.model.NOTIFICATION_TYPE_INVITATION
 import com.a9ts.a9ts.model.Notification
 import timber.log.Timber
 
 
 class AppointmentListAdapter(
-    private val appointments: List<Any>,
+    private val notificationsAndAppointments: List<Any>,
     private val authUserId: String
 
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         const val APPOINTMENT = 1
-        const val NOTIFICATION = 2
+        const val NOTIFICATION_NEW_APPOINTMENT = 2
+        const val NOTIFICATION_FRIEND_INVITATION = 3
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             APPOINTMENT -> AppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
                 .let(::AppointmentViewHolder)
-            NOTIFICATION -> NotificationItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                .let(::NotificationViewHolder)
+            NOTIFICATION_NEW_APPOINTMENT -> NotificationNewAppointmentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                .let(::NotificationNewAppointmentViewHolder)
+            NOTIFICATION_FRIEND_INVITATION -> NotificationFriendInvitationItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                .let(::NotificationFriendInvitationViewHolder)
             else -> throw IllegalArgumentException("Unexpected ViewHolderType")
         }
     }
 
 
     override fun getItemViewType(position: Int): Int {
-        return if (appointments[position] is Notification) {
-            NOTIFICATION
+        return if (notificationsAndAppointments[position] is Notification) {
+            val notification = notificationsAndAppointments[position] as Notification
+            when (notification.notificationType) {
+                Notification.TYPE_APP_INVITATION -> NOTIFICATION_NEW_APPOINTMENT
+                Notification.TYPE_FRIEND_INVITATION -> NOTIFICATION_FRIEND_INVITATION
+                else -> error("Inpossible")
+            }
         } else {
             APPOINTMENT
         }
@@ -47,23 +55,23 @@ class AppointmentListAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder.itemViewType) {
             APPOINTMENT ->
-                (holder as AppointmentViewHolder).bind(appointments[position] as Appointment, authUserId)
-            NOTIFICATION ->
-                (holder as NotificationViewHolder).bind(appointments[position] as Notification, authUserId)
+                (holder as AppointmentViewHolder).bind(notificationsAndAppointments[position] as Appointment, authUserId)
+            NOTIFICATION_NEW_APPOINTMENT ->
+                (holder as NotificationNewAppointmentViewHolder).bind(notificationsAndAppointments[position] as Notification, authUserId)
+            NOTIFICATION_FRIEND_INVITATION ->
+                (holder as NotificationFriendInvitationViewHolder).bind(notificationsAndAppointments[position] as Notification, authUserId)
         }
     }
 
 
-    override fun getItemCount() = appointments.size
+    override fun getItemCount() = notificationsAndAppointments.size
 
-    class NotificationViewHolder(private val itemBinding: NotificationItemBinding) :
+    class NotificationNewAppointmentViewHolder(private val itemBinding: NotificationNewAppointmentItemBinding) :
         RecyclerView.ViewHolder(itemBinding.root) {
 
         fun bind(notification: Notification, authUserId: String) {
             itemBinding.apply {
-                if (notification.notificationType == NOTIFICATION_TYPE_INVITATION) {
-                    itemBinding.headingTextView.text = "Invitation from " + notification.fullName
-                }
+                itemBinding.headingTextView.text = "Appointment invitation from: " + notification.fullName
 
                 val date = notification.dateAndTime!!.toDate()
 
@@ -71,6 +79,28 @@ class AppointmentListAdapter(
                 val timeText = DateFormat.format("HH:mm", date).toString()
 
                 itemBinding.dateTimeTextView.text = dateText.plus(" ").plus(timeText)
+            }
+        }
+
+        init {
+            itemBinding.yesButton.setOnClickListener {
+                Timber.d("Approve!")
+                //aksmarcin how to have here a ViewModel "onMethodXY" called?
+            }
+
+            itemBinding.noButton.setOnClickListener {
+                Timber.d("Cancel!")
+            }
+
+        }
+    }
+
+    class NotificationFriendInvitationViewHolder(private val itemBinding: NotificationFriendInvitationItemBinding) :
+        RecyclerView.ViewHolder(itemBinding.root) {
+
+        fun bind(notification: Notification, authUserId: String) {
+            itemBinding.apply {
+                itemBinding.headingTextView.text = "Friend invitation from: " + notification.fullName
             }
         }
 

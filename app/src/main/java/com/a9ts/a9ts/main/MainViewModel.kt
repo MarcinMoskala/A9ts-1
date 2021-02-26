@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.User
@@ -19,6 +18,17 @@ class MainViewModel : ViewModel(), KoinComponent {
 
 
     val authUserId = authService.authUserId
+
+
+    private val _friendNotificationAccepted = MutableLiveData<Int?>()
+    val friendNotificationAccepted: LiveData<Int?>
+        get() = _friendNotificationAccepted
+
+
+    private val _notLoggedEvent = MutableLiveData<Unit>()
+    val notLoggedEvent: LiveData<Unit>
+        get() = _notLoggedEvent
+
 
     private val _showUser = MutableLiveData<User>()
     val showUser: LiveData<User>
@@ -45,10 +55,11 @@ class MainViewModel : ViewModel(), KoinComponent {
     }
 
 
-
-
-
     init {
+        if (authUserId == "null") {
+            _notLoggedEvent.value = Unit
+        }
+
         viewModelScope.launch {
             _notificationsAndAppointments.value =  databaseService.getNotificationsAndAppointments(authUserId)
         }
@@ -57,27 +68,33 @@ class MainViewModel : ViewModel(), KoinComponent {
 
     fun onMenuAbout() {
         viewModelScope.launch {
-            _showUser.value = databaseService.getUser(authService.authUserId)
-        }
-    }
+            val user = databaseService.getUser(authService.authUserId)
 
-    fun onMenuBefriendMarcinAndIgor() {
-        viewModelScope.launch {
-            val currentUser = databaseService.getUser(authService.authUserId)
-            val marcinUser = databaseService.getUser("X8kEtA1z9BUMhMceRfeZJFpQqmJ2")
-            val igorUser = databaseService.getUser("QTIFcGvQSJXLpr4pah8iOhFATyx1")
-
-
-            currentUser?.let {
-                marcinUser?.let {
-                    databaseService.makeFriends(currentUser, marcinUser)
-                }
-                igorUser?.let {
-                    databaseService.makeFriends(currentUser, igorUser)
-                }
-
+            if (user != null) {
+                _showUser.value = user
+            } else if (authService.authUserId != "null") {
+                _showUser.value = User(authService.authUserId, "No name", authService.getPhoneNumber())
             }
         }
     }
 
+
+    fun onFriendNotificationAccepted(itemPosition: Int, authUserId: String?) {
+        viewModelScope.launch {
+            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId!!))
+            {
+                _friendNotificationAccepted.value = itemPosition
+            }
+        }
+    }
+
+    fun onFriendNotificationAcceptedDone() {
+        _friendNotificationAccepted.value = null
+    }
+
+
+
+    fun onFriendNotificationRejected(itemPosition: Int, authUserId: String?) {
+        TODO("Not yet implemented")
+    }
 }

@@ -15,6 +15,8 @@ import com.a9ts.a9ts.toast
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
+import timber.log.Timber
+import java.time.*
 import java.util.*
 
 class StepTwoFragment: Fragment() {
@@ -27,7 +29,7 @@ class StepTwoFragment: Fragment() {
     ): View {
 
         val binding = AddAppointmentStepTwoFragmentBinding.inflate(layoutInflater, container, false)
-        binding.lifecycleOwner = this //askmarcin still not sure when I need to set the lifecycleOwner
+        binding.lifecycleOwner = this //DONE askmarcin still not sure when I need to set the lifecycleOwner
 
         (activity as MainActivity).supportActionBar?.title = "New appo"
 
@@ -44,12 +46,12 @@ class StepTwoFragment: Fragment() {
                     .setTitleText("Change date")
                     .build()
 
-                datePicker.addOnPositiveButtonClickListener {
-                    viewModel.onDateChanged(datePicker.headerText, it)
+                datePicker.addOnPositiveButtonClickListener { dateInMilliSeconds ->
+                    viewModel.onDateChanged(datePicker.headerText, dateInMilliSeconds / 1000)
                 }
 
                 datePicker.show(childFragmentManager, "date_picker_fragment")
-                //askmarcin not sure about the parentFragmentManger... when user parentFragmanetManager, when childFragmentManager
+                //DONE askmarcin not sure about the parentFragmentManger... when user parentFragmanetManager, when childFragmentManager
                 viewModel.onDateClickedDone()
             }
         })
@@ -61,7 +63,7 @@ class StepTwoFragment: Fragment() {
                 val isSystem24Hour = is24HourFormat(context)
                 val clockFormat = if (isSystem24Hour) TimeFormat.CLOCK_24H else TimeFormat.CLOCK_12H
 
-                val timePicker =  MaterialTimePicker.Builder()
+                val timePicker = MaterialTimePicker.Builder()
                     .setHour(StepTwoViewModel.DEFAULT_TIME_HOURS.toInt()) //TODO
                     .setMinute(0)
                     .setTitleText("Change time")
@@ -78,7 +80,7 @@ class StepTwoFragment: Fragment() {
         })
 
         // ---- SUBMIT BUTTON ----------------------------------------------------------------------
-        viewModel.submitClicked.observe(viewLifecycleOwner, {submitClickedAndAppointmentSent ->
+        viewModel.submitClicked.observe(viewLifecycleOwner, { submitClickedAndAppointmentSent ->
             if (submitClickedAndAppointmentSent == true) {
                 toast("Appovation sent!")
                 findNavController().navigate(StepTwoFragmentDirections.actionStepTwoFragmentToMainFragment())

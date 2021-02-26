@@ -8,6 +8,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.MainFragmentBinding
+import com.a9ts.a9ts.model.Appointment
+import com.a9ts.a9ts.model.Notification
 import com.a9ts.a9ts.toast
 
 class MainFragment : Fragment() {
@@ -27,11 +29,15 @@ class MainFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
+        // DONE askmarcin - I'm starting the app on this fragment and want to check if user is logged
+        // Not sure if this is the best way how to do it
+        viewModel.notLoggedEvent.observe(viewLifecycleOwner, { notLogged ->
+            findNavController().navigate(MainFragmentDirections.actionMainFragmentToAuthStepOneFragment())
+        })
 
-        // just testing the ViewBinding
         viewModel.showUser.observe(viewLifecycleOwner, { user ->
             user?.let {
-                toast("Username is ${user.fullName}")
+                toast("ID: ${user.authUserId}\nName: ${user.fullName}\nPhone: ${user.telephone}")
                 viewModel.showUserDone()
             }
         })
@@ -41,14 +47,38 @@ class MainFragment : Fragment() {
                 findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment())
                 viewModel.fabClickedDone()
             }
+
         })
 
-        viewModel.notificationsAndAppointments.observe(viewLifecycleOwner, { myAppointments ->
+        viewModel.friendNotificationAccepted.observe(viewLifecycleOwner, { position ->
+            if (position != null) {
+                (binding.recyclerView.adapter as ItemListAdapter).removeItem(position)
+                toast("position $position")
+                viewModel.onFriendNotificationAcceptedDone()
+            }
+        })
+
+        viewModel.notificationsAndAppointments.observe(viewLifecycleOwner, { items ->
+            // TODO toto mozno nema byt tu
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
-            //askmarcin I need the authUserId in the Adapter, but not sure how to pass it there correctly
-            binding.recyclerView.adapter =
-                AppointmentListAdapter(myAppointments, viewModel.authUserId)
+
+            //askmarcin can this be written more nicely with a "return when"?
+            val itemListNotification: ArrayList<ItemAdapter> = ArrayList(items.mapNotNull { item ->
+                if (item is Notification && item.notificationType == Notification.TYPE_APP_INVITATION)
+                    return@mapNotNull NotificationNewAppointmentItemAdapter(item)
+                if (item is Notification && item.notificationType == Notification.TYPE_FRIEND_INVITATION)
+                    return@mapNotNull NotificationFriendInvitationItemAdapter(
+                        item,
+                        { itemPosition -> viewModel.onFriendNotificationAccepted(itemPosition, item.authUserId) },
+                        { itemPosition -> viewModel.onFriendNotificationRejected(itemPosition, item.authUserId) })
+                if (item is Appointment) {
+                    return@mapNotNull AppointmentItemAdapter(item, viewModel.authUserId)
+                }
+                null
+            })
+
+            binding.recyclerView.adapter = ItemListAdapter(itemListNotification)
         })
 
         return binding.root
@@ -63,11 +93,6 @@ class MainFragment : Fragment() {
 
             R.id.action_about -> {
                 viewModel.onMenuAbout()
-                return true
-            }
-
-            R.id.befriend_marcin_and_igor -> {
-                viewModel.onMenuBefriendMarcinAndIgor()
                 return true
             }
 

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">A9ts</string>
     <string name="your_phone">Your Phone</string>
@@ -6,4 +7,6 @@
     <string name="invalid_phone_number">Invalid phone number or country code.</string>
     <string name="quota_exceeded">SMS quota exceeded, try later.</string>
     <string name="enter_the_sms_code">Enter the 6-digit verification code.</string>
+
+    <string name="max_fullname_length">25</string>
 </resources>

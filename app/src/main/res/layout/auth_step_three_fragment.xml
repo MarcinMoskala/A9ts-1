@@ -5,12 +5,18 @@
 
     <data>
 
+        <variable
+            name="viewModel"
+            type="com.a9ts.a9ts.auth.AuthStepThreeViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".auth.AuthStepThreeFragment">
+
+
+       <!--askmarcin is this a good idea? android:maxLength= "@string/max_fullname_length" -->
 
         <EditText
             android:id="@+id/editTextYourName"
@@ -21,7 +27,9 @@
             android:layout_marginEnd="20dp"
             android:hint="Your fullname"
             android:inputType="textAutoComplete"
-            android:maxLength="25"
+            android:maxLength= "@string/max_fullname_length"
+            android:text="@={viewModel.fullName}"
+
             android:textAlignment="textStart"
             android:textSize="18dp"
             android:typeface="monospace"
@@ -36,6 +44,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="4dp"
             android:text="Your friends will see this."
+
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextYourName" />
 
@@ -45,6 +54,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="21dp"
             android:layout_marginEnd="24dp"
+            android:enabled="@{viewModel.valid}"
+            android:onClick="@{() -> viewModel.onSubmitClicked()}"
             android:text="Done"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textViewYourName" />

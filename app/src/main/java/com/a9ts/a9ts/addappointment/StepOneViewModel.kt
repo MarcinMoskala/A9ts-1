@@ -6,8 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.User
-import kotlinx.coroutines.Dispatchers
+import com.a9ts.a9ts.model.Friend
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -16,8 +15,8 @@ class StepOneViewModel : ViewModel(), KoinComponent {
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
-    private val _myFriends = MutableLiveData<List<User>>()
-    val myFriends : LiveData<List<User>>
+    private val _myFriends = MutableLiveData<List<Friend>>()
+    val myFriends : LiveData<List<Friend>>
         get() = _myFriends
 
     private val _addFriendsClicked = MutableLiveData<Boolean>()

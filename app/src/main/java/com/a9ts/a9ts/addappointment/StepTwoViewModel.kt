@@ -9,15 +9,14 @@ import com.a9ts.a9ts.model.DatabaseService
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.time.LocalDate
-import java.time.ZoneId
+import timber.log.Timber
+import java.time.*
 
 class StepTwoViewModel(friendUserId: String, friendFullName: String) :
     ViewModel(), KoinComponent {
 
-    //TODO probably should change to Seconds, only one View uses millis
-    private val dateTimeInMillis: Long
-        get() = dateInMillis + timeInMillis
+    private val dateTimeInSeconds: Long
+        get() = chosenDateInSeconds + chosenTimeInSeconds
 
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
@@ -27,14 +26,14 @@ class StepTwoViewModel(friendUserId: String, friendFullName: String) :
         get() = _friendUserId
 
 
-    private var dateInMillis : Long
-    private var timeInMillis : Long
+    private var chosenDateInSeconds : Long
+    private var chosenTimeInSeconds : Long
 
-    private val _dateText = MutableLiveData<String>("Today")
+    private val _dateText = MutableLiveData("Today")
     val dateText: LiveData<String>
         get() = _dateText
 
-    private val _timeText = MutableLiveData<String>("$DEFAULT_TIME_HOURS:00")
+    private val _timeText = MutableLiveData("$DEFAULT_TIME_HOURS:00")
     val timeText: LiveData<String>
         get() = _timeText
 
@@ -74,23 +73,19 @@ class StepTwoViewModel(friendUserId: String, friendFullName: String) :
     }
 
 
-    fun onDateChanged(headerText: String?, dateInMillis: Long) {
+    fun onDateChanged(headerText: String, dateInSeconds: Long) {
         _dateText.value = headerText
-        this.dateInMillis = dateInMillis
+        this.chosenDateInSeconds = dateInSeconds
     }
 
-
-    // askmarcin Not sure if this nullable boolean is a good idea.
-    // True -> Clicked and Success sending the appointment
-    // False -> Clicked and Failure sending the appointment
-    // Null -> default notclicked state
+    
 
     fun onSubmit() {
         viewModelScope.launch {
             _submitClicked.value = databaseService.sendAppointment(
                 authService.authUserId,
                 friendUserId.value!!,
-                dateTimeInMillis/1000
+                dateTimeInSeconds
             )
         }
     }
@@ -103,20 +98,21 @@ class StepTwoViewModel(friendUserId: String, friendFullName: String) :
     fun onTimeChanged(hour: Int, minute: Int) {
         val zeroPaddedMinutes = minute.toString().padStart(2, '0')
         _timeText.value = "$hour:$zeroPaddedMinutes"
-        timeInMillis = hour.toLong()*3600*1000 + minute.toLong()*60*1000
+        chosenTimeInSeconds = (hour * 3600 + minute * 60).toLong()
     }
 
     init {
         _friendFullName.value = friendFullName
         _friendUserId.value = friendUserId
 
-        val localDate = LocalDate.now()
-        val zoneId = ZoneId.systemDefault()
-        dateInMillis = localDate.atStartOfDay(zoneId).toEpochSecond() * 1000
-        timeInMillis = DEFAULT_TIME_HOURS * 3600 * 1000
+        chosenDateInSeconds = LocalDate.now().toEpochDay()*24*3600
+
+        Timber.d("chosenDateInSeconds: $chosenDateInSeconds")
+
+        chosenTimeInSeconds = DEFAULT_TIME_HOURS * 3600
     }
 
     companion object{
-        const val DEFAULT_TIME_HOURS = 16L
+        const val DEFAULT_TIME_HOURS = 23L
     }
 }

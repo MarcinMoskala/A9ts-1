@@ -1,16 +1,17 @@
 package com.a9ts.a9ts.main
-//
-//import android.util.Log
-//import android.view.LayoutInflater
-//import android.view.View
-//import android.view.ViewGroup
-//import androidx.annotation.LayoutRes
-//import androidx.recyclerview.widget.RecyclerView
-//import com.a9ts.a9ts.R
-//import com.a9ts.a9ts.model.Appointment
-//import com.a9ts.a9ts.databinding.AppointmentItemBinding
-//import java.time.format.DateTimeFormatter
-//import java.time.format.FormatStyle
+
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.annotation.LayoutRes
+import androidx.recyclerview.widget.RecyclerView
+import com.a9ts.a9ts.R
+import com.a9ts.a9ts.model.Appointment
+import com.a9ts.a9ts.databinding.AppointmentItemBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 //
 //// General classes, used by all recycler views
 //
@@ -41,7 +42,7 @@ package com.a9ts.a9ts.main
 //
 //class AppointmentsListAdapter(items: List<ItemAdapter>) : GeneralAdapter(items)
 //
-//class AppointmentItemAdapter(private val appointment: Appointment) : ItemAdapter(R.layout.appointment_item) {
+//class AppointmentItemAdapter(private val appointment: Appointment, ) : ItemAdapter(R.layout.appointment_item) {
 //
 //    override fun setupView(view: View) {
 //        val binding = AppointmentItemBinding.bind(view)
@@ -78,6 +79,10 @@ package com.a9ts.a9ts.main
 //)
 //
 //fun showAppointmentInfo(appointmentInfo: AppointmentInfo) {
+//    class User(val name: String, val surname: String, val time: LocalDateTime)
+//    val abs = listOf(User("Marcin", "Michalczuk", LocalDateTime.now()))
+//    abs.sortedWith(compareBy({it.surname},{it.name}))
+//
 //    val rejectedAppointmentsAdapters = appointmentInfo.rejectedAppointments.map { AppointmentRejectedInfoItemAdapter(it) }
 //    val appointmentsAdapters = appointmentInfo.appointments.map { AppointmentItemAdapter(it) }
 //    val itemAdapters = rejectedAppointmentsAdapters + appointmentsAdapters

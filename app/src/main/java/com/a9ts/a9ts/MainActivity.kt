@@ -11,7 +11,6 @@ import com.a9ts.a9ts.databinding.AcitvityMainBinding
 import com.a9ts.a9ts.model.AuthService
 import org.koin.android.ext.android.inject
 
-
 class MainActivity : AppCompatActivity() {
     private val authService: AuthService by inject()
 
@@ -59,12 +58,9 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    //adding Logout to menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                toast("logout")
-
                 authService.signOut()
                 this.invalidateOptionsMenu()
 
@@ -82,7 +78,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         val nextAuthFragmentLabels = listOf("authStepTwo", "authStepThree")
-        val mainFragments = listOf("mainFragment")
     }
 }
 

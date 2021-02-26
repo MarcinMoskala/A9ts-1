@@ -14,11 +14,4 @@
         android:title="About Currrent User"
         app:showAsAction="never"
         />
-
-    <item
-        android:id="@+id/befriend_marcin_and_igor"
-        android:orderInCategory="300"
-        android:title="Befriend Marcin &amp; Igor"
-        app:showAsAction="never"
-        />
 </menu>
