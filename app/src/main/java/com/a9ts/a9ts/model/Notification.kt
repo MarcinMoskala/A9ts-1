@@ -22,7 +22,3 @@ data class Notification(
         const val TYPE_FRIEND_INVITATION = "friend_invitation"
     }
 }
-
-enum class NotificationType {
-    APPOINTMENT_INVITATION,FRIEND_INVITATION
-}

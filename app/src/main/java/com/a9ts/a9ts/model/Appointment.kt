@@ -1,18 +1,27 @@
 package com.a9ts.a9ts.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 
 
 data class Appointment(
-    var dateAndTime: Timestamp? = null,
-    var invitorName: String? = null,
-    var inviteeName: String? = null,
-    var invitorUserId: String? = null,
-    var inviteeUserId: String? = null,
+    @DocumentId val id : String? = null, //null aby som ho mohol ignorovat pri zapise a vlozil ID sam za mna
+    val dateAndTime: Timestamp = Timestamp.now(),
+    val invitorName: String = "",
+    val inviteeName: String = "",
+    val invitorUserId: String = "",
+    val inviteeUserId: String = "",
+    val state: Int = -1,
 
-    @ServerTimestamp var created: Timestamp? = null,
-    var accepted: Timestamp? = null,
-    var canceledByInvitor: Timestamp? = null,
-    var canceledByInvitee: Timestamp? = null,
-)
+    @ServerTimestamp val created: Timestamp? = null, //musim mat moznost dat null, lebo chcem poslat "null" aby vyplnil timestamp namiesto mna
+                     val accepted: Timestamp? = null,
+                     val canceledByInvitor: Timestamp? = null,
+                     val canceledByInvitee: Timestamp? = null,
+) {
+    companion object {
+        const val STATE_I_AM_INVITED = 0
+        const val STATE_I_INVITED = 1
+        const val STATE_ACCEPTED = 2
+    }
+}

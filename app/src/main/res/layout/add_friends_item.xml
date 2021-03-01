@@ -12,7 +12,7 @@
         android:background="@color/black"
         android:paddingBottom="1dp">
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:background="@color/white"
             android:id="@+id/appointment_item"
             android:layout_width="match_parent"

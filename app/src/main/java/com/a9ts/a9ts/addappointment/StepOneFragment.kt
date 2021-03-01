@@ -56,6 +56,8 @@ class StepOneFragment : Fragment() {
 
         binding.viewModel = viewModel
 
+        viewModel.onCreateView() // populate recycler view
+
         return binding.run {
             recyclerView.layoutManager = LinearLayoutManager(context)
             root

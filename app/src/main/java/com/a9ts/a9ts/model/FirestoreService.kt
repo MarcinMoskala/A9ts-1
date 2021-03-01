@@ -1,8 +1,8 @@
 package com.a9ts.a9ts.model
 
 import com.a9ts.a9ts.*
-import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -12,30 +12,157 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 interface DatabaseService {
-    suspend fun createUserProfile(user: User): Boolean
 
     fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
+
+    suspend fun createUserProfile(user: User): Boolean
     suspend fun makeFriends(user1: User, user2: User): Boolean
 
-    suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
+    suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>?
+
+    suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean
+
     suspend fun getUser(authUserId: String): User?
     suspend fun getFriends(authUserId: String): List<Friend>
-    suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>?
-    suspend fun sendAppointment(
-        authUserId: String,
-        friendUserId: String,
-        dateTimeInSeconds: Long
-    ): Boolean
+    suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
 
     suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean
-    suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String): Boolean
+    suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
+    suspend fun rejectFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
+    suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
+    suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
+
 
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
-    override suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String): Boolean {
+
+    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean {
+        try {
+            val authUserDoc = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+
+            val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
+
+            val authUserAppointment =
+                db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document()
+
+
+            // oba Appointments nech maju same Id
+            val friendUserAppointment =
+                db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_APPOINTMENT).document(authUserAppointment.id)
+
+            val friendUserNotification =
+                db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_NOTIFICATION).document()
+
+            db.runTransaction { transaction ->
+                val authUser: User? = transaction.get(authUserDoc).toObject()
+                val authUserFullName = authUser?.fullName
+
+                val friendUser: User? = transaction.get(friendUserDoc).toObject()
+                val friendUserFullName = friendUser?.fullName
+
+                val utcDateTimeInSeconds = toUTCTimestamp(dateTimeInSeconds)
+
+
+                val authUserAppointmentData = Appointment(
+                    dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
+                    invitorName = authUserFullName.toString(),
+                    inviteeName = friendUserFullName.toString(),
+                    invitorUserId = authUserId,
+                    inviteeUserId = friendUserId,
+                    state = Appointment.STATE_I_INVITED
+                )
+
+                val friendUserAppointmentData = authUserAppointmentData.copy(
+                    state = Appointment.STATE_I_AM_INVITED)
+
+                val notification = Notification(
+                    dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
+                    notificationType =Notification.TYPE_APP_INVITATION,
+                    fullName = authUserFullName,
+                    authUserId = authUserId,
+                    appointmentId= authUserAppointment.id
+                )
+
+
+                transaction.set(authUserAppointment, authUserAppointmentData)
+
+
+                transaction.set(friendUserAppointment, friendUserAppointmentData)
+                transaction.set(friendUserNotification, notification)
+            }.await()
+            return true
+        } catch (e: FirebaseFirestoreException) {
+            //DONE askmarcin when to use Timber.e Timber.d etc...
+            // and is this OK way to handle the exception?
+            Timber.e("suspend fun sendAppointment: {${e.message}")
+            return false
+        }
+    }
+
+    override suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
+        val inviteeAppointment = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
+        val invitorAppointment = db.collection(COLLECTION_USER_PROFILE).document(invitorUserId!!).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
+        val notification     = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION).document(notificationId.toString())
+
+        return try {
+            db.runTransaction { transaction ->
+//                askmarcin can I use reflection to get the "accepted" string?
+//                transaction.update(inviteeAppoiment, Appointment::accepted.toString(), FieldValue.serverTimestamp())
+//                transaction.update(invitorAppoiment, Appointment::accepted.toString(), FieldValue.serverTimestamp())
+
+                  transaction.update(inviteeAppointment, "accepted", FieldValue.serverTimestamp(), "state", Appointment.STATE_ACCEPTED)
+                  transaction.update(invitorAppointment, "accepted", FieldValue.serverTimestamp(),"state", Appointment.STATE_ACCEPTED)
+                    transaction.delete(notification)
+            }.await()
+            true
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun acceptAppointmentInvitation: {${e.message}")
+            false
+        }
+
+    }
+
+    override suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
         return true
+        //TODO implementation
+    }
+
+    override suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean {
+        val acceptingUserFriend = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_FRIEND).document(friendUserId)
+        val friendUserFriend = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(acceptingUserId)
+        val notification = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_NOTIFICATION).document(notificationId)
+
+        return try {
+            db.runTransaction { transaction ->
+                transaction.update(acceptingUserFriend, "state", Friend.STATE_ACCEPTED)
+                transaction.update(friendUserFriend, "state", Friend.STATE_ACCEPTED)
+                transaction.delete(notification)
+            }.await()
+            true
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun sendFriendInvite: {${e.message}")
+            false
+        }
+    }
+
+    override suspend fun rejectFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean {
+        val acceptingUserFriend = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_FRIEND).document(friendUserId)
+        val friendUserFriend = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(acceptingUserId)
+        val notification = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_NOTIFICATION).document(notificationId)
+
+        return try {
+            db.runTransaction { transaction ->
+                transaction.delete(acceptingUserFriend)
+                transaction.delete(friendUserFriend)
+                transaction.delete(notification)
+            }.await()
+            true
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun sendFriendInvite: {${e.message}")
+            false
+        }
     }
 
     override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
@@ -44,6 +171,12 @@ class FirestoreService : DatabaseService {
             val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
             val friendInvitationNotification = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
                 .collection(COLLECTION_NOTIFICATION).document()
+
+
+            //Edge case:
+            // ak uz mam zapis s tym friendom vo Friends tak retur false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
+            val i_am_invited_already = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId).get().await()
+            if (i_am_invited_already.exists()) return false
 
             db.runTransaction { transaction ->
                 val snapshotUser = transaction.get(userDoc)
@@ -56,12 +189,12 @@ class FirestoreService : DatabaseService {
 
                 // write to my /friends with I_INVITED state
                 val usersFriendDoc = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId)
-                val usersFriend = Friend(friendUserId, friendUserFullName, Friend.STATUS_I_INVITED, friendUserTelephone)
+                val usersFriend = Friend(friendUserId, friendUserFullName, Friend.STATE_I_INVITED, friendUserTelephone)
                 transaction.set(usersFriendDoc, usersFriend)
 
                 // write to his /friends with I_AM_INVITED state
                 val userFriendsFriendDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(userId)
-                val userFriendsFriend = Friend(userId, userFullName, Friend.STATUS_I_AM_INVITED, userTelephone)
+                val userFriendsFriend = Friend(userId, userFullName, Friend.STATE_I_AM_INVITED, userTelephone)
                 transaction.set(userFriendsFriendDoc, userFriendsFriend)
 
                 val invitation = Notification(
@@ -111,7 +244,7 @@ class FirestoreService : DatabaseService {
 
                 users[entry.get("authUserId").toString()] = Friend(
                     authUserId = entry.data["authUserId"] as String?,
-                    fullName = entry.data["fullName"] as String?,
+                    fullName = entry.data["fullName"] as String,
                 )
             }
 
@@ -131,69 +264,6 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    // DONE askmarcin Not sure if this whole transaction is OK. This is how I understood it from docs...
-    override suspend fun sendAppointment(
-        authUserId: String,
-        friendUserId: String,
-        dateTimeInSeconds: Long
-    ): Boolean {
-        try {
-            //get authUserFullname
-            // get friendUserName
-            // write Appointment
-
-            val authUserDoc = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
-            val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
-            val authUserAppointment =
-                db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(
-                    COLLECTION_APPOINTMENT
-                ).document()
-            val friendUserNotification =
-                db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(
-                    COLLECTION_NOTIFICATION
-                ).document()
-
-            // DONE askmarcin How to read the documentation for runTransaction, still not sure what it does
-            // how to read the documentation in general
-            // ALSO: not sure what happens when it fails, it throws the exception?
-            db.runTransaction { transaction ->
-                val snapshotAuth = transaction.get(authUserDoc)
-                val authUserFullName = snapshotAuth.get("fullName")
-
-                val snapshotFriend = transaction.get(friendUserDoc)
-                val friendUserFullName = snapshotFriend.get("fullName")
-
-                val utcDateTimeInSeconds = toUTCTimestamp(dateTimeInSeconds)
-
-                val appointment = hashMapOf(
-                    "dateAndTime" to Timestamp(utcDateTimeInSeconds, 0),
-                    "invitorName" to authUserFullName,
-                    "inviteeName" to friendUserFullName,
-                    "invitorUserId" to authUserId,
-                    "inviteeUserId" to friendUserId
-                )
-
-                transaction.set(authUserAppointment, appointment)
-                val notification = hashMapOf(
-                    "dateAndTime" to Timestamp(utcDateTimeInSeconds, 0),
-                    "notificationType" to Notification.TYPE_APP_INVITATION,
-                    "fullName" to authUserFullName,
-                    "authUserId" to authUserId,
-                    "appointmentId" to authUserAppointment.id
-                )
-
-                transaction.set(friendUserNotification, notification)
-            }.await()
-            return true
-        } catch (e: FirebaseFirestoreException) {
-            //DONE askmarcin when to use Timber.e Timber.d etc...
-            // and is this OK way to handle the exception?
-            Timber.e("suspend fun sendAppointment: {${e.message}")
-            return false
-        }
-    }
-
-
     override suspend fun getNotificationsAndAppointments(authUserId: String): List<Any> {
         return try {
 
@@ -207,6 +277,7 @@ class FirestoreService : DatabaseService {
             val appoinments: List<Appointment> =
                 db.collection(COLLECTION_USER_PROFILE).document(authUserId)
                     .collection(COLLECTION_APPOINTMENT)
+                    .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED) //only if I_INVITED or ACCEPTED
                     .get()
                     .await()
                     .toObjects()
@@ -227,7 +298,7 @@ class FirestoreService : DatabaseService {
         return try {
             return db.collection(COLLECTION_USER_PROFILE).document(authUserId)
                 .collection(COLLECTION_FRIEND)
-                .whereGreaterThan("state", Friend.STATUS_I_AM_INVITED)
+                .whereGreaterThan("state", Friend.STATE_I_AM_INVITED)
                 .get()
                 .await()
                 .toObjects()
@@ -301,9 +372,7 @@ class FirestoreService : DatabaseService {
             batch.set(fulltextUserEntrySwapped, hashMapOf("fulltextName" to userNameNormalizedSwapped, "fullName" to user.fullName, "authUserId" to userId))
         }
     }.awaitWithStatus()
-
 }
-
 
 
 private const val COLLECTION_USER_PROFILE = "user_profile"

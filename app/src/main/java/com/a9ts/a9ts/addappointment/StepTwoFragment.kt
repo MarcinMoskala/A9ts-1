@@ -33,7 +33,7 @@ class StepTwoFragment: Fragment() {
 
         (activity as MainActivity).supportActionBar?.title = "New appo"
 
-        val viewModelFactory = StepTwoViewModelFactory(args.friendUserId!!, args.friendFullName!!)
+        val viewModelFactory = StepTwoViewModelFactory(args.friendUserId, args.friendFullName)
 
         val viewModel = ViewModelProvider(this, viewModelFactory).get(StepTwoViewModel::class.java)
 
@@ -82,7 +82,6 @@ class StepTwoFragment: Fragment() {
         // ---- SUBMIT BUTTON ----------------------------------------------------------------------
         viewModel.submitClicked.observe(viewLifecycleOwner, { submitClickedAndAppointmentSent ->
             if (submitClickedAndAppointmentSent == true) {
-                toast("Appovation sent!")
                 findNavController().navigate(StepTwoFragmentDirections.actionStepTwoFragmentToMainFragment())
             }
         })

@@ -33,7 +33,7 @@ class StepOneViewModel : ViewModel(), KoinComponent {
         _addFriendsClicked.value = true
     }
 
-    init {
+    fun onCreateView() {
         viewModelScope.launch {
             _myFriends.value =  databaseService.getFriends(authService.authUserId)
         }

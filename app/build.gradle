@@ -10,7 +10,7 @@ plugins {
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
-
+    kotlinOptions.useIR = true
     defaultConfig {
         applicationId "com.a9ts.a9ts"
         minSdkVersion 26
@@ -39,6 +39,7 @@ android {
     buildFeatures {
         dataBinding true
     }
+
 }
 
 dependencies {
@@ -68,4 +69,7 @@ dependencies {
 
     //Koin
     api "org.koin:koin-android:2.2.2"
+
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
 }

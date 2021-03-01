@@ -1,9 +1,9 @@
 package com.a9ts.a9ts.addappointment
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.a9ts.a9ts.addfriends.AddFriendsListAdapter
 import com.a9ts.a9ts.databinding.AddFriendsItemBinding
 import com.a9ts.a9ts.model.Friend
 
@@ -24,8 +24,8 @@ class FriendListAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(friends[position])
         when (friends[position].state) {
-            Friend.STATUS_I_INVITED -> holder.itemView.setOnClickListener { onClickInvited(friends[position].fullName!!)}
-            Friend.STATUS_ACCEPTED -> holder.itemView.setOnClickListener { onClick(friends[position].authUserId!!, friends[position].fullName!!) }
+            Friend.STATE_I_INVITED -> holder.itemView.setOnClickListener { onClickInvited(friends[position].fullName!!)}
+            Friend.STATE_ACCEPTED -> holder.itemView.setOnClickListener { onClick(friends[position].authUserId!!, friends[position].fullName!!) }
         }
     }
 
@@ -38,9 +38,12 @@ class FriendListAdapter(
             itemBinding.apply {
                 fullname.text = friend.fullName
 
-                if (friend.state == Friend.STATUS_I_INVITED) {
+                if (friend.state == Friend.STATE_I_INVITED) {
                     button.text = "Invited"
                     button.isEnabled = false
+                    button.visibility = View.VISIBLE
+                } else {
+                    button.visibility = View.GONE
                 }
             }
         }

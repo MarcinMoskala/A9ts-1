@@ -50,39 +50,75 @@ class MainFragment : Fragment() {
 
         })
 
-        viewModel.friendNotificationAccepted.observe(viewLifecycleOwner, { position ->
-            if (position != null) {
-                (binding.recyclerView.adapter as ItemListAdapter).removeItem(position)
-                toast("position $position")
+        viewModel.friendNotificationAccepted.observe(viewLifecycleOwner, { holder ->
+            if (holder != null) {
+                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
                 viewModel.onFriendNotificationAcceptedDone()
             }
         })
+
+        viewModel.friendNotificationRejected.observe(viewLifecycleOwner, { holder ->
+            if (holder != null) {
+                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
+                viewModel.onFriendNotificationRejectedDone()
+            }
+        })
+
+        viewModel.appointmentNotificationAccepted.observe(viewLifecycleOwner, { holder ->
+            if (holder != null) {
+                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
+                viewModel.onAppointmentNotificationAcceptedDone()
+            }
+        })
+
+        viewModel.appointmentNotificationRejected.observe(viewLifecycleOwner, { holder ->
+            if (holder != null) {
+                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
+                viewModel.onAppointmentNotificationRejectedDone()
+            }
+        })
+
 
         viewModel.notificationsAndAppointments.observe(viewLifecycleOwner, { items ->
             // TODO toto mozno nema byt tu
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
 
-            //askmarcin can this be written more nicely with a "return when"?
+            //askmarcin can this be written more nicely?
             val itemListNotification: ArrayList<ItemAdapter> = ArrayList(items.mapNotNull { item ->
-                if (item is Notification && item.notificationType == Notification.TYPE_APP_INVITATION)
-                    return@mapNotNull NotificationNewAppointmentItemAdapter(item)
-                if (item is Notification && item.notificationType == Notification.TYPE_FRIEND_INVITATION)
-                    return@mapNotNull NotificationFriendInvitationItemAdapter(
-                        item,
-                        { itemPosition -> viewModel.onFriendNotificationAccepted(itemPosition, item.authUserId) },
-                        { itemPosition -> viewModel.onFriendNotificationRejected(itemPosition, item.authUserId) })
-                if (item is Appointment) {
-                    return@mapNotNull AppointmentItemAdapter(item, viewModel.authUserId)
+
+                if (item is Notification) {
+                    val notification = item
+
+                    if (notification.notificationType == Notification.TYPE_APP_INVITATION)
+                        return@mapNotNull NotificationNewAppointmentItemAdapter(
+                            notification,
+                            { holder -> viewModel.onAppointmentNotificationAccepted(holder, notification.authUserId, notification.appointmentId, notification.id) },
+                            { holder -> viewModel.onAppointmentNotificationRejected(holder, notification.authUserId, notification.appointmentId, notification.id) })
+
+                    if (item.notificationType == Notification.TYPE_FRIEND_INVITATION)
+                        return@mapNotNull NotificationFriendInvitationItemAdapter(
+                            notification,
+                            { holder -> viewModel.onFriendNotificationAccepted(holder, notification.authUserId, notification.id) },
+                            { holder -> viewModel.onFriendNotificationRejected(holder, notification.authUserId, notification.id) })
                 }
+
+                if (item is Appointment) {
+                    val appointment = item
+                    return@mapNotNull AppointmentItemAdapter(appointment, viewModel.authUserId)
+                }
+
                 null
             })
 
             binding.recyclerView.adapter = ItemListAdapter(itemListNotification)
         })
 
+        viewModel.onCreateView() //populate recyclerview
+
         return binding.root
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_main, menu)

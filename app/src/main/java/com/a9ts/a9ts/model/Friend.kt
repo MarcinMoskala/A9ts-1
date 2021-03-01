@@ -6,15 +6,15 @@ import com.google.firebase.firestore.ServerTimestamp
 
 data class Friend(
     @DocumentId val authUserId: String? = null,
-    val fullName: String? = null,
-    var state: Int? = null,
-    var telephone: String? = null,
+    val fullName: String = "",
+    var state: Int = -1,
+    var telephone: String = "",
     @ServerTimestamp val created: Timestamp? = null
 ) {
     companion object {
-        const val STATUS_I_INVITED = 1
-        const val STATUS_I_AM_INVITED = 0
-        const val STATUS_ACCEPTED = 2
+        const val STATE_I_AM_INVITED = 0
+        const val STATE_I_INVITED = 1
+        const val STATE_ACCEPTED = 2
     }
 }
 

@@ -30,10 +30,11 @@ abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : Recyc
     }
 
     final override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
-        items[position].setupView(holder.view, position)
+        items[position].setupView(holder.view, holder)
     }
 
-    fun removeItem(position: Int) {
+    fun removeItem(holder: BaseViewHolder) {
+        val position = holder.adapterPosition
         items.removeAt(position)
         notifyItemRemoved(position)
     }
@@ -41,7 +42,7 @@ abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : Recyc
 }
 
 abstract class ItemAdapter(@LayoutRes open val layoutId: Int) {
-    abstract fun setupView(view: View, position: Int)
+    abstract fun setupView(view: View, holder: BaseViewHolder)
 }
 
 class BaseViewHolder(val view: View) : RecyclerView.ViewHolder(view)
@@ -50,7 +51,7 @@ class ItemListAdapter(items: ArrayList<ItemAdapter>) : GeneralAdapter(items)
 
 class AppointmentItemAdapter(private val appointment: Appointment, private val authUserId: String) : ItemAdapter(R.layout.appointment_item) {
 
-    override fun setupView(view: View, position: Int) {
+    override fun setupView(view: View, holder: BaseViewHolder) {
         val binding = AppointmentItemBinding.bind(view)
 
         if (authUserId == appointment.inviteeUserId) {
@@ -82,22 +83,22 @@ class AppointmentItemAdapter(private val appointment: Appointment, private val a
 
 class NotificationFriendInvitationItemAdapter(
     private val notification: Notification,
-    private val onAccept: (position: Int) -> Unit,
-    private val onReject: (position: Int) -> Unit
+    private val onAccept: (holder: BaseViewHolder) -> Unit,
+    private val onReject: (holder: BaseViewHolder) -> Unit
 
     ) : ItemAdapter(R.layout.notification_friend_invitation_item) {
 
-    override fun setupView(view: View, position: Int) {
+    override fun setupView(view: View, holder: BaseViewHolder) {
         val binding = NotificationFriendInvitationItemBinding.bind(view)
         binding.headingTextView.text = "Friend invitation from: " + notification.fullName
 
         binding.yesButton.setOnClickListener {
-            onAccept(position)
+            onAccept(holder)
             Timber.d("Approved friend invite!")
         }
 
         binding.noButton.setOnClickListener {
-            onReject(position)
+            onReject(holder)
             Timber.d("Rejected friend invite!")
         }
     }
@@ -105,12 +106,12 @@ class NotificationFriendInvitationItemAdapter(
 
 
 class NotificationNewAppointmentItemAdapter(
-    private val notification: Notification/*,
-    private val onYesClicked: (Notification)->Unit,
-    private val onNoClicked: (Notification)->Unit,*/
+    private val notification: Notification,
+    private val onAccept: (holder: BaseViewHolder)->Unit,
+    private val onReject: (holder: BaseViewHolder)->Unit
 ) : ItemAdapter(R.layout.notification_new_appointment_item) {
 
-    override fun setupView(view: View, position: Int) {
+    override fun setupView(view: View, holder: BaseViewHolder) {
         val binding = NotificationNewAppointmentItemBinding.bind(view)
 
         binding.headingTextView.text = "Appointment invitation from: " + notification.fullName
@@ -123,12 +124,11 @@ class NotificationNewAppointmentItemAdapter(
         binding.dateTimeTextView.text = dateText.plus(" ").plus(timeText)
 
         binding.yesButton.setOnClickListener {
-            Timber.d("Approve appointment!")
-//            onYesClicked(notification)
+            onAccept(holder)
         }
 
         binding.noButton.setOnClickListener {
-            Timber.d("Cancel appointment!")
+            onReject(holder)
         }
     }
 }

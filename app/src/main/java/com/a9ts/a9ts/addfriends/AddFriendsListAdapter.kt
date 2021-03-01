@@ -26,7 +26,7 @@ class AddFriendsListAdapter(private var friendList: List<Friend> = listOf(), pri
     override fun getItemCount() = friendList.size
 
     fun setButtonToSent(viewHolderPosition: Int) {
-        friendList[viewHolderPosition].state = Friend.STATUS_I_INVITED
+        friendList[viewHolderPosition].state = Friend.STATE_I_INVITED
         notifyItemChanged(viewHolderPosition)
     }
 
@@ -36,7 +36,7 @@ class AddFriendsListAdapter(private var friendList: List<Friend> = listOf(), pri
             itemBinding.apply {
                 fullname.text = friend.fullName
 
-                if (friend.state == Friend.STATUS_I_INVITED) {
+                if (friend.state == Friend.STATE_I_INVITED) {
                     button.text = "Invited"
                     button.isEnabled = false
                 }
