@@ -125,8 +125,21 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
-        return true
-        //TODO implementation
+        val inviteeAppointment = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
+        val invitorAppointment = db.collection(COLLECTION_USER_PROFILE).document(invitorUserId!!).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
+        val notification     = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION).document(notificationId.toString())
+
+        return try {
+            db.runTransaction { transaction ->
+                transaction.delete(inviteeAppointment)
+                transaction.delete(invitorAppointment)
+                transaction.delete(notification)
+            }.await()
+            true
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun rejectAppointmentInvitation: {${e.message}")
+            false
+        }
     }
 
     override suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean {
@@ -174,9 +187,9 @@ class FirestoreService : DatabaseService {
 
 
             //Edge case:
-            // ak uz mam zapis s tym friendom vo Friends tak retur false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
-            val i_am_invited_already = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId).get().await()
-            if (i_am_invited_already.exists()) return false
+            // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
+            val iAmInvitedAlready = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId).get().await()
+            if (iAmInvitedAlready.exists()) return false
 
             db.runTransaction { transaction ->
                 val snapshotUser = transaction.get(userDoc)
