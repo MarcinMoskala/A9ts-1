@@ -1,9 +1,11 @@
 package com.a9ts.a9ts
 
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.gms.tasks.Task
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -20,6 +22,10 @@ fun Fragment.toast(message: String) {
 
 fun AppCompatActivity.toast(message: String) {
     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+}
+
+fun View.snack(message: String, duration: Int = Snackbar.LENGTH_LONG) {
+    Snackbar.make(this, message, duration).show()
 }
 
 // " Róbert  Joseph  Vereš" -> "robert joseph veres"

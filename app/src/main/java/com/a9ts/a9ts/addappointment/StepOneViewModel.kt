@@ -1,9 +1,6 @@
 package com.a9ts.a9ts.addappointment
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.Friend
@@ -23,7 +20,11 @@ class StepOneViewModel : ViewModel(), KoinComponent {
     val addFriendsClicked : LiveData<Boolean>
         get() = _addFriendsClicked
 
-
+    val hasResults = MediatorLiveData<Boolean>().apply {
+        addSource(_myFriends) {
+            value = it.isNotEmpty()
+        }
+    }
 
     fun onAddFriendsClickedDone() {
         _addFriendsClicked.value = false

@@ -30,7 +30,7 @@ abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : Recyc
     }
 
     final override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
-        items[position].setupView(holder.view, holder)
+        items[position].setupView(holder)
     }
 
     fun removeItem(holder: BaseViewHolder) {
@@ -42,7 +42,7 @@ abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : Recyc
 }
 
 abstract class ItemAdapter(@LayoutRes open val layoutId: Int) {
-    abstract fun setupView(view: View, holder: BaseViewHolder)
+    abstract fun setupView(holder: BaseViewHolder)
 }
 
 class BaseViewHolder(val view: View) : RecyclerView.ViewHolder(view)
@@ -51,8 +51,8 @@ class ItemListAdapter(items: ArrayList<ItemAdapter>) : GeneralAdapter(items)
 
 class AppointmentItemAdapter(private val appointment: Appointment, private val authUserId: String) : ItemAdapter(R.layout.appointment_item) {
 
-    override fun setupView(view: View, holder: BaseViewHolder) {
-        val binding = AppointmentItemBinding.bind(view)
+    override fun setupView(holder: BaseViewHolder) {
+        val binding = AppointmentItemBinding.bind(holder.view)
 
         if (authUserId == appointment.inviteeUserId) {
             binding.fullname.text = appointment.invitorName
@@ -88,8 +88,8 @@ class NotificationFriendInvitationItemAdapter(
 
     ) : ItemAdapter(R.layout.notification_friend_invitation_item) {
 
-    override fun setupView(view: View, holder: BaseViewHolder) {
-        val binding = NotificationFriendInvitationItemBinding.bind(view)
+    override fun setupView(holder: BaseViewHolder) {
+        val binding = NotificationFriendInvitationItemBinding.bind(holder.view)
         binding.headingTextView.text = "Friend invitation from: " + notification.fullName
 
         binding.yesButton.setOnClickListener {
@@ -111,8 +111,8 @@ class NotificationNewAppointmentItemAdapter(
     private val onReject: (holder: BaseViewHolder)->Unit
 ) : ItemAdapter(R.layout.notification_new_appointment_item) {
 
-    override fun setupView(view: View, holder: BaseViewHolder) {
-        val binding = NotificationNewAppointmentItemBinding.bind(view)
+    override fun setupView(holder: BaseViewHolder) {
+        val binding = NotificationNewAppointmentItemBinding.bind(holder.view)
 
         binding.headingTextView.text = "Appointment invitation from: " + notification.fullName
 

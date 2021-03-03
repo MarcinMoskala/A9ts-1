@@ -1,9 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.A9ts" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <item name="colorPrimary">@color/primaryColor</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/primaryColor</item>
-        <item name="colorOnSecondary">@color/white</item>
+    <style name="Theme.A9ts" parent="Theme.MaterialComponents.Light.NoActionBar">
+<!--        <item name="colorPrimary">@color/primaryColor</item>-->
+<!--        <item name="colorOnPrimary">@color/white</item>-->
+<!--        <item name="colorSecondary">@color/primaryColor</item>-->
+<!--        <item name="colorOnSecondary">@color/white</item>-->
+<!--    <item name="android:textColorPrimary">@color/white</item>-->
+        <item name="actionMenuTextColor">@color/white</item>
+        <item name="android:actionMenuTextColor">@color/white</item>
     </style>
-<!--TODO remake the whole theme, understand which item does what-->
+
+
+<!--    askmarcin this is the way I found to change the color of the 3 dots in menu... not sure what it does, why it works-->
+<!--    why can't I specivy colorOnPrimary in the MaterialToolbar element in activity_main.xml?-->
+    <style name="Theme.A9ts.Toolbarstyle" parent="ThemeOverlay.MaterialComponents.Toolbar.Primary" >
+        <item name="colorOnPrimary">@color/white</item>
+    </style>
 </resources>

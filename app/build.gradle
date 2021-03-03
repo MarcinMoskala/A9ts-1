@@ -8,6 +8,11 @@ plugins {
 }
 
 android {
+    //Generally, it’s a good practice to support about 90% of the active devices, while targeting your app to the latest version.
+
+    //askmarcin compileSdkVersion vs minSdkVersion vs targetSdkVersion
+    //askmarcin What is the point of AppCompat, how does it work?
+
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
     kotlinOptions.useIR = true

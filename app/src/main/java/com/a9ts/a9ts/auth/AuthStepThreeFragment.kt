@@ -25,7 +25,7 @@ class AuthStepThreeFragment : Fragment() {
     ): View {
 
         //TODO these Titles should be done differently
-        (activity as MainActivity).supportActionBar?.title = "Profile"
+//        (activity as MainActivity).supportActionBar?.title = "Profile"
 
         val binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
 

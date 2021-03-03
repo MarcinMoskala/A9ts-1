@@ -36,7 +36,7 @@ class AddFriendsFragment : Fragment() {
 
         val binding = AddFriendsFragmentBinding.inflate(layoutInflater, container, false)
 
-        (activity as MainActivity).supportActionBar?.title = "Add friends..."
+//        (activity as MainActivity).supportActionBar?.title = "Add friends..."
 
 
 

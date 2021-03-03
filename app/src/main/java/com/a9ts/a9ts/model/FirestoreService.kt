@@ -4,6 +4,8 @@ import com.a9ts.a9ts.*
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
@@ -23,7 +25,7 @@ interface DatabaseService {
     suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean
 
     suspend fun getUser(authUserId: String): User?
-    suspend fun getFriends(authUserId: String): List<Friend>
+    suspend fun getFriends(authUserId: String): List<Friend>?
     suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
 
     suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean
@@ -32,11 +34,55 @@ interface DatabaseService {
     suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
     suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
 
-
+    fun getNotificationsListener(authUserId: String, onSuccess : (List<Notification>)-> Unit)
+    fun getAppointmentsListener(authUserId: String, onSuccess : (List<Appointment>)-> Unit)
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
+
+
+    override fun getNotificationsListener(authUserId: String, onSuccess : (List<Notification>)-> Unit) {
+        db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION)
+            .orderBy("created", Query.Direction.DESCENDING)
+            .addSnapshotListener {querySnapshot, e ->
+                Timber.d("getNotifcationListener")
+                if (e != null) {
+                    Timber.w("getNotificationsListener failed: $e")
+                    return@addSnapshotListener
+                }
+
+                val notificationList = ArrayList<Notification>()
+                if (querySnapshot != null) {
+                    for (element in querySnapshot) {
+                        notificationList.add(element.toObject())
+                    }
+                }
+
+                onSuccess(notificationList)
+            }
+    }
+
+    override fun getAppointmentsListener(authUserId: String, onSuccess : (List<Appointment>)-> Unit) {
+        db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT)
+            .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED)
+            .addSnapshotListener {querySnapshot, e ->
+                Timber.d("getAppopintmentListener")
+                if (e != null) {
+                    Timber.w("getAppointmentListener failed: $e")
+                    return@addSnapshotListener
+                }
+
+                val appointmentList = ArrayList<Appointment>()
+                if (querySnapshot != null) {
+                    for (element in querySnapshot) {
+                        appointmentList.add(element.toObject())
+                    }
+                }
+
+                onSuccess(appointmentList.sortedWith(compareBy { it.dateAndTime }))
+            }
+    }
 
     override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean {
         try {
@@ -307,19 +353,13 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    override suspend fun getFriends(authUserId: String): List<Friend> {
-        return try {
-            return db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+    override suspend fun getFriends(authUserId: String): List<Friend>? = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
                 .collection(COLLECTION_FRIEND)
                 .whereGreaterThan("state", Friend.STATE_I_AM_INVITED)
                 .get()
-                .await()
-                .toObjects()
-        } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun getFriends: {${e.message}")
-            listOf()
-        }
-    }
+                .awaitOrNull()
+                ?.toObjects()
+
 
     override suspend fun getUser(authUserId: String): User? = db.document("$COLLECTION_USER_PROFILE/$authUserId")
         .get()

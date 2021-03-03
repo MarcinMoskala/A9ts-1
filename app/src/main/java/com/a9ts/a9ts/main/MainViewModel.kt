@@ -5,18 +5,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.a9ts.a9ts.model.AuthService
-import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.User
+import com.a9ts.a9ts.model.*
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import timber.log.Timber
 
 class MainViewModel : ViewModel(), KoinComponent {
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
+    var notificationList = listOf<Notification>()
+    var appointmentList = listOf<Appointment>()
 
     val authUserId = authService.authUserId
 
@@ -24,17 +23,23 @@ class MainViewModel : ViewModel(), KoinComponent {
     val appointmentNotificationAccepted: LiveData<BaseViewHolder?>
         get() = _appointmentNotificationAccepted
 
-    private val _appointmentNotificationRejected = MutableLiveData<BaseViewHolder?>()
+/*    private val _appointmentNotificationRejected = MutableLiveData<BaseViewHolder?>()
     val appointmentNotificationRejected: LiveData<BaseViewHolder?>
-        get() = _appointmentNotificationRejected
+        get() = _appointmentNotificationRejected*/
 
     private val _friendNotificationAccepted = MutableLiveData<BaseViewHolder?>()
     val friendNotificationAccepted: LiveData<BaseViewHolder?>
         get() = _friendNotificationAccepted
 
+
     private val _friendNotificationRejected = MutableLiveData<BaseViewHolder?>()
     val friendNotificationRejected: LiveData<BaseViewHolder?>
         get() = _friendNotificationRejected
+    
+    
+    private val _snackMessage = MutableLiveData<String?>()
+    val snackMessage: LiveData<String?>
+        get() = _snackMessage
 
     private val _notLoggedEvent = MutableLiveData<Unit>()
     val notLoggedEvent: LiveData<Unit>
@@ -66,8 +71,14 @@ class MainViewModel : ViewModel(), KoinComponent {
     }
 
     fun onCreateView() {
-        viewModelScope.launch {
-            _notificationsAndAppointments.value =  databaseService.getNotificationsAndAppointments(authUserId)
+        databaseService.getNotificationsListener(authUserId) { notifications ->
+            this.notificationList = notifications
+            _notificationsAndAppointments.value = this.notificationList + this.appointmentList
+        }
+
+        databaseService.getAppointmentsListener(authUserId) { appointments ->
+            this.appointmentList = appointments
+            _notificationsAndAppointments.value = this.notificationList + this.appointmentList
         }
     }
 
@@ -91,6 +102,7 @@ class MainViewModel : ViewModel(), KoinComponent {
 
 
     fun onFriendNotificationAccepted(holder: BaseViewHolder, authUserId: String?, notificationId: String?) {
+
         viewModelScope.launch {
             if (databaseService.acceptFriendInvite(authService.authUserId, authUserId!!, notificationId!!))
             {
@@ -123,28 +135,23 @@ class MainViewModel : ViewModel(), KoinComponent {
     fun onAppointmentNotificationAccepted(holder: BaseViewHolder, invitorUserId: String?, appointmentId: String?, notificationId: String?) {
         viewModelScope.launch {
             if (databaseService.acceptAppointmentInvitation(authUserId, invitorUserId, appointmentId, notificationId)) {
-                _appointmentNotificationAccepted.value = holder
+                _snackMessage.value = "✔ Appointment accepted"
             }
         }
     }
-
-    fun onAppointmentNotificationAcceptedDone() {
-        _appointmentNotificationAccepted.value = null
-    }
-
 
     //askmarcin should this fun accept nullable strings? Or should I convert to non nullable when callling the function?
     fun onAppointmentNotificationRejected(holder: BaseViewHolder, invitorUserId: String?, appointmentId: String?, notificationId: String?) {
         viewModelScope.launch {
-            if (databaseService.rejectAppointmentInvitation(authUserId, invitorUserId!!, appointmentId, notificationId))
-            {
-                _appointmentNotificationAccepted.value = holder
+            if (databaseService.rejectAppointmentInvitation(authUserId, invitorUserId!!, appointmentId, notificationId)) {
+                _snackMessage.value = "❌ Appointment rejected"
             }
         }
     }
-
-    fun onAppointmentNotificationRejectedDone() {
-        _appointmentNotificationRejected.value = null
+   
+    fun snackMessageDone() {
+        _snackMessage.value = null
     }
+
 
 }

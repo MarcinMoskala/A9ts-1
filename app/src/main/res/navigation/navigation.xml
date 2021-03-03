@@ -55,6 +55,7 @@
         android:name="com.a9ts.a9ts.main.MainFragment"
         android:label="mainFragment"
         tools:layout="@layout/main_fragment">
+
         <action
             android:id="@+id/action_mainFragment_to_authStepOneFragment"
             app:destination="@id/authStepOneFragment"

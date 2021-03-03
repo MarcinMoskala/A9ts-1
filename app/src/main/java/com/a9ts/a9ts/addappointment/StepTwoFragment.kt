@@ -31,7 +31,7 @@ class StepTwoFragment: Fragment() {
         val binding = AddAppointmentStepTwoFragmentBinding.inflate(layoutInflater, container, false)
         binding.lifecycleOwner = this //DONE askmarcin still not sure when I need to set the lifecycleOwner
 
-        (activity as MainActivity).supportActionBar?.title = "New appo"
+//        (activity as MainActivity).supportActionBar?.title = "New appo"
 
         val viewModelFactory = StepTwoViewModelFactory(args.friendUserId, args.friendFullName)
 

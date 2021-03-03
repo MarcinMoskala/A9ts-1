@@ -1,12 +1,14 @@
 package com.a9ts.a9ts
 
 import android.os.Bundle
-import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import com.a9ts.a9ts.databinding.AcitvityMainBinding
 import com.a9ts.a9ts.model.AuthService
 import org.koin.android.ext.android.inject
@@ -24,6 +26,11 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.myNavHostFragment) as NavHostFragment
         navController = navHostFragment.navController
+
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        val toolbar = findViewById<Toolbar>(R.id.my_toolbar)
+        toolbar.setupWithNavController(navController, appBarConfiguration)
+        setSupportActionBar (toolbar)
     }
 
 
@@ -55,7 +62,6 @@ class MainActivity : AppCompatActivity() {
             .create()
             .show()
     }
-
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

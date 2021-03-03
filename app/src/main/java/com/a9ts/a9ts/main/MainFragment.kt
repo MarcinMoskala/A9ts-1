@@ -10,6 +10,7 @@ import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.MainFragmentBinding
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
+import com.a9ts.a9ts.snack
 import com.a9ts.a9ts.toast
 
 class MainFragment : Fragment() {
@@ -64,17 +65,10 @@ class MainFragment : Fragment() {
             }
         })
 
-        viewModel.appointmentNotificationAccepted.observe(viewLifecycleOwner, { holder ->
-            if (holder != null) {
-                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
-                viewModel.onAppointmentNotificationAcceptedDone()
-            }
-        })
-
-        viewModel.appointmentNotificationRejected.observe(viewLifecycleOwner, { holder ->
-            if (holder != null) {
-                (binding.recyclerView.adapter as ItemListAdapter).removeItem(holder)
-                viewModel.onAppointmentNotificationRejectedDone()
+        viewModel.snackMessage.observe(viewLifecycleOwner, { snackMessage ->
+            if (snackMessage != null) {
+                binding.root.snack(snackMessage)
+                viewModel.snackMessageDone()
             }
         })
 

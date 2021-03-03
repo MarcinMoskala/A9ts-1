@@ -10,9 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.a9ts.a9ts.MainActivity
-import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AddAppointmentStepOneFragmentBinding
-import com.a9ts.a9ts.toast
 
 class StepOneFragment : Fragment() {
     private val viewModel: StepOneViewModel by lazy {
@@ -25,7 +23,7 @@ class StepOneFragment : Fragment() {
 
         val binding = AddAppointmentStepOneFragmentBinding.inflate(layoutInflater, container, false)
 
-        (activity as MainActivity).supportActionBar?.title = "Appointment with..."
+//        (activity as MainActivity).supportActionBar?.title = "Appointment with..."
 
         viewModel.myFriends.observe(viewLifecycleOwner, { friendsList ->
             if (friendsList.isNotEmpty()) {
@@ -55,6 +53,7 @@ class StepOneFragment : Fragment() {
 
 
         binding.viewModel = viewModel
+        binding.lifecycleOwner = this
 
         viewModel.onCreateView() // populate recycler view
 
