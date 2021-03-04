@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -21,16 +20,20 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(AcitvityMainBinding.inflate(layoutInflater).root)
+        val binding = AcitvityMainBinding.inflate(layoutInflater)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.myNavHostFragment) as NavHostFragment
         navController = navHostFragment.navController
 
+        // Toolbar setup
         val appBarConfiguration = AppBarConfiguration(navController.graph)
-        val toolbar = findViewById<Toolbar>(R.id.my_toolbar)
+        val toolbar = binding.myToolbar
         toolbar.setupWithNavController(navController, appBarConfiguration)
-        setSupportActionBar (toolbar)
+        setSupportActionBar(toolbar)
+
+        setContentView(binding.root)
+
     }
 
 
@@ -74,12 +77,16 @@ class MainActivity : AppCompatActivity() {
                     popBackStack(R.id.mainFragment, true);
                     navigate(R.id.authStepOneFragment)
                 }
-
                 return true
             }
-
+            android.R.id.home -> { // if "Up" button pressed, do Back
+                onBackPressed()
+                return true
+            }
             else -> super.onOptionsItemSelected(item)
+
         }
+
     }
 
     companion object {

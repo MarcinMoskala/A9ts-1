@@ -10,7 +10,7 @@
     <fragment
         android:id="@+id/authStepOneFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepOneFragment"
-        android:label="authStepOne"
+        android:label="Your Phone"
         tools:layout="@layout/auth_step_one_fragment">
         <action
             android:id="@+id/action_authStepOneFragment_to_authStepTwoFragment"
@@ -20,7 +20,7 @@
     <fragment
         android:id="@+id/authStepTwoFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepTwoFragment"
-        android:label="authStepTwo"
+        android:label="#YOUR_PHONE"
         tools:layout="@layout/auth_step_two_fragment">
         <argument
             android:name="verificationId"
@@ -42,7 +42,7 @@
     <fragment
         android:id="@+id/authStepThreeFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepThreeFragment"
-        android:label="authStepThree"
+        android:label="Profile"
         tools:layout="@layout/auth_step_three_fragment">
         <action
             android:id="@+id/action_authStepThreeFragment_to_mainFragment"
@@ -53,7 +53,7 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.a9ts.a9ts.main.MainFragment"
-        android:label="mainFragment"
+        android:label="Agenda"
         tools:layout="@layout/main_fragment">
 
         <action
@@ -68,7 +68,7 @@
     <fragment
         android:id="@+id/stepOneFragment"
         android:name="com.a9ts.a9ts.addappointment.StepOneFragment"
-        android:label="StepOneFragment"
+        android:label="New appo with..."
         tools:layout="@layout/add_appointment_step_one_fragment">
         <action
             android:id="@+id/action_stepOneFragment_to_stepTwoFragment"
@@ -80,15 +80,15 @@
     <fragment
         android:id="@+id/stepTwoFragment"
         android:name="com.a9ts.a9ts.addappointment.StepTwoFragment"
-        android:label="StepTwoFragment" >
+        android:label="New appo">
         <argument
             android:name="friendUserId"
-            app:argType="string"
-            android:defaultValue="  QTIFcGvQSJXLpr4pah8iOhFATyx1 " />
+            android:defaultValue="  QTIFcGvQSJXLpr4pah8iOhFATyx1 "
+            app:argType="string" />
         <argument
             android:name="friendFullName"
-            app:argType="string"
-            android:defaultValue="Igor Križko" />
+            android:defaultValue="Igor Križko"
+            app:argType="string" />
         <action
             android:id="@+id/action_stepTwoFragment_to_mainFragment"
             app:destination="@id/mainFragment"
@@ -98,6 +98,6 @@
     <fragment
         android:id="@+id/addFriendsFragment"
         android:name="com.a9ts.a9ts.addfriends.AddFriendsFragment"
-        android:label="AddFriendsFragment"
-        tools:layout="@layout/add_friends_fragment"/>
+        android:label="Add friend"
+        tools:layout="@layout/add_friends_fragment" />
 </navigation>

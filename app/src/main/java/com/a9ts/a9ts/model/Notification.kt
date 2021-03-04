@@ -11,14 +11,15 @@ import java.time.ZonedDateTime
 data class Notification(
     @DocumentId val id: String? = null,
     var dateAndTime: Timestamp? = null,
-    var notificationType: String? = null,
-    var fullName: String? = null,
-    var authUserId: String? = null,
-    var appointmentId: String? = null,
+    var notificationType: String? = null, //askmarcin should I make it nullable or have a default value of "nothing"? Or?
+    var fullName: String = "",
+    var authUserId: String = "",
+    var appointmentId: String = "",
     @ServerTimestamp var created: Timestamp? = null,
 ) {
     companion object {
         const val TYPE_APP_INVITATION = "appointment_invitation"
         const val TYPE_FRIEND_INVITATION = "friend_invitation"
+        const val COLLECTION = "notification"
     }
 }

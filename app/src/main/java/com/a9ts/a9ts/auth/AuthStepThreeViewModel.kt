@@ -3,13 +3,10 @@ package com.a9ts.a9ts.auth
 import androidx.lifecycle.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.User
-import com.squareup.okhttp.Dispatcher
-import kotlinx.coroutines.Dispatchers
+import com.a9ts.a9ts.model.UserProfile
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import timber.log.Timber
 
 class AuthStepThreeViewModel : ViewModel(), KoinComponent {
 
@@ -34,7 +31,7 @@ class AuthStepThreeViewModel : ViewModel(), KoinComponent {
 
         viewModelScope.launch { // DONE askmarcin Should I use Dispatchers.IO? - not needed in Firebase, it's notblocking
             _userProfileSubmitted.value = databaseService.createUserProfile(
-                User(authService.authUserId, fullName.value!!.trim(), authService.getPhoneNumber())
+                UserProfile(authService.authUserId, fullName.value!!.trim(), authService.getPhoneNumber())
             )
         }
     }

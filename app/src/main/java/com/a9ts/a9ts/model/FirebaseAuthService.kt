@@ -6,7 +6,7 @@ import com.google.firebase.auth.PhoneAuthCredential
 
 interface AuthService {
     val authUserId: String
-    fun getUser(): User
+    fun getUser(): UserProfile
     fun signInWithPhoneAuthCredential(
         activity: Activity,
         credential: PhoneAuthCredential,
@@ -53,7 +53,7 @@ class FirebaseAuthService : AuthService {
         return auth.currentUser?.phoneNumber.toString()
     }
 
-    override fun getUser(): User {
+    override fun getUser(): UserProfile {
         TODO("Not yet implemented")
     }
 }

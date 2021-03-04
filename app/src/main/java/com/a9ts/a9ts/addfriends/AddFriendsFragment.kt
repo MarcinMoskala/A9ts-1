@@ -48,7 +48,6 @@ class AddFriendsFragment : Fragment() {
             }
         })
 
-        //DONE askmarcin any chance to somehow name the Pair values, not just first and second?
         viewModel.buttonClicked.observe(viewLifecycleOwner, { (buttonClicked, viewHolderPosition) ->
 
 

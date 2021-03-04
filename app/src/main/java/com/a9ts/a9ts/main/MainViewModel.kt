@@ -1,10 +1,7 @@
 package com.a9ts.a9ts.main
 
 import android.view.View
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.a9ts.a9ts.model.*
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -17,15 +14,25 @@ class MainViewModel : ViewModel(), KoinComponent {
     var notificationList = listOf<Notification>()
     var appointmentList = listOf<Appointment>()
 
+
+    private val _notificationsAndAppointments = MutableLiveData<List<Any>>()
+    val notificationsAndAppointments : LiveData<List<Any>>
+        get() = _notificationsAndAppointments
+
+    val hasAppointments = MediatorLiveData<Boolean>().apply {
+        addSource(_notificationsAndAppointments) {
+            for (item in it) {
+                if (item is Appointment) {
+                    value = true
+                    return@addSource
+                }
+            }
+            value = false
+        }
+    }
+
     val authUserId = authService.authUserId
 
-    private val _appointmentNotificationAccepted = MutableLiveData<BaseViewHolder?>()
-    val appointmentNotificationAccepted: LiveData<BaseViewHolder?>
-        get() = _appointmentNotificationAccepted
-
-/*    private val _appointmentNotificationRejected = MutableLiveData<BaseViewHolder?>()
-    val appointmentNotificationRejected: LiveData<BaseViewHolder?>
-        get() = _appointmentNotificationRejected*/
 
     private val _friendNotificationAccepted = MutableLiveData<BaseViewHolder?>()
     val friendNotificationAccepted: LiveData<BaseViewHolder?>
@@ -46,17 +53,14 @@ class MainViewModel : ViewModel(), KoinComponent {
         get() = _notLoggedEvent
 
 
-    private val _showUser = MutableLiveData<User>()
-    val showUser: LiveData<User>
+    private val _showUser = MutableLiveData<UserProfile>()
+    val showUser: LiveData<UserProfile>
         get() = _showUser
 
     private val _fabClicked = MutableLiveData<Boolean>()
     val fabClicked: LiveData<Boolean>
         get() = _fabClicked
 
-    private val _notificationsAndAppointments = MutableLiveData<List<Any>>()
-    val notificationsAndAppointments : LiveData<List<Any>>
-        get() = _notificationsAndAppointments
 
     fun fabClicked(view: View) {
         _fabClicked.value = true
@@ -95,7 +99,7 @@ class MainViewModel : ViewModel(), KoinComponent {
             if (user != null) {
                 _showUser.value = user
             } else if (authService.authUserId != "null") {
-                _showUser.value = User(authService.authUserId, "No name", authService.getPhoneNumber())
+                _showUser.value = UserProfile(authService.authUserId, "No name", authService.getPhoneNumber())
             }
         }
     }
@@ -140,14 +144,16 @@ class MainViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    //askmarcin should this fun accept nullable strings? Or should I convert to non nullable when callling the function?
     fun onAppointmentNotificationRejected(holder: BaseViewHolder, invitorUserId: String?, appointmentId: String?, notificationId: String?) {
         viewModelScope.launch {
             if (databaseService.rejectAppointmentInvitation(authUserId, invitorUserId!!, appointmentId, notificationId)) {
                 _snackMessage.value = "❌ Appointment rejected"
             }
         }
+
+        // generate ID UUID.randomUUID().toString()
     }
+
    
     fun snackMessageDone() {
         _snackMessage.value = null

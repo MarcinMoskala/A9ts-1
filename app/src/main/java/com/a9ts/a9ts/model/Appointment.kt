@@ -15,13 +15,14 @@ data class Appointment(
     val state: Int = -1,
 
     @ServerTimestamp val created: Timestamp? = null, //musim mat moznost dat null, lebo chcem poslat "null" aby vyplnil timestamp namiesto mna
-                     val accepted: Timestamp? = null,
-                     val canceledByInvitor: Timestamp? = null,
-                     val canceledByInvitee: Timestamp? = null,
+    val accepted: Timestamp? = null,
+    val canceledByInvitor: Timestamp? = null,
+    val canceledByInvitee: Timestamp? = null,
 ) {
     companion object {
         const val STATE_I_AM_INVITED = 0
         const val STATE_I_INVITED = 1
         const val STATE_ACCEPTED = 2
+        const val COLLECTION = "appointment"
     }
 }

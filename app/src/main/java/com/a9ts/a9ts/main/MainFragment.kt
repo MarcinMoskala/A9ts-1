@@ -78,40 +78,38 @@ class MainFragment : Fragment() {
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
 
-            //askmarcin can this be written more nicely?
-            val itemListNotification: ArrayList<ItemAdapter> = ArrayList(items.mapNotNull { item ->
-
-                if (item is Notification) {
-                    val notification = item
-
-                    if (notification.notificationType == Notification.TYPE_APP_INVITATION)
-                        return@mapNotNull NotificationNewAppointmentItemAdapter(
-                            notification,
-                            { holder -> viewModel.onAppointmentNotificationAccepted(holder, notification.authUserId, notification.appointmentId, notification.id) },
-                            { holder -> viewModel.onAppointmentNotificationRejected(holder, notification.authUserId, notification.appointmentId, notification.id) })
-
-                    if (item.notificationType == Notification.TYPE_FRIEND_INVITATION)
-                        return@mapNotNull NotificationFriendInvitationItemAdapter(
-                            notification,
-                            { holder -> viewModel.onFriendNotificationAccepted(holder, notification.authUserId, notification.id) },
-                            { holder -> viewModel.onFriendNotificationRejected(holder, notification.authUserId, notification.id) })
+            val itemListNotification: List<ItemAdapter> = items.mapNotNull { item ->
+                when (item) {
+                    is Notification -> when (item.notificationType) {
+                        Notification.TYPE_APP_INVITATION -> makeNotificationNewAppointmentItemAdapter(item)
+                        Notification.TYPE_FRIEND_INVITATION -> makeNotificationFriendInvitationItemAdapter(item)
+                        else -> null
+                    }
+                    is Appointment -> AppointmentItemAdapter(item, viewModel.authUserId)
+                    else -> null
                 }
-
-                if (item is Appointment) {
-                    val appointment = item
-                    return@mapNotNull AppointmentItemAdapter(appointment, viewModel.authUserId)
-                }
-
-                null
-            })
+            }
 
             binding.recyclerView.adapter = ItemListAdapter(itemListNotification)
         })
 
         viewModel.onCreateView() //populate recyclerview
+        binding.lifecycleOwner = this
 
         return binding.root
     }
+
+    private fun makeNotificationFriendInvitationItemAdapter(item: Notification) = NotificationFriendInvitationItemAdapter(
+        item,
+        onAccept = { holder -> viewModel.onFriendNotificationAccepted(holder, item.authUserId, item.id) },
+        onReject = { holder -> viewModel.onFriendNotificationRejected(holder, item.authUserId, item.id) }
+    )
+
+    private fun makeNotificationNewAppointmentItemAdapter(item: Notification) = NotificationNewAppointmentItemAdapter(
+        item,
+        onAccept = { holder -> viewModel.onAppointmentNotificationAccepted(holder, item.authUserId, item.appointmentId, item.id) },
+        onReject = { holder -> viewModel.onAppointmentNotificationRejected(holder, item.authUserId, item.appointmentId, item.id) }
+    )
 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

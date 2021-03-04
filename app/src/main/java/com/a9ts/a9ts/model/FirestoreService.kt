@@ -5,7 +5,6 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
@@ -17,14 +16,14 @@ interface DatabaseService {
 
     fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
 
-    suspend fun createUserProfile(user: User): Boolean
-    suspend fun makeFriends(user1: User, user2: User): Boolean
+    suspend fun createUserProfile(user: UserProfile): Boolean
+    suspend fun makeFriends(user1: UserProfile, user2: UserProfile): Boolean
 
-    suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>?
+    suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>? //TODO make it into a sealed class
 
     suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean
 
-    suspend fun getUser(authUserId: String): User?
+    suspend fun getUser(authUserId: String): UserProfile?
     suspend fun getFriends(authUserId: String): List<Friend>?
     suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
 
@@ -43,10 +42,10 @@ class FirestoreService : DatabaseService {
 
 
     override fun getNotificationsListener(authUserId: String, onSuccess : (List<Notification>)-> Unit) {
-        db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION)
+        db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION)
             .orderBy("created", Query.Direction.DESCENDING)
             .addSnapshotListener {querySnapshot, e ->
-                Timber.d("getNotifcationListener")
+                Timber.d("getNotificationListener")
                 if (e != null) {
                     Timber.w("getNotificationsListener failed: $e")
                     return@addSnapshotListener
@@ -64,10 +63,10 @@ class FirestoreService : DatabaseService {
     }
 
     override fun getAppointmentsListener(authUserId: String, onSuccess : (List<Appointment>)-> Unit) {
-        db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT)
+        db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION)
             .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED)
             .addSnapshotListener {querySnapshot, e ->
-                Timber.d("getAppopintmentListener")
+                Timber.d("getAppointmentListener")
                 if (e != null) {
                     Timber.w("getAppointmentListener failed: $e")
                     return@addSnapshotListener
@@ -86,35 +85,35 @@ class FirestoreService : DatabaseService {
 
     override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean {
         try {
-            val authUserDoc = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+            val authUserDoc = db.collection(UserProfile.COLLECTION).document(authUserId)
 
-            val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
+            val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
 
             val authUserAppointment =
-                db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document()
+                db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document()
 
 
             // oba Appointments nech maju same Id
             val friendUserAppointment =
-                db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_APPOINTMENT).document(authUserAppointment.id)
+                db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Appointment.COLLECTION).document(authUserAppointment.id)
 
             val friendUserNotification =
-                db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_NOTIFICATION).document()
+                db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Notification.COLLECTION).document()
 
             db.runTransaction { transaction ->
-                val authUser: User? = transaction.get(authUserDoc).toObject()
-                val authUserFullName = authUser?.fullName
+                val authUser: UserProfile? = transaction.get(authUserDoc).toObject()
+                val authUserFullName = authUser?.fullName!!
 
-                val friendUser: User? = transaction.get(friendUserDoc).toObject()
-                val friendUserFullName = friendUser?.fullName
+                val friendUser: UserProfile? = transaction.get(friendUserDoc).toObject()
+                val friendUserFullName = friendUser?.fullName!!
 
                 val utcDateTimeInSeconds = toUTCTimestamp(dateTimeInSeconds)
 
 
                 val authUserAppointmentData = Appointment(
                     dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
-                    invitorName = authUserFullName.toString(),
-                    inviteeName = friendUserFullName.toString(),
+                    invitorName = authUserFullName,
+                    inviteeName = friendUserFullName,
                     invitorUserId = authUserId,
                     inviteeUserId = friendUserId,
                     state = Appointment.STATE_I_INVITED
@@ -140,26 +139,21 @@ class FirestoreService : DatabaseService {
             }.await()
             return true
         } catch (e: FirebaseFirestoreException) {
-            //DONE askmarcin when to use Timber.e Timber.d etc...
-            // and is this OK way to handle the exception?
             Timber.e("suspend fun sendAppointment: {${e.message}")
             return false
         }
     }
 
     override suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
-        val inviteeAppointment = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
-        val invitorAppointment = db.collection(COLLECTION_USER_PROFILE).document(invitorUserId!!).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
-        val notification     = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION).document(notificationId.toString())
+        val inviteeAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId.toString())
+        val invitorAppointment = db.collection(UserProfile.COLLECTION).document(invitorUserId!!).collection(Appointment.COLLECTION).document(appointmentId.toString())
+        val notification     = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
 
         return try {
             db.runTransaction { transaction ->
-//                askmarcin can I use reflection to get the "accepted" string?
-//                transaction.update(inviteeAppoiment, Appointment::accepted.toString(), FieldValue.serverTimestamp())
-//                transaction.update(invitorAppoiment, Appointment::accepted.toString(), FieldValue.serverTimestamp())
 
-                  transaction.update(inviteeAppointment, "accepted", FieldValue.serverTimestamp(), "state", Appointment.STATE_ACCEPTED)
-                  transaction.update(invitorAppointment, "accepted", FieldValue.serverTimestamp(),"state", Appointment.STATE_ACCEPTED)
+                  transaction.update(inviteeAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
+                  transaction.update(invitorAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
                     transaction.delete(notification)
             }.await()
             true
@@ -171,9 +165,9 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
-        val inviteeAppointment = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
-        val invitorAppointment = db.collection(COLLECTION_USER_PROFILE).document(invitorUserId!!).collection(COLLECTION_APPOINTMENT).document(appointmentId.toString())
-        val notification     = db.collection(COLLECTION_USER_PROFILE).document(authUserId).collection(COLLECTION_NOTIFICATION).document(notificationId.toString())
+        val inviteeAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId.toString())
+        val invitorAppointment = db.collection(UserProfile.COLLECTION).document(invitorUserId!!).collection(Appointment.COLLECTION).document(appointmentId.toString())
+        val notification     = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
 
         return try {
             db.runTransaction { transaction ->
@@ -189,9 +183,9 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean {
-        val acceptingUserFriend = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_FRIEND).document(friendUserId)
-        val friendUserFriend = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(acceptingUserId)
-        val notification = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_NOTIFICATION).document(notificationId)
+        val acceptingUserFriend = db.collection(UserProfile.COLLECTION).document(acceptingUserId).collection(Friend.COLLECTION).document(friendUserId)
+        val friendUserFriend = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(acceptingUserId)
+        val notification = db.collection(UserProfile.COLLECTION).document(acceptingUserId).collection(Notification.COLLECTION).document(notificationId)
 
         return try {
             db.runTransaction { transaction ->
@@ -207,9 +201,9 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun rejectFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean {
-        val acceptingUserFriend = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_FRIEND).document(friendUserId)
-        val friendUserFriend = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(acceptingUserId)
-        val notification = db.collection(COLLECTION_USER_PROFILE).document(acceptingUserId).collection(COLLECTION_NOTIFICATION).document(notificationId)
+        val acceptingUserFriend = db.collection(UserProfile.COLLECTION).document(acceptingUserId).collection(Friend.COLLECTION).document(friendUserId)
+        val friendUserFriend = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(acceptingUserId)
+        val notification = db.collection(UserProfile.COLLECTION).document(acceptingUserId).collection(Notification.COLLECTION).document(notificationId)
 
         return try {
             db.runTransaction { transaction ->
@@ -226,15 +220,15 @@ class FirestoreService : DatabaseService {
 
     override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
         try {
-            val userDoc = db.collection(COLLECTION_USER_PROFILE).document(userId)
-            val friendUserDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
-            val friendInvitationNotification = db.collection(COLLECTION_USER_PROFILE).document(friendUserId)
-                .collection(COLLECTION_NOTIFICATION).document()
+            val userDoc = db.collection(UserProfile.COLLECTION).document(userId)
+            val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
+            val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
+                .collection(Notification.COLLECTION).document()
 
 
             //Edge case:
             // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
-            val iAmInvitedAlready = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId).get().await()
+            val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
             if (iAmInvitedAlready.exists()) return false
 
             db.runTransaction { transaction ->
@@ -247,12 +241,12 @@ class FirestoreService : DatabaseService {
                 val friendUserTelephone = snapshotFriendUser.get("telephone").toString()
 
                 // write to my /friends with I_INVITED state
-                val usersFriendDoc = db.collection(COLLECTION_USER_PROFILE).document(userId).collection(COLLECTION_FRIEND).document(friendUserId)
+                val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
                 val usersFriend = Friend(friendUserId, friendUserFullName, Friend.STATE_I_INVITED, friendUserTelephone)
                 transaction.set(usersFriendDoc, usersFriend)
 
                 // write to his /friends with I_AM_INVITED state
-                val userFriendsFriendDoc = db.collection(COLLECTION_USER_PROFILE).document(friendUserId).collection(COLLECTION_FRIEND).document(userId)
+                val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
                 val userFriendsFriend = Friend(userId, userFullName, Friend.STATE_I_AM_INVITED, userTelephone)
                 transaction.set(userFriendsFriendDoc, userFriendsFriend)
 
@@ -290,7 +284,7 @@ class FirestoreService : DatabaseService {
             //pet pe t->u   pe + u = peu
             val stringEnd = stringStart.plus((lastChar.toInt() + 1).toChar())
 
-            val fullTextUserEntries = db.collection(COLLECTION_USER_FULLTEXT)
+            val fullTextUserEntries = db.collection(UserFulltext.COLLECTION)
                 .whereGreaterThanOrEqualTo("fulltextName", firstCharactersNormalized)
                 .whereLessThan("fulltextName", stringEnd)
                 .get()
@@ -311,7 +305,7 @@ class FirestoreService : DatabaseService {
             users.remove(currentUserId)
 
             // don't want to include my existing friends (in any state of invitation / acceptance)
-            val existingFriendEntries = db.collection(COLLECTION_USER_PROFILE).document(currentUserId).collection(COLLECTION_FRIEND).get().await()
+            val existingFriendEntries = db.collection(UserProfile.COLLECTION).document(currentUserId).collection(Friend.COLLECTION).get().await()
             for (existingFriendEntry in existingFriendEntries) {
                 users.remove(existingFriendEntry.id)
             }
@@ -327,15 +321,15 @@ class FirestoreService : DatabaseService {
         return try {
 
             val notifications: List<Notification> =
-                db.collection(COLLECTION_USER_PROFILE).document(authUserId)
-                    .collection(COLLECTION_NOTIFICATION)
+                db.collection(UserProfile.COLLECTION).document(authUserId)
+                    .collection(Notification.COLLECTION)
                     .get()
                     .await()
                     .toObjects()
 
-            val appoinments: List<Appointment> =
-                db.collection(COLLECTION_USER_PROFILE).document(authUserId)
-                    .collection(COLLECTION_APPOINTMENT)
+            val appointments: List<Appointment> =
+                db.collection(UserProfile.COLLECTION).document(authUserId)
+                    .collection(Appointment.COLLECTION)
                     .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED) //only if I_INVITED or ACCEPTED
                     .get()
                     .await()
@@ -343,7 +337,7 @@ class FirestoreService : DatabaseService {
 
 
 
-            return notifications + appoinments
+            return notifications + appointments
 
             // TODO not accepted invitations where authUserId == inviteeUserId should be on top, order by created time desc
             // rest should be under it order by DateTime asc
@@ -353,30 +347,30 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    override suspend fun getFriends(authUserId: String): List<Friend>? = db.collection(COLLECTION_USER_PROFILE).document(authUserId)
-                .collection(COLLECTION_FRIEND)
+    override suspend fun getFriends(authUserId: String): List<Friend>? = db.collection(UserProfile.COLLECTION).document(authUserId)
+                .collection(Friend.COLLECTION)
                 .whereGreaterThan("state", Friend.STATE_I_AM_INVITED)
                 .get()
                 .awaitOrNull()
                 ?.toObjects()
 
 
-    override suspend fun getUser(authUserId: String): User? = db.document("$COLLECTION_USER_PROFILE/$authUserId")
+    override suspend fun getUser(authUserId: String): UserProfile? = db.document("${UserProfile.COLLECTION}/$authUserId")
         .get()
         .awaitOrNull()
-        ?.toObject<User>()
+        ?.toObject<UserProfile>()
 
-    override suspend fun makeFriends(user1: User, user2: User): Boolean {
+    override suspend fun makeFriends(user1: UserProfile, user2: UserProfile): Boolean {
         try {
             return if (user1.authUserId != null && user2.authUserId != null) {
-                db.collection(COLLECTION_USER_PROFILE).document(user1.authUserId)
-                    .collection(COLLECTION_FRIEND)
+                db.collection(UserProfile.COLLECTION).document(user1.authUserId)
+                    .collection(Friend.COLLECTION)
                     .document(user2.authUserId)
                     .set(user2)
                     .await() // can throw exception
 
-                db.collection(COLLECTION_USER_PROFILE).document(user2.authUserId)
-                    .collection(COLLECTION_FRIEND)
+                db.collection(UserProfile.COLLECTION).document(user2.authUserId)
+                    .collection(Friend.COLLECTION)
                     .document(user1.authUserId)
                     .set(user1)
                     .await() // can throw exception
@@ -391,7 +385,7 @@ class FirestoreService : DatabaseService {
     }
 
     override fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit) {
-        db.collection(COLLECTION_USER_PROFILE).document(authUserId)
+        db.collection(UserProfile.COLLECTION).document(authUserId)
             .get()
             .addOnSuccessListener { doc ->
                 if (doc?.get("fullName") != null) {
@@ -406,36 +400,27 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun createUserProfile(user: User): Boolean = db.runBatch { batch ->
+    override suspend fun createUserProfile(user: UserProfile): Boolean = db.runBatch { batch ->
         val userId = user.authUserId!!
 
-        val profile = db.collection(COLLECTION_USER_PROFILE).document(userId)
+        val profile = db.collection(UserProfile.COLLECTION).document(userId)
         batch.set(profile, user)
 
         // Róbert Vereš -> robert veres
-        val userNameNormalized = user.fullName!!.normalized()
-        val fulltextUserEntry = db.collection(COLLECTION_USER_FULLTEXT).document()
+        val userNameNormalized = user.fullName.normalized()
+        val fulltextUserEntry = db.collection(UserFulltext.COLLECTION).document()
         batch.set(fulltextUserEntry, hashMapOf("fulltextName" to userNameNormalized, "fullName" to user.fullName, "authUserId" to userId))
 
         // robert j. veres -> veres robert j.
         val userNameNormalizedSwapped = userNameNormalized.putLastWordFirst()
 
         if (userNameNormalizedSwapped != null) {
-            val fulltextUserEntrySwapped = db.collection(COLLECTION_USER_FULLTEXT).document()
+            val fulltextUserEntrySwapped = db.collection(UserFulltext.COLLECTION).document()
             batch.set(fulltextUserEntrySwapped, hashMapOf("fulltextName" to userNameNormalizedSwapped, "fullName" to user.fullName, "authUserId" to userId))
         }
     }.awaitWithStatus()
 }
 
-
-private const val COLLECTION_USER_PROFILE = "user_profile"
-private const val COLLECTION_APPOINTMENT = "appointment"
-
-
-private const val COLLECTION_NOTIFICATION = "notification"
-private const val COLLECTION_USER_FULLTEXT = "user_fulltext"
-
-private const val COLLECTION_FRIEND = "friend"
 
 
 

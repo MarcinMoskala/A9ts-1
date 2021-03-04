@@ -18,7 +18,8 @@ import timber.log.Timber
 // General classes, used by all recycler views
 
 // We use item layoutId as view type, so it needs to be unique
-abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : RecyclerView.Adapter<BaseViewHolder>() {
+abstract class GeneralAdapter(items: List<ItemAdapter>) : RecyclerView.Adapter<BaseViewHolder>() {
+    private val items = items.toMutableList()
 
     final override fun getItemCount() = items.size
 
@@ -34,6 +35,7 @@ abstract class GeneralAdapter(private val items: ArrayList<ItemAdapter>) : Recyc
     }
 
     fun removeItem(holder: BaseViewHolder) {
+        // TODO remove by NotificationID and AppointmentID
         val position = holder.adapterPosition
         items.removeAt(position)
         notifyItemRemoved(position)
@@ -47,7 +49,7 @@ abstract class ItemAdapter(@LayoutRes open val layoutId: Int) {
 
 class BaseViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
-class ItemListAdapter(items: ArrayList<ItemAdapter>) : GeneralAdapter(items)
+class ItemListAdapter(items: List<ItemAdapter>) : GeneralAdapter(items)
 
 class AppointmentItemAdapter(private val appointment: Appointment, private val authUserId: String) : ItemAdapter(R.layout.appointment_item) {
 
