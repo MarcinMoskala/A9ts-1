@@ -1,5 +1,6 @@
 package com.a9ts.a9ts
 
+import android.content.Context
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
@@ -13,11 +14,11 @@ import com.a9ts.a9ts.databinding.AcitvityMainBinding
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.SystemNotificationData
 import com.a9ts.a9ts.model.SystemPushNotification
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
@@ -41,7 +42,14 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         setContentView(binding.root)
-        FirebaseMessaging.getInstance().subscribeToTopic(SYSTEM_NOTIFICATIONS_TOPIC)
+        MyFirebaseMessagingService.sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
+
+        GlobalScope.launch { // askmarcin not sure if this is the right way... GlobalScope is ok?
+            MyFirebaseMessagingService.token = FirebaseMessaging.getInstance().token.await()
+            Timber.d("FirebaseMessaging.getInstance: FCM token written to sharedPrefs: ${MyFirebaseMessagingService.token}")
+        }
+
+        //FirebaseMessaging.getInstance().subscribeToTopic(SYSTEM_NOTIFICATIONS_TOPIC)
 
     }
 
@@ -80,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         try {
             val response = RetrofitInstance.api.postNotification(systemNotification)
             if (response.isSuccessful) {
-                Timber.d("Response: ${Gson().toJson(response)}")
+                //Timber.d("Response: ${Gson().toJson(response)}") // this line was crashing with a stack overflow ... dont know why
             } else {
                 Timber.e(response.errorBody().toString())
             }
@@ -107,8 +115,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_send_notification -> {
+//                SystemPushNotification(
+//                    SystemNotificationData("Bobs Title", "Bobs message"), SYSTEM_NOTIFICATIONS_TOPIC
+//                ).also {
+//                    sendSystemNotification(it)
+//                }
+
                 SystemPushNotification(
-                    SystemNotificationData("Bobs Title", "Bobs message"), SYSTEM_NOTIFICATIONS_TOPIC
+                    SystemNotificationData("Bobs Title", "Bobs message"), MyFirebaseMessagingService.token.toString()
                 ).also {
                     sendSystemNotification(it)
                 }

@@ -96,6 +96,8 @@ class MainFragment : Fragment() {
         viewModel.onCreateView() //populate recyclerview
         binding.lifecycleOwner = this
 
+        binding.recyclerView.adapter = ItemListAdapter(listOf())
+
         return binding.root
     }
 

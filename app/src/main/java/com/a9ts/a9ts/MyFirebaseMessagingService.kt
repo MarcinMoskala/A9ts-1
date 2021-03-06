@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_ONE_SHOT
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -20,8 +21,26 @@ private const val CHANNEL_NAME = "channelName"
 
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-    override fun onNewToken(token: String) {
-        Timber.d("The token refreshed: $token")
+
+    companion object { //askmarcin - not sure why this is a good idea... is he using SharedPreferences as cache? It it normaly a slow operation?
+        var sharedPref: SharedPreferences? = null
+
+        var token: String?
+        get() {
+            return sharedPref?.getString("token","")
+        }
+        set(value) {
+            sharedPref?.edit()?.putString("token", value)?.apply()
+        }
+    }
+
+
+    override fun onNewToken(newToken: String) {
+        super.onNewToken(newToken)
+        token = newToken
+        Timber.d("onNewToken: FCM token written to sharedPrefs: $newToken")
+
+        //TODO write it into DB too
     }
 
     override fun onMessageReceived(message: RemoteMessage) { //askmarcin how to fix "onMessageReceived(p0: RemoteMessage)" had to rename it myself
@@ -51,7 +70,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .build()
 
         notificationManager.notify(notificationID, notification)
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -61,28 +79,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 enableLights(true)
         }
         notificationManager.createNotificationChannel(channel)
-
     }
 }
 
-/*private fun sendTestNotification() {
-
-    val intent = Intent(this, MainActivity::class.java)
-    val pendingIntent = TaskStackBuilder.create(this).run {
-        addNextIntentWithParentStack(intent)
-        getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
-
-    val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setContentTitle("Bobs notification title")
-        .setContentText("This is the content text")
-        .setSmallIcon(R.drawable.ic_calendar_icon)
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setContentIntent(pendingIntent)
-        .build()
-
-    val notificationManager = NotificationManagerCompat.from(this)
-
-    notificationManager.notify(NOTIFICATIONS_ID, notification)
-
-}*/
