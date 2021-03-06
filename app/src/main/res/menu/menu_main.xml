@@ -14,4 +14,10 @@
         android:title="About Currrent User"
         app:showAsAction="never"
         />
+    <item
+        android:id="@+id/action_send_notification"
+        android:orderInCategory="300"
+        android:title="Send notification"
+        app:showAsAction="never"
+        />
 </menu>

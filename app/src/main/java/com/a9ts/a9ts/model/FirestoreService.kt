@@ -33,18 +33,18 @@ interface DatabaseService {
     suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
     suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
 
-    fun getNotificationsListener(authUserId: String, onSuccess : (List<Notification>)-> Unit)
-    fun getAppointmentsListener(authUserId: String, onSuccess : (List<Appointment>)-> Unit)
+    fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
+    fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
 
 
-    override fun getNotificationsListener(authUserId: String, onSuccess : (List<Notification>)-> Unit) {
+    override fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION)
             .orderBy("created", Query.Direction.DESCENDING)
-            .addSnapshotListener {querySnapshot, e ->
+            .addSnapshotListener { querySnapshot, e ->
                 Timber.d("getNotificationListener")
                 if (e != null) {
                     Timber.w("getNotificationsListener failed: $e")
@@ -62,10 +62,10 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override fun getAppointmentsListener(authUserId: String, onSuccess : (List<Appointment>)-> Unit) {
+    override fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION)
             .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED)
-            .addSnapshotListener {querySnapshot, e ->
+            .addSnapshotListener { querySnapshot, e ->
                 Timber.d("getAppointmentListener")
                 if (e != null) {
                     Timber.w("getAppointmentListener failed: $e")
@@ -120,14 +120,15 @@ class FirestoreService : DatabaseService {
                 )
 
                 val friendUserAppointmentData = authUserAppointmentData.copy(
-                    state = Appointment.STATE_I_AM_INVITED)
+                    state = Appointment.STATE_I_AM_INVITED
+                )
 
                 val notification = Notification(
                     dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
-                    notificationType =Notification.TYPE_APP_INVITATION,
+                    notificationType = Notification.TYPE_APP_INVITATION,
                     fullName = authUserFullName,
                     authUserId = authUserId,
-                    appointmentId= authUserAppointment.id
+                    appointmentId = authUserAppointment.id
                 )
 
 
@@ -147,14 +148,14 @@ class FirestoreService : DatabaseService {
     override suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
         val inviteeAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId.toString())
         val invitorAppointment = db.collection(UserProfile.COLLECTION).document(invitorUserId!!).collection(Appointment.COLLECTION).document(appointmentId.toString())
-        val notification     = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
+        val notification = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
 
         return try {
             db.runTransaction { transaction ->
 
-                  transaction.update(inviteeAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
-                  transaction.update(invitorAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
-                    transaction.delete(notification)
+                transaction.update(inviteeAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
+                transaction.update(invitorAppointment, Appointment::accepted.name, FieldValue.serverTimestamp(), Appointment::state.name, Appointment.STATE_ACCEPTED)
+                transaction.delete(notification)
             }.await()
             true
         } catch (e: FirebaseFirestoreException) {
@@ -167,7 +168,7 @@ class FirestoreService : DatabaseService {
     override suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
         val inviteeAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId.toString())
         val invitorAppointment = db.collection(UserProfile.COLLECTION).document(invitorUserId!!).collection(Appointment.COLLECTION).document(appointmentId.toString())
-        val notification     = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
+        val notification = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
 
         return try {
             db.runTransaction { transaction ->
@@ -189,8 +190,8 @@ class FirestoreService : DatabaseService {
 
         return try {
             db.runTransaction { transaction ->
-                transaction.update(acceptingUserFriend, "state", Friend.STATE_ACCEPTED)
-                transaction.update(friendUserFriend, "state", Friend.STATE_ACCEPTED)
+                transaction.update(acceptingUserFriend, Friend::state.name, Friend.STATE_ACCEPTED)
+                transaction.update(friendUserFriend, Friend::state.name, Friend.STATE_ACCEPTED)
                 transaction.delete(notification)
             }.await()
             true
@@ -219,54 +220,43 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
-        try {
-            val userDoc = db.collection(UserProfile.COLLECTION).document(userId)
-            val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
-            val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
-                .collection(Notification.COLLECTION).document()
+        val userProfileDoc = db.collection(UserProfile.COLLECTION).document(userId)
+        val friendUserDocProfile = db.collection(UserProfile.COLLECTION).document(friendUserId)
+        val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
+            .collection(Notification.COLLECTION).document()
 
 
-            //Edge case:
-            // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
-            val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
-            if (iAmInvitedAlready.exists()) return false
+        //Edge case:
+        // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
+        val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
+        if (iAmInvitedAlready.exists()) return false
 
-            db.runTransaction { transaction ->
-                val snapshotUser = transaction.get(userDoc)
-                val userFullName = snapshotUser.get("fullName").toString() //DONE askmarcin where should I define "fullName" as a constant?
-                val userTelephone = snapshotUser.get("telephone").toString()
+        return db.runTransaction { transaction ->
+            val snapshotUser = transaction.get(userProfileDoc)
+            val userFullName = snapshotUser.get(UserProfile::fullName.name).toString()
+            val userTelephone = snapshotUser.get(UserProfile::telephone.name).toString()
 
-                val snapshotFriendUser = transaction.get(friendUserDoc)
-                val friendUserFullName = snapshotFriendUser.get("fullName").toString()
-                val friendUserTelephone = snapshotFriendUser.get("telephone").toString()
+            val snapshotFriendUser = transaction.get(friendUserDocProfile)
+            val friendUserFullName = snapshotFriendUser.get(UserProfile::fullName.name).toString()
+            val friendUserTelephone = snapshotFriendUser.get(UserProfile::telephone.name).toString()
 
-                // write to my /friends with I_INVITED state
-                val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
-                val usersFriend = Friend(friendUserId, friendUserFullName, Friend.STATE_I_INVITED, friendUserTelephone)
-                transaction.set(usersFriendDoc, usersFriend)
+            // write to my /friends with I_INVITED state
+            val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
+            val usersFriend = Friend(friendUserId, fullName = friendUserFullName, state = Friend.STATE_I_INVITED, telephone = friendUserTelephone)
+            transaction.set(usersFriendDoc, usersFriend)
 
-                // write to his /friends with I_AM_INVITED state
-                val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
-                val userFriendsFriend = Friend(userId, userFullName, Friend.STATE_I_AM_INVITED, userTelephone)
-                transaction.set(userFriendsFriendDoc, userFriendsFriend)
+            // write to his /friends with I_AM_INVITED state
+            val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
+            val userFriendsFriend = Friend(userId, fullName = userFullName, state = Friend.STATE_I_AM_INVITED, telephone = userTelephone)
+            transaction.set(userFriendsFriendDoc, userFriendsFriend)
 
-                val invitation = Notification(
-                    notificationType = Notification.TYPE_FRIEND_INVITATION,
-                    fullName = userFullName,
-                    authUserId = userId
-                )
-                transaction.set(friendInvitationNotification, invitation)
-
-            }.await()
-
-            //TODO send some kind of invitation notification
-
-            return true
-        } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun sendFriendInvite: {${e.message}")
-            return false
-        }
-
+            val invitation = Notification(
+                notificationType = Notification.TYPE_FRIEND_INVITATION,
+                fullName = userFullName,
+                authUserId = userId
+            )
+            transaction.set(friendInvitationNotification, invitation)
+        }.awaitWithStatus()
     }
 
     override suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>? {
@@ -343,16 +333,16 @@ class FirestoreService : DatabaseService {
             // rest should be under it order by DateTime asc
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun getAcceptedAppointments: {${e.message}")
-            listOf()
+            listOf() //askmarcin what is better, return an empty list or a null?
         }
     }
 
     override suspend fun getFriends(authUserId: String): List<Friend>? = db.collection(UserProfile.COLLECTION).document(authUserId)
-                .collection(Friend.COLLECTION)
-                .whereGreaterThan("state", Friend.STATE_I_AM_INVITED)
-                .get()
-                .awaitOrNull()
-                ?.toObjects()
+        .collection(Friend.COLLECTION)
+        .whereGreaterThan("state", Friend.STATE_I_AM_INVITED)
+        .get()
+        .awaitOrNull()
+        ?.toObjects()
 
 
     override suspend fun getUser(authUserId: String): UserProfile? = db.document("${UserProfile.COLLECTION}/$authUserId")
@@ -388,7 +378,7 @@ class FirestoreService : DatabaseService {
         db.collection(UserProfile.COLLECTION).document(authUserId)
             .get()
             .addOnSuccessListener { doc ->
-                if (doc?.get("fullName") != null) {
+                if (doc?.get(UserProfile::fullName.name) != null) {
                     onTrue()
                     return@addOnSuccessListener
                 }
@@ -409,14 +399,15 @@ class FirestoreService : DatabaseService {
         // Róbert Vereš -> robert veres
         val userNameNormalized = user.fullName.normalized()
         val fulltextUserEntry = db.collection(UserFulltext.COLLECTION).document()
-        batch.set(fulltextUserEntry, hashMapOf("fulltextName" to userNameNormalized, "fullName" to user.fullName, "authUserId" to userId))
+        val userFulltext = UserFulltext(fulltextName = userNameNormalized, fullName = user.fullName, authUserId = userId)
+        batch.set(fulltextUserEntry, userFulltext)
 
         // robert j. veres -> veres robert j.
         val userNameNormalizedSwapped = userNameNormalized.putLastWordFirst()
 
         if (userNameNormalizedSwapped != null) {
             val fulltextUserEntrySwapped = db.collection(UserFulltext.COLLECTION).document()
-            batch.set(fulltextUserEntrySwapped, hashMapOf("fulltextName" to userNameNormalizedSwapped, "fullName" to user.fullName, "authUserId" to userId))
+            batch.set(fulltextUserEntrySwapped, userFulltext.copy(fulltextName = userNameNormalizedSwapped))
         }
     }.awaitWithStatus()
 }

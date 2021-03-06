@@ -24,8 +24,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:background="@color/black"
-            android:paddingTop="@{viewModel.hasAppointments ? @dimen/one_dp : 0}">
+            android:background="@android:color/black"
+            android:paddingBottom="@{viewModel.hasAppointments ? @dimen/one_dp : 0}">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
@@ -36,7 +36,9 @@
                 tools:itemCount="4"
                 tools:orientation="vertical"
                 tools:scrollbars="vertical"
+                android:background="@color/bgGrey"
                 />
+
         </LinearLayout>
 
 

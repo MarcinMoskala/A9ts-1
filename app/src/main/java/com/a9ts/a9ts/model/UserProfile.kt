@@ -6,7 +6,7 @@ import com.google.firebase.firestore.ServerTimestamp
 
 data class UserProfile (
     @DocumentId val authUserId: String? = null,
-    var fullName: String = "",
+    val fullName: String = "",
     val telephone: String = "",
     @ServerTimestamp var created: Timestamp? = null
 ){

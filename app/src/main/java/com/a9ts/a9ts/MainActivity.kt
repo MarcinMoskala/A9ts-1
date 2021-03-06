@@ -8,13 +8,21 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.a9ts.a9ts.Constants.Companion.SYSTEM_NOTIFICATIONS_TOPIC
 import com.a9ts.a9ts.databinding.AcitvityMainBinding
 import com.a9ts.a9ts.model.AuthService
+import com.a9ts.a9ts.model.SystemNotificationData
+import com.a9ts.a9ts.model.SystemPushNotification
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
     private val authService: AuthService by inject()
-
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         setContentView(binding.root)
+        FirebaseMessaging.getInstance().subscribeToTopic(SYSTEM_NOTIFICATIONS_TOPIC)
 
     }
 
@@ -67,6 +76,19 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    private fun sendSystemNotification(systemNotification: SystemPushNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val response = RetrofitInstance.api.postNotification(systemNotification)
+            if (response.isSuccessful) {
+                Timber.d("Response: ${Gson().toJson(response)}")
+            } else {
+                Timber.e(response.errorBody().toString())
+            }
+        } catch (e: Exception) {
+            Timber.e(e.toString())
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
@@ -83,6 +105,16 @@ class MainActivity : AppCompatActivity() {
                 onBackPressed()
                 return true
             }
+
+            R.id.action_send_notification -> {
+                SystemPushNotification(
+                    SystemNotificationData("Bobs Title", "Bobs message"), SYSTEM_NOTIFICATIONS_TOPIC
+                ).also {
+                    sendSystemNotification(it)
+                }
+                return true
+            }
+
             else -> super.onOptionsItemSelected(item)
 
         }

@@ -69,6 +69,7 @@ class AuthStepTwoFragment : Fragment() {
                         if (exception is FirebaseAuthInvalidCredentialsException) {
                             binding.editTextVerificationCode.error = "Invalid code."
 
+                            //TODO UI poriesit ked zadam zly CODE
                             toast("Sign in fail: Verification code WRONG")
                         }
                     })
