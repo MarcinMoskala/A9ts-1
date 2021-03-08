@@ -39,15 +39,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onNewToken(newToken)
         token = newToken
         Timber.d("onNewToken: FCM token written to sharedPrefs: $newToken")
-
-        //TODO write it into DB too
+        // TODO write token to server
     }
 
     override fun onMessageReceived(message: RemoteMessage) { //askmarcin how to fix "onMessageReceived(p0: RemoteMessage)" had to rename it myself
         super.onMessageReceived(message) //askmarcin sometime i see super. being call on the beginning of override fun, sometimes on the end, sometimes not at all...
 
+        sendNotification(message)
+    }
+
+    private fun sendNotification(message: RemoteMessage) {
         val intent = Intent(this, MainActivity::class.java)
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        //TODO mozno by rovnake notivikacie mali mat rovnake ID... notificationID = message.data["notificationId"]... Tym padom ak by prisla 2x ta ista zobrazi sa raz
         val notificationID = Random.nextInt()
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -60,7 +65,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID) //askmarcin in Google tutorial they had the CHANNEL_ID in R.string... not sure why...
             .setContentTitle(message.data["title"])
             .setContentText(message.data["message"])
             .setSmallIcon(R.drawable.ic_calendar_icon)
