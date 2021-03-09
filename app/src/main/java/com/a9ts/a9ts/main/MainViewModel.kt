@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class MainViewModel : ViewModel(), KoinComponent {
+class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
@@ -74,6 +74,8 @@ class MainViewModel : ViewModel(), KoinComponent {
         _showUser.value = null
     }
 
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun onCreateView() {
         databaseService.getNotificationsListener(authUserId) { notifications ->
             this.notificationList = notifications

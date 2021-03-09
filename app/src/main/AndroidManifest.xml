@@ -31,6 +31,10 @@
             </intent-filter>
         </service>
 
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_calendar_icon" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channle_id"
+            android:resource="@string/system_notification_channel_id" />
     </application>
 
 </manifest>

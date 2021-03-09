@@ -26,6 +26,7 @@ class MainFragment : Fragment() {
 
         val binding = MainFragmentBinding.inflate(layoutInflater, container, false)
 
+        lifecycle.addObserver(viewModel)
         binding.viewModel = viewModel
 
         setHasOptionsMenu(true)
@@ -93,7 +94,7 @@ class MainFragment : Fragment() {
             binding.recyclerView.adapter = ItemListAdapter(itemListNotification)
         })
 
-        viewModel.onCreateView() //populate recyclerview
+//        viewModel.onCreateView() //populate recyclerview
         binding.lifecycleOwner = this
 
         binding.recyclerView.adapter = ItemListAdapter(listOf())

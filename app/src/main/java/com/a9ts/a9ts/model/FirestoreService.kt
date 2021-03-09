@@ -35,11 +35,23 @@ interface DatabaseService {
 
     fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
     fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
+    fun saveDeviceToken(authUserId: String, value: String?, onSuccess: () -> Unit)
+
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
 
+    override fun saveDeviceToken(authUserId: String, deviceToken: String?, onSuccess: () -> Unit) {
+        db.collection(UserProfile.COLLECTION).document(authUserId)
+            .update(UserProfile::deviceToken.name, deviceToken!!)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Timber.d("databaseService.saveToken() failed: $e")
+            }
+    }
 
     override fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION)

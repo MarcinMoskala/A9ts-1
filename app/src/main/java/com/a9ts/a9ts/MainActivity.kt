@@ -1,15 +1,21 @@
 package com.a9ts.a9ts
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.a9ts.a9ts.databinding.AcitvityMainBinding
+import com.a9ts.a9ts.main.MainViewModel
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.SystemNotificationData
 import com.a9ts.a9ts.model.SystemPushNotification
@@ -25,6 +31,10 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity() {
     private val authService: AuthService by inject()
     private lateinit var navController: NavController
+
+    private val viewModel: MainActivityViewModel by lazy {
+        ViewModelProvider(this).get(MainActivityViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,16 +54,36 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         MyFirebaseMessagingService.sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
 
-        GlobalScope.launch { // askmarcin not sure if this is the right way... GlobalScope is ok?
-            MyFirebaseMessagingService.token = FirebaseMessaging.getInstance().token.await()
-            // TODO write token to server
-            Timber.d("FirebaseMessaging.getInstance: FCM token written to sharedPrefs: ${MyFirebaseMessagingService.token}")
-        }
-
-        //FirebaseMessaging.getInstance().subscribeToTopic(SYSTEM_NOTIFICATIONS_TOPIC)
-
+        getFirebaseDeviceToken()
+        createSystemNotificationChannel()
     }
 
+    private fun getFirebaseDeviceToken() {
+        if (MyFirebaseMessagingService.token.isNullOrEmpty()) {
+            GlobalScope.launch { // askmarcin not sure if this is the right way... GlobalScope is ok?
+                MyFirebaseMessagingService.token = FirebaseMessaging.getInstance().token.await()
+                // TODO write token to server
+                Timber.d("FirebaseMessaging.getInstance: FCM token written to sharedPrefs: ${MyFirebaseMessagingService.token}")
+            }
+        } else {
+            Timber.d("FirebaseDeviceToken taken from SharedPrefs.")
+        }
+    }
+
+
+    private fun createSystemNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(getString(R.string.system_notification_channel_id), getString(R.string.system_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                // TODO set it up properly with appropirate CHANNEL_NAME sensible default etc
+                lightColor = Color.GREEN //rozsvieti LED na nasom telefon nejakou farbou
+                enableLights(true)
+                description = "New A9ts notification"
+            }
+
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 
     override fun onBackPressed() {
         val currentFragmentLabel = navController.currentDestination?.label
@@ -105,7 +135,7 @@ class MainActivity : AppCompatActivity() {
                 this.invalidateOptionsMenu()
 
                 navController.apply {
-                    popBackStack(R.id.mainFragment, true);
+                    popBackStack(R.id.mainFragment, true)
                     navigate(R.id.authStepOneFragment)
                 }
                 return true

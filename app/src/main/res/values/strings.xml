@@ -7,5 +7,8 @@
     <string name="quota_exceeded">SMS quota exceeded, try later.</string>
     <string name="enter_the_sms_code">Enter the 6-digit verification code.</string>
 
-    <string name="max_fullname_length">25</string>
+    <string name="max_fullname_length" translatable="false">25</string>
+    <string name="system_notification_channel_id" translatable="false">a9ts_channel</string>
+    <string name="system_notification_channel_name" translatable="false">All notifications</string>
+
 </resources>
