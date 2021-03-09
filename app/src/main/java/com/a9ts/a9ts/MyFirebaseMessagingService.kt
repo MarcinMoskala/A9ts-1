@@ -38,7 +38,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) { //askmarcin how to fix "onMessageReceived(p0: RemoteMessage)" had to rename it myself
         super.onMessageReceived(message) //askmarcin sometime i see super. being call on the beginning of override fun, sometimes on the end, sometimes not at all...
 
-        Timber.d("RemoteMessage: ${message.data}")
+        Timber.d("RemoteMessage: title=${message.notification?.title}; body=${message.notification?.body}")
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.sendNotification(message, this)
 

@@ -14,10 +14,10 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.a9ts.a9ts.Constants.Companion.CHANNEL_ID
+import com.a9ts.a9ts.Constants.Companion.CHANNEL_NAME
 import com.a9ts.a9ts.databinding.AcitvityMainBinding
-import com.a9ts.a9ts.main.MainViewModel
 import com.a9ts.a9ts.model.AuthService
-import com.a9ts.a9ts.model.SystemNotificationData
 import com.a9ts.a9ts.model.SystemPushNotification
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
@@ -66,14 +66,14 @@ class MainActivity : AppCompatActivity() {
                 Timber.d("FirebaseMessaging.getInstance: FCM token written to sharedPrefs: ${MyFirebaseMessagingService.token}")
             }
         } else {
-            Timber.d("FirebaseDeviceToken taken from SharedPrefs.")
+            Timber.d("FirebaseDeviceToken taken from SharedPrefs: ${MyFirebaseMessagingService.token}")
         }
     }
 
 
     private fun createSystemNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(getString(R.string.system_notification_channel_id), getString(R.string.system_notification_channel_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
                 // TODO set it up properly with appropirate CHANNEL_NAME sensible default etc
                 lightColor = Color.GREEN //rozsvieti LED na nasom telefon nejakou farbou
                 enableLights(true)
@@ -115,13 +115,19 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun sendSystemNotification(systemNotification: SystemPushNotification) = CoroutineScope(Dispatchers.IO).launch {
+    private fun sendSystemPushNotification(systemNotification: SystemPushNotification) = CoroutineScope(Dispatchers.IO).launch {
         try {
-            val response = RetrofitInstance.api.postNotification(systemNotification)
+            val response = RetrofitInstance.api.postNotification(
+                title = systemNotification.title,
+                body = systemNotification.body,
+                token = systemNotification.token
+            )
+
             if (response.isSuccessful) {
-                //Timber.d("Response: ${Gson().toJson(response)}") // this line was crashing with a stack overflow ... dont know why
+                Timber.d("Response: $response")
             } else {
-                Timber.e(response.errorBody().toString())
+                val error = response.errorBody()
+                Timber.e("Error: $error")
             }
         } catch (e: Exception) {
             Timber.e(e.toString())
@@ -146,16 +152,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_send_notification -> {
-//                SystemPushNotification(
-//                    SystemNotificationData("Bobs Title", "Bobs message"), SYSTEM_NOTIFICATIONS_TOPIC
-//                ).also {
-//                    sendSystemNotification(it)
-//                }
-
                 SystemPushNotification(
-                    SystemNotificationData("Bobs Title", "Bobs message"), MyFirebaseMessagingService.token.toString()
-                ).also {
-                    sendSystemNotification(it)
+                    title = "Title from server",
+                    body = "Lorem ipsum dolor sit amet...",
+                    token = "fjpcUm8pQNaPNueiXn0QkG:APA91bHzz2qWqbGvcvH0ZeSXO8djoQuoEZLcnH5Un8ZR_KLkKSr6B1aYl69fyouy2jpRLeQx63DXVWZUZFDsUxf2S4M83afO8-y5UG1wlq5iqIyNNqscxo_rxznaicwnH_nVLNZTVbq6")
+                .also {
+                    sendSystemPushNotification(it)
                 }
                 return true
             }

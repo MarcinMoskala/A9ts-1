@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
+import com.a9ts.a9ts.Constants.Companion.CHANNEL_ID
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -95,16 +96,18 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
     // all of the other activities on top of it will be closed and this Intent will be delivered to the (now on top) old activity as a new Intent.
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
-    Timber.d("Notification received. Title: ${message.data["title"]}; Message: ${message.data["message"]};")
+    Timber.d("Notification received. Title: ${message.notification?.title}; Body: ${message.notification?.body};")
 
     //askmarcin not shure which intent to put here
-    val pendingIntent = PendingIntent.getActivity(appContext, notificationID, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    val pendingIntent = PendingIntent.getActivity(appContext, notificationID, intent, PendingIntent.FLAG_ONE_SHOT)
 
-    val notification = NotificationCompat.Builder(appContext, R.string.system_notification_channel_id.toString()) //askmarcin in Google tutorial they had the CHANNEL_ID in R.string... not sure why...
+
+
+    val notification = NotificationCompat.Builder(appContext, CHANNEL_ID) //askmarcin in Google tutorial they had the CHANNEL_ID in R.string... not sure why...
         .setContentTitle(message.notification?.title)
         .setContentText(message.notification?.body)
         .setSmallIcon(R.drawable.ic_calendar_icon)
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT) //Kvoli API < 26... Inak ide podla CHANNEL Importance
+        .setPriority(NotificationCompat.PRIORITY_HIGH) //Kvoli API < 26... Inak ide podla CHANNEL Importance
         .setAutoCancel(true) //notification automatically dismisses itself as it takes you to the app
         .setContentIntent(pendingIntent)
         .build()

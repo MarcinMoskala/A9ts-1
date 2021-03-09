@@ -10,5 +10,4 @@
     <string name="max_fullname_length" translatable="false">25</string>
     <string name="system_notification_channel_id" translatable="false">a9ts_channel</string>
     <string name="system_notification_channel_name" translatable="false">All notifications</string>
-
 </resources>
