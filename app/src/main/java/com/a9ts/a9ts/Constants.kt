@@ -6,5 +6,6 @@ class Constants {
         const val CHANNEL_ID = "a9ts_channel"
         const val CHANNEL_NAME = "All notifications"
         const val CONTENT_TYPE = "application/json"
+        const val SHARED_PREFERENCES_NAME = "sharedPref"
     }
 }

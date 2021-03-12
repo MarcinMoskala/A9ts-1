@@ -16,7 +16,6 @@
         tools:context=".auth.AuthStepThreeFragment">
 
 
-       <!--askmarcin is this a good idea? android:maxLength= "@string/max_fullname_length" -->
 
         <EditText
             android:id="@+id/editTextYourName"

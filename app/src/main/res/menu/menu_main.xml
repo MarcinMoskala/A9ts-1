@@ -15,9 +15,9 @@
         app:showAsAction="never"
         />
     <item
-        android:id="@+id/action_send_notification"
+        android:id="@+id/action_clear"
         android:orderInCategory="300"
-        android:title="Send notification"
+        android:title="Clear SharedPrefs"
         app:showAsAction="never"
         />
 </menu>

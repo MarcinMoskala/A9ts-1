@@ -31,15 +31,13 @@ class MainFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        // DONE askmarcin - I'm starting the app on this fragment and want to check if user is logged
-        // Not sure if this is the best way how to do it
         viewModel.notLoggedEvent.observe(viewLifecycleOwner, { notLogged ->
             findNavController().navigate(MainFragmentDirections.actionMainFragmentToAuthStepOneFragment())
         })
 
         viewModel.showUser.observe(viewLifecycleOwner, { user ->
             user?.let {
-                toast("ID: ${user.authUserId}\nName: ${user.fullName}\nPhone: ${user.telephone}")
+                toast("ID: ...${user.authUserId?.takeLast(5)}\nName: ${user.fullName}\nPhone: ${user.telephone}\nToken: ...${user.deviceToken?.takeLast(5)}")
                 viewModel.showUserDone()
             }
         })

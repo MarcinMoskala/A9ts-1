@@ -30,7 +30,7 @@ class AuthStepThreeFragment : Fragment() {
         val binding = AuthStepThreeFragmentBinding.inflate(inflater, container, false)
 
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this // DONE askmarcin : still not sure why I need this
+        binding.lifecycleOwner = this
 
         binding.editTextYourName.requestFocus();
 

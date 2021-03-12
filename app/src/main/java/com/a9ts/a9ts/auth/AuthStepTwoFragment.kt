@@ -50,6 +50,7 @@ class AuthStepTwoFragment : Fragment() {
                     requireActivity(),
                     credential,
                     onSuccess = {
+
                         databaseService.hasProfileFilled(
                             authService.authUserId,
                             onTrue = { // navigate to mainFragment; add Logout to menu
@@ -61,8 +62,8 @@ class AuthStepTwoFragment : Fragment() {
                             }
                         )
 
-//                          navController.navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
-
+                        //TODO this should be here probably -> refactor
+                        (activity as MainActivity).getFirebaseDeviceToken(authService.authUserId)
                     },
                     onFailure = { exception ->
                         Timber.d("signInWithCredential:failure : ${exception?.message}")

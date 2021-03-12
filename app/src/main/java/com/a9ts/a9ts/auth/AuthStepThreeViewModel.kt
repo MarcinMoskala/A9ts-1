@@ -29,7 +29,7 @@ class AuthStepThreeViewModel : ViewModel(), KoinComponent {
     fun onSubmitClicked() {
 
 
-        viewModelScope.launch { // DONE askmarcin Should I use Dispatchers.IO? - not needed in Firebase, it's notblocking
+        viewModelScope.launch {
             _userProfileSubmitted.value = databaseService.createUserProfile(
                 UserProfile(authService.authUserId, fullName.value!!.trim(), authService.getPhoneNumber())
             )

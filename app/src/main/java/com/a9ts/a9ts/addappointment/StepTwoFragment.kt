@@ -29,7 +29,7 @@ class StepTwoFragment: Fragment() {
     ): View {
 
         val binding = AddAppointmentStepTwoFragmentBinding.inflate(layoutInflater, container, false)
-        binding.lifecycleOwner = this //DONE askmarcin still not sure when I need to set the lifecycleOwner
+        binding.lifecycleOwner = this
 
 //        (activity as MainActivity).supportActionBar?.title = "New appo"
 
@@ -51,7 +51,6 @@ class StepTwoFragment: Fragment() {
                 }
 
                 datePicker.show(childFragmentManager, "date_picker_fragment")
-                //DONE askmarcin not sure about the parentFragmentManger... when user parentFragmanetManager, when childFragmentManager
                 viewModel.onDateClickedDone()
             }
         })

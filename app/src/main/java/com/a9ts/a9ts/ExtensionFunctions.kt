@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.text.format.DateFormat
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -103,7 +104,7 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
 
 
 
-    val notification = NotificationCompat.Builder(appContext, CHANNEL_ID) //askmarcin in Google tutorial they had the CHANNEL_ID in R.string... not sure why...
+    val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
         .setContentTitle(message.notification?.title)
         .setContentText(message.notification?.body)
         .setSmallIcon(R.drawable.ic_calendar_icon)
@@ -114,6 +115,14 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
 
     notify(notificationID, notification)
 }
+
+fun dateAndTimeFormatted(date: Date) : String {
+    val dateText = DateFormat.format("E dd LLL", date).toString()
+    val timeText = DateFormat.format("HH:mm", date).toString()
+    return dateText.plus(", ").plus(timeText)
+}
+
+
 
 
 

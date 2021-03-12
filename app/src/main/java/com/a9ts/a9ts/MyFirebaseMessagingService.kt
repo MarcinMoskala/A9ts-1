@@ -1,43 +1,49 @@
 package com.a9ts.a9ts
 
 import android.app.NotificationManager
+import android.content.Context
 import android.content.SharedPreferences
+import com.a9ts.a9ts.Constants.Companion.SHARED_PREFERENCES_NAME
+import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.FirebaseAuthService
 import com.a9ts.a9ts.model.FirestoreService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import org.koin.core.component.inject
+import org.koin.java.KoinJavaComponent.inject
 
 import timber.log.Timber
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
-    companion object { //askmarcin - not sure why this is a good idea... is he using SharedPreferences as cache? It it normaly a slow operation?
-        var sharedPref: SharedPreferences? = null
-        private val databaseService = FirestoreService()
+    companion object {
+        private val databaseService = FirestoreService() // askmarcin - whanted to have them here, but didn't know how to inject it
         private val authService = FirebaseAuthService()
+//      private val authService: AuthService by inject() // Error: no value passed for clazz
 
-        var token: String?
-            get() {
-                return sharedPref?.getString("token", "")
-            }
-            set(value) {
-                databaseService.saveDeviceToken(authService.authUserId, value,
+        fun saveToken(context: Context, authUserId : String, token: String?)  {
+            databaseService.saveDeviceToken(authService.authUserId, token,
                 onSuccess = {
-                    sharedPref?.edit()?.putString("token", value)?.apply()
-                    Timber.d("FCM token written to DB and sharedPrefs: $value")
+                    // MODE_PRIVATE - no other app can read our preferences
+                    // apply - does it asynchronously
+                    context.getSharedPreferences("$SHARED_PREFERENCES_NAME:$authUserId", MODE_PRIVATE)?.edit()?.putString("token", token)?.apply()
+                    Timber.d("FCM token written to DB and sharedPrefs: $token")
                 })
+        }
+
+        fun getToken(context: Context, authUserId : String): String? {
+                return context.getSharedPreferences("$SHARED_PREFERENCES_NAME:$authUserId", MODE_PRIVATE)?.getString("token", null)
             }
     }
 
 
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
-        token = newToken
+        saveToken(applicationContext, authService.authUserId, newToken)
     }
 
-    override fun onMessageReceived(message: RemoteMessage) { //askmarcin how to fix "onMessageReceived(p0: RemoteMessage)" had to rename it myself
-        super.onMessageReceived(message) //askmarcin sometime i see super. being call on the beginning of override fun, sometimes on the end, sometimes not at all...
-
+    override fun onMessageReceived(message: RemoteMessage) { // askmarcin how to fix "onMessageReceived(p0: RemoteMessage)" had to rename it myself
+        super.onMessageReceived(message) // askmarcin sometime i see super. being call on the beginning of override fun, sometimes on the end, sometimes not at all...
         Timber.d("RemoteMessage: title=${message.notification?.title}; body=${message.notification?.body}")
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.sendNotification(message, this)

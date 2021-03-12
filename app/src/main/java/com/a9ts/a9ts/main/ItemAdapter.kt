@@ -11,6 +11,7 @@ import com.a9ts.a9ts.R
 import com.a9ts.a9ts.databinding.AppointmentItemBinding
 import com.a9ts.a9ts.databinding.NotificationFriendInvitationItemBinding
 import com.a9ts.a9ts.databinding.NotificationNewAppointmentItemBinding
+import com.a9ts.a9ts.dateAndTimeFormatted
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import timber.log.Timber
@@ -88,7 +89,7 @@ class NotificationFriendInvitationItemAdapter(
     private val onAccept: (holder: BaseViewHolder) -> Unit,
     private val onReject: (holder: BaseViewHolder) -> Unit
 
-    ) : ItemAdapter(R.layout.notification_friend_invitation_item) {
+) : ItemAdapter(R.layout.notification_friend_invitation_item) {
 
     override fun setupView(holder: BaseViewHolder) {
         val binding = NotificationFriendInvitationItemBinding.bind(holder.view)
@@ -109,8 +110,8 @@ class NotificationFriendInvitationItemAdapter(
 
 class NotificationNewAppointmentItemAdapter(
     private val notification: Notification,
-    private val onAccept: (holder: BaseViewHolder)->Unit,
-    private val onReject: (holder: BaseViewHolder)->Unit
+    private val onAccept: (holder: BaseViewHolder) -> Unit,
+    private val onReject: (holder: BaseViewHolder) -> Unit
 ) : ItemAdapter(R.layout.notification_new_appointment_item) {
 
     override fun setupView(holder: BaseViewHolder) {
@@ -118,16 +119,13 @@ class NotificationNewAppointmentItemAdapter(
 
         binding.headingTextView.text = "Appointment invitation from: " + notification.fullName
 
-        val date = notification.dateAndTime!!.toDate()
 
-        val dateText = DateFormat.format("E dd LLL", date).toString()
-        val timeText = DateFormat.format("HH:mm", date).toString()
 
-        binding.dateTimeTextView.text = dateText.plus(" ").plus(timeText)
+        binding.dateTimeTextView.text = dateAndTimeFormatted(notification.dateAndTime!!.toDate())
 
-        binding.yesButton.setOnClickListener {
-            onAccept(holder)
-        }
+            binding.yesButton.setOnClickListener {
+                onAccept(holder)
+            }
 
         binding.noButton.setOnClickListener {
             onReject(holder)

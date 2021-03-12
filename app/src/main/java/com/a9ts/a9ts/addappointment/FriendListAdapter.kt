@@ -13,7 +13,6 @@ class FriendListAdapter(
     val onClickInvited: (friendUserId: String) -> Unit) : RecyclerView.Adapter<FriendListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        // DONE askmarcin not sure how this let works... it creates a ViewHolder with this binding as parameter... not sure why
         return AddFriendsItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             .let(::ViewHolder)
 //            .let { ViewHolder(it) }

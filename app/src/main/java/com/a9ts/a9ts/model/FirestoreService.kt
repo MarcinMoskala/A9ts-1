@@ -5,10 +5,12 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
@@ -35,7 +37,7 @@ interface DatabaseService {
 
     fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
     fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
-    fun saveDeviceToken(authUserId: String, value: String?, onSuccess: () -> Unit)
+    fun saveDeviceToken(authUserId: String, deviceToken: String?, onSuccess: () -> Unit)
 
 }
 
@@ -44,12 +46,12 @@ class FirestoreService : DatabaseService {
 
     override fun saveDeviceToken(authUserId: String, deviceToken: String?, onSuccess: () -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId)
-            .update(UserProfile::deviceToken.name, deviceToken!!)
+            .set(mapOf(UserProfile::deviceToken.name to deviceToken!!), SetOptions.merge())
             .addOnSuccessListener {
                 onSuccess()
             }
             .addOnFailureListener { e ->
-                Timber.d("databaseService.saveToken() failed: $e")
+                Timber.e("databaseService.saveToken() failed: $e")
             }
     }
 
@@ -95,15 +97,12 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean {
+    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean =
         try {
             val authUserDoc = db.collection(UserProfile.COLLECTION).document(authUserId)
-
             val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
-
             val authUserAppointment =
                 db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document()
-
 
             // oba Appointments nech maju same Id
             val friendUserAppointment =
@@ -112,7 +111,7 @@ class FirestoreService : DatabaseService {
             val friendUserNotification =
                 db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Notification.COLLECTION).document()
 
-            db.runTransaction { transaction ->
+            val notificationData: Map<String, Any> = db.runTransaction { transaction ->
                 val authUser: UserProfile? = transaction.get(authUserDoc).toObject()
                 val authUserFullName = authUser?.fullName!!
 
@@ -120,7 +119,6 @@ class FirestoreService : DatabaseService {
                 val friendUserFullName = friendUser?.fullName!!
 
                 val utcDateTimeInSeconds = toUTCTimestamp(dateTimeInSeconds)
-
 
                 val authUserAppointmentData = Appointment(
                     dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
@@ -143,19 +141,26 @@ class FirestoreService : DatabaseService {
                     appointmentId = authUserAppointment.id
                 )
 
-
                 transaction.set(authUserAppointment, authUserAppointmentData)
-
-
                 transaction.set(friendUserAppointment, friendUserAppointmentData)
                 transaction.set(friendUserNotification, notification)
+                mapOf("notification" to notification, "authUser" to authUser, "friendUser" to friendUser) // askmarcin - ugly but it works :-), any ideas how to make it nice?
             }.await()
-            return true
+
+            // send systemPushNotification
+            val dateAndTime = dateAndTimeFormatted((notificationData["notification"] as Notification).dateAndTime!!.toDate())
+            SystemPushNotification(
+                title = "Appointment invitation from: ${(notificationData["authUser"] as UserProfile).fullName}",
+                body = dateAndTime,
+                token = (notificationData["friendUser"] as UserProfile).deviceToken.toString()
+            ).also { sendSystemPushNotification(it) }
+
+            true
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun sendAppointment: {${e.message}")
-            return false
+            false
         }
-    }
+
 
     override suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
         val inviteeAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId.toString())
@@ -208,7 +213,7 @@ class FirestoreService : DatabaseService {
             }.await()
             true
         } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun sendFriendInvite: {${e.message}")
+            Timber.e("suspend fun acceptFriendInvite: {${e.message}")
             false
         }
     }
@@ -226,7 +231,7 @@ class FirestoreService : DatabaseService {
             }.await()
             true
         } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun sendFriendInvite: {${e.message}")
+            Timber.e("suspend fun rejectFriendInvite: {${e.message}")
             false
         }
     }
@@ -243,32 +248,43 @@ class FirestoreService : DatabaseService {
         val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
         if (iAmInvitedAlready.exists()) return false
 
-        return db.runTransaction { transaction ->
-            val snapshotUser = transaction.get(userProfileDoc)
-            val userFullName = snapshotUser.get(UserProfile::fullName.name).toString()
-            val userTelephone = snapshotUser.get(UserProfile::telephone.name).toString()
+        return try {
+            val users : Map<String, UserProfile> = db.runTransaction { transaction ->
 
-            val snapshotFriendUser = transaction.get(friendUserDocProfile)
-            val friendUserFullName = snapshotFriendUser.get(UserProfile::fullName.name).toString()
-            val friendUserTelephone = snapshotFriendUser.get(UserProfile::telephone.name).toString()
+                val friendUser : UserProfile = transaction.get(friendUserDocProfile).toObject()!!
+                val user : UserProfile = transaction.get(userProfileDoc).toObject()!!
 
-            // write to my /friends with I_INVITED state
-            val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
-            val usersFriend = Friend(friendUserId, fullName = friendUserFullName, state = Friend.STATE_I_INVITED, telephone = friendUserTelephone)
-            transaction.set(usersFriendDoc, usersFriend)
+                // write to my /friends with I_INVITED state
+                val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
+                val usersFriend = Friend(friendUserId, fullName = friendUser.fullName, state = Friend.STATE_I_INVITED, telephone = friendUser.telephone)
+                transaction.set(usersFriendDoc, usersFriend)
 
-            // write to his /friends with I_AM_INVITED state
-            val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
-            val userFriendsFriend = Friend(userId, fullName = userFullName, state = Friend.STATE_I_AM_INVITED, telephone = userTelephone)
-            transaction.set(userFriendsFriendDoc, userFriendsFriend)
 
-            val invitation = Notification(
-                notificationType = Notification.TYPE_FRIEND_INVITATION,
-                fullName = userFullName,
-                authUserId = userId
-            )
-            transaction.set(friendInvitationNotification, invitation)
-        }.awaitWithStatus()
+                // write to his /friends with I_AM_INVITED state
+                val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
+                val userFriendsFriend = Friend(userId, fullName = user.fullName, state = Friend.STATE_I_AM_INVITED, telephone = user.telephone)
+                transaction.set(userFriendsFriendDoc, userFriendsFriend)
+
+                val invitation = Notification(
+                    notificationType = Notification.TYPE_FRIEND_INVITATION,
+                    fullName = user.fullName,
+                    authUserId = userId
+                )
+                transaction.set(friendInvitationNotification, invitation)
+                mapOf("user" to user, "friendUser" to friendUser)
+            }.await()
+
+            SystemPushNotification(
+                title = "Friend invitation from: ${(users["user"]?.fullName)}", //askmarcin why is it nullable here?
+                body = "",
+                token = (users["friendUser"]?.deviceToken.toString()) //askmarcin why is deviceToken nullable here?
+            ).also { sendSystemPushNotification(it) }
+
+            true
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun sendFriendInvite: {${e.message}")
+            false
+        }
     }
 
     override suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>? {
@@ -406,7 +422,9 @@ class FirestoreService : DatabaseService {
         val userId = user.authUserId!!
 
         val profile = db.collection(UserProfile.COLLECTION).document(userId)
-        batch.set(profile, user)
+
+        // I don't want to overwrite the deviceToken
+        batch.set(profile, user, SetOptions.mergeFields(UserProfile::fullName.name, UserProfile::telephone.name, UserProfile::created.name))
 
         // Róbert Vereš -> robert veres
         val userNameNormalized = user.fullName.normalized()
@@ -422,9 +440,24 @@ class FirestoreService : DatabaseService {
             batch.set(fulltextUserEntrySwapped, userFulltext.copy(fulltextName = userNameNormalizedSwapped))
         }
     }.awaitWithStatus()
+
+
+    private suspend fun sendSystemPushNotification(systemNotification: SystemPushNotification) {
+        try {
+            val response = RetrofitInstance.api.postNotification(
+                title = systemNotification.title,
+                body = systemNotification.body,
+                token = systemNotification.token
+            )
+
+            if (response.isSuccessful) {
+                Timber.d("Response: $response")
+            } else {
+                val error = response.errorBody()
+                Timber.e("Error: $error")
+            }
+        } catch (e: Exception) {
+            Timber.e(e.toString())
+        }
+    }
 }
-
-
-
-
-
