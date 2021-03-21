@@ -8,7 +8,7 @@ data class UserProfile (
     @DocumentId val authUserId: String? = null,
     val fullName: String = "",
     val telephone: String = "",
-    val deviceToken: String? = null,
+    val deviceToken: String = "",
     @ServerTimestamp var created: Timestamp? = null
 
 ){

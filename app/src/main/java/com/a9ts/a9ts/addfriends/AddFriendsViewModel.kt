@@ -19,8 +19,8 @@ class AddFriendsViewModel : ViewModel(), KoinComponent {
         get() = _newFriendsList
 
 
-    private val _buttonClicked = MutableLiveData<Pair<Boolean, Int>>()
-    val buttonClicked: LiveData<Pair<Boolean, Int>>
+    private val _buttonClicked = MutableLiveData<Pair<Boolean?, Int>>()
+    val buttonClicked: LiveData<Pair<Boolean?, Int>>
         get() = _buttonClicked
 
 
@@ -44,6 +44,6 @@ class AddFriendsViewModel : ViewModel(), KoinComponent {
 
     // not nice... don't know how to do it...
     fun onButtonClickedDone() {
-        _buttonClicked.value = Pair(false, -1)
+        _buttonClicked.value = Pair(null, -1)
     }
 }

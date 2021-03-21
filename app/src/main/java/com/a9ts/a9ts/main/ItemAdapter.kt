@@ -1,7 +1,6 @@
 package com.a9ts.a9ts.main
 
 import android.text.format.DateFormat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +11,7 @@ import com.a9ts.a9ts.databinding.AppointmentItemBinding
 import com.a9ts.a9ts.databinding.NotificationFriendInvitationItemBinding
 import com.a9ts.a9ts.databinding.NotificationNewAppointmentItemBinding
 import com.a9ts.a9ts.dateAndTimeFormatted
+import com.a9ts.a9ts.appointmentWith
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import timber.log.Timber
@@ -52,18 +52,20 @@ class BaseViewHolder(val view: View) : RecyclerView.ViewHolder(view)
 
 class ItemListAdapter(items: List<ItemAdapter>) : GeneralAdapter(items)
 
-class AppointmentItemAdapter(private val appointment: Appointment, private val authUserId: String) : ItemAdapter(R.layout.appointment_item) {
+class AppointmentItemAdapter(
+    private val appointment: Appointment,
+    private val authUserId: String,
+    private val onClick: () -> Unit
+) : ItemAdapter(R.layout.appointment_item) {
 
     override fun setupView(holder: BaseViewHolder) {
         val binding = AppointmentItemBinding.bind(holder.view)
 
-        if (authUserId == appointment.inviteeUserId) {
-            binding.fullname.text = appointment.invitorName
-        } else {
-            binding.fullname.text = appointment.inviteeName
-        }
+        val appointmentWithFullName = appointmentWith(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
-        val date = appointment.dateAndTime!!.toDate()
+        binding.fullname.text = appointmentWithFullName
+
+        val date = appointment.dateAndTime.toDate()
 
         binding.dateTextView.text = DateFormat.format("E dd LLL", date)
         binding.timeTextView.text = DateFormat.format("HH:mm", date)
@@ -79,7 +81,7 @@ class AppointmentItemAdapter(private val appointment: Appointment, private val a
             if (appointment.accepted == null) View.VISIBLE else View.GONE
 
         binding.root.setOnClickListener {
-            Log.i("AppointmentItemAdapter", "Clicked on appointment")
+            onClick()
         }
     }
 }
@@ -123,9 +125,9 @@ class NotificationNewAppointmentItemAdapter(
 
         binding.dateTimeTextView.text = dateAndTimeFormatted(notification.dateAndTime!!.toDate())
 
-            binding.yesButton.setOnClickListener {
-                onAccept(holder)
-            }
+        binding.yesButton.setOnClickListener {
+            onAccept(holder)
+        }
 
         binding.noButton.setOnClickListener {
             onReject(holder)

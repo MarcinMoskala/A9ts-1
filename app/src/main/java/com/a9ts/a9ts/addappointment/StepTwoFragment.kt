@@ -9,15 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AddAppointmentStepTwoFragmentBinding
-import com.a9ts.a9ts.toast
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
-import timber.log.Timber
-import java.time.*
-import java.util.*
 
 class StepTwoFragment: Fragment() {
 

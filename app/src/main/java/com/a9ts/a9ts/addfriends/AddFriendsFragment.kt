@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AddFriendsFragmentBinding
 import com.a9ts.a9ts.toast
 
@@ -50,12 +49,16 @@ class AddFriendsFragment : Fragment() {
 
         viewModel.buttonClicked.observe(viewLifecycleOwner, { (buttonClicked, viewHolderPosition) ->
 
-
-            if (buttonClicked) {
+            // optimisticky predpokladame ze to prejde preto uz v Adapeteri na OnClickListeneri to nastavujeme na disabled a "INVITATION SENT"
+            // tu len nastavim na enabled a zmenim text naspat na "ADD FRIEND" ked to failne
+            if (buttonClicked == false) {
                 val adapter = binding.recyclerView.adapter as AddFriendsListAdapter
-                adapter.setButtonToSent(viewHolderPosition)
+                adapter.setButtonToAddFriend(viewHolderPosition)
+                toast("Invitation failed...")
                 viewModel.onButtonClickedDone()
             }
+
+
         })
 
         return binding.run {
@@ -63,7 +66,7 @@ class AddFriendsFragment : Fragment() {
             lifecycleOwner = this@AddFriendsFragment
 
             recyclerView.layoutManager = LinearLayoutManager(context)
-            recyclerView.adapter = AddFriendsListAdapter() { userId, viewHolderPosition ->
+            recyclerView.adapter = AddFriendsListAdapter { userId, viewHolderPosition ->
                 this@AddFriendsFragment.viewModel.onButtonClicked(userId, viewHolderPosition)
             }
 

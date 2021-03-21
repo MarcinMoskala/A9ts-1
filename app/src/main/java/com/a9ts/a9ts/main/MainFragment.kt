@@ -31,13 +31,16 @@ class MainFragment : Fragment() {
 
         setHasOptionsMenu(true)
 
-        viewModel.notLoggedEvent.observe(viewLifecycleOwner, { notLogged ->
+
+
+        //TODO ak nema kosher ucet aj s Profilom tak odhlasit a poslat na step One
+        viewModel.profileNotOk.observe(viewLifecycleOwner, {
             findNavController().navigate(MainFragmentDirections.actionMainFragmentToAuthStepOneFragment())
         })
 
         viewModel.showUser.observe(viewLifecycleOwner, { user ->
             user?.let {
-                toast("ID: ...${user.authUserId?.takeLast(5)}\nName: ${user.fullName}\nPhone: ${user.telephone}\nToken: ...${user.deviceToken?.takeLast(5)}")
+                toast("ID: ...${user.authUserId?.takeLast(5)}\nName: ${user.fullName}\nPhone: ${user.telephone}\nToken: ...${user.deviceToken.takeLast(5)}")
                 viewModel.showUserDone()
             }
         })
@@ -84,7 +87,9 @@ class MainFragment : Fragment() {
                         Notification.TYPE_FRIEND_INVITATION -> makeNotificationFriendInvitationItemAdapter(item)
                         else -> null
                     }
-                    is Appointment -> AppointmentItemAdapter(item, viewModel.authUserId)
+                    is Appointment -> AppointmentItemAdapter(item, viewModel.authUserId) {
+                        findNavController().navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(item))
+                    }
                     else -> null
                 }
             }

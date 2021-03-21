@@ -129,7 +129,7 @@ class AppointmentListAdapter(
                     fullname.text = appointment.inviteeName
                 }
 
-                val date = appointment.dateAndTime!!.toDate()
+                val date = appointment.dateAndTime.toDate()
 
                 dateTextView.text = DateFormat.format("E dd LLL", date)
                 timeTextView.text = DateFormat.format("HH:mm", date)

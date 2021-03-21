@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AuthStepThreeFragmentBinding
 
 
@@ -32,7 +31,7 @@ class AuthStepThreeFragment : Fragment() {
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
 
-        binding.editTextYourName.requestFocus();
+        binding.editTextYourName.requestFocus()
 
         viewModel.userProfileSubmitted.observe(viewLifecycleOwner, { userProfileSubmitted ->
             if (userProfileSubmitted == true) {

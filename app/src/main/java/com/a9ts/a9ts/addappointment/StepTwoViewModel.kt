@@ -22,7 +22,7 @@ class StepTwoViewModel(friendUserId: String, friendFullName: String) :
     private val databaseService: DatabaseService by inject()
 
     private val _friendUserId = MutableLiveData<String>()
-    val friendUserId: LiveData<String>
+    private val friendUserId: LiveData<String>
         get() = _friendUserId
 
 

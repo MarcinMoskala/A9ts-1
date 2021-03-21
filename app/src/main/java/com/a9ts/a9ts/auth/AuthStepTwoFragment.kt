@@ -35,9 +35,8 @@ class AuthStepTwoFragment : Fragment() {
 
         val binding = AuthStepTwoFragmentBinding.inflate(inflater, container, false)
 
-        binding.editTextVerificationCode.requestFocus()
-
         binding.buttonSendCode.setOnClickListener {
+
             val code = binding.editTextVerificationCode.text.toString()
 
             if (code.isEmpty()) {
@@ -50,7 +49,7 @@ class AuthStepTwoFragment : Fragment() {
                     requireActivity(),
                     credential,
                     onSuccess = {
-
+                        (activity as MainActivity).viewModel.onUpdateDeviceToken()
                         databaseService.hasProfileFilled(
                             authService.authUserId,
                             onTrue = { // navigate to mainFragment; add Logout to menu
@@ -61,9 +60,6 @@ class AuthStepTwoFragment : Fragment() {
                                 navController.navigate(AuthStepTwoFragmentDirections.actionAuthStepTwoFragmentToAuthStepThreeFragment())
                             }
                         )
-
-                        //TODO this should be here probably -> refactor
-                        (activity as MainActivity).getFirebaseDeviceToken(authService.authUserId)
                     },
                     onFailure = { exception ->
                         Timber.d("signInWithCredential:failure : ${exception?.message}")
@@ -77,6 +73,18 @@ class AuthStepTwoFragment : Fragment() {
             }
         }
 
+
+        // trick to unfocus the editText, so the keyboard comes up when it is focused by user
+//        binding.apply {
+//            buttonSendCode.isFocusable = true
+//            buttonSendCode.isFocusableInTouchMode = true
+//            buttonSendCode.requestFocus()
+//        }
+
+
+
         return binding.root
     }
 }
+
+

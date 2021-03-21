@@ -11,13 +11,26 @@
     <item
         android:id="@+id/action_about"
         android:orderInCategory="200"
-        android:title="About Currrent User"
+        android:title="Debug: About Currrent User"
         app:showAsAction="never"
         />
     <item
-        android:id="@+id/action_clear"
+        android:id="@+id/action_token"
         android:orderInCategory="300"
-        android:title="Clear SharedPrefs"
+        android:title="Debug: Update Token"
         app:showAsAction="never"
         />
+    <item
+        android:id="@+id/action_crash"
+        android:orderInCategory="400"
+        android:title="Debug: Crash"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/action_compose"
+        android:orderInCategory="500"
+        android:title="Debug: Compose fragment"
+        app:showAsAction="never"
+        />
+
 </menu>

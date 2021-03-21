@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">A9ts</string>
+    <string name="app_name">Obvio</string>
     <string name="get_sms_code">Get SMS code</string>
     <string name="send_verification_code">Send Verification Code</string>
     <string name="invalid_phone_number">Invalid phone number or country code.</string>
@@ -9,5 +9,7 @@
 
     <string name="max_fullname_length" translatable="false">25</string>
     <string name="system_notification_channel_id" translatable="false">a9ts_channel</string>
-    <string name="system_notification_channel_name" translatable="false">All notifications</string>
+    <string name="cancel_button_description">%1$s will have to accept the cancelation, before appoinment gets deleted for both of you.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -25,13 +25,12 @@ class AddFriendsListAdapter(private var friendList: List<Friend> = listOf(), pri
 
     override fun getItemCount() = friendList.size
 
-    fun setButtonToSent(viewHolderPosition: Int) {
-        friendList[viewHolderPosition].state = Friend.STATE_I_INVITED
+    fun setButtonToAddFriend(viewHolderPosition: Int) {
+        friendList[viewHolderPosition].state = -1
         notifyItemChanged(viewHolderPosition)
     }
 
     class ViewHolder(private val itemBinding : AddFriendsItemBinding) : RecyclerView.ViewHolder(itemBinding.root) {
-
         fun bind(friend : Friend, position: Int, onClick: (userId : String, position: Int) -> Unit) {
             itemBinding.apply {
                 fullname.text = friend.fullName
@@ -40,7 +39,13 @@ class AddFriendsListAdapter(private var friendList: List<Friend> = listOf(), pri
                     button.text = "Invited"
                     button.isEnabled = false
                 }
-                button.setOnClickListener { onClick(friend.authUserId!!, position) } //send userId
+
+                // ak na teba niekto klikol, okamzite sa zmen na "Invited" a isDisabled -> nasledne urob OnClick action
+                button.setOnClickListener {
+                    button.text = "Invited"
+                    button.isEnabled = false
+                    onClick(friend.authUserId!!, position)
+                } //send userId
             }
         }
     }

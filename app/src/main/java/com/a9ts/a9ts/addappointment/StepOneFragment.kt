@@ -9,9 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.a9ts.a9ts.MainActivity
 import com.a9ts.a9ts.databinding.AddAppointmentStepOneFragmentBinding
-import com.a9ts.a9ts.main.ItemListAdapter
 
 class StepOneFragment : Fragment() {
     private val viewModel: StepOneViewModel by lazy {
@@ -33,7 +31,7 @@ class StepOneFragment : Fragment() {
                     onClick = { friendUserId, friendFullname ->
                         findNavController().navigate(StepOneFragmentDirections.actionStepOneFragmentToStepTwoFragment(friendUserId, friendFullname))
                     },
-                    onClickInvited = { friendFullName ->
+                    onClickInvitedNoAcceptYet = { friendFullName ->
                         AlertDialog.Builder(requireContext())
                             .setMessage("$friendFullName haven't accepted your invitation yet 🙁.")
                             .setPositiveButton("Okey") { dialog, _ ->
@@ -60,7 +58,6 @@ class StepOneFragment : Fragment() {
 
         return binding.run {
             recyclerView.layoutManager = LinearLayoutManager(context)
-//          recyclerView.adapter = FriendListAdapter(listOf(), onClick = , onClickInvited = ) // askmarcin shoud I initialize it here, or have "No adapter attached" Error in the logs?
             root
         }
     }

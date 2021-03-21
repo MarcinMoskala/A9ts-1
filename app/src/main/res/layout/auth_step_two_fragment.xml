@@ -17,19 +17,16 @@
             android:id="@+id/editTextVerificationCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:digits="1234567890"
+            android:layout_marginTop="200dp"
             android:hint="000000"
-            android:text="123456"
             android:inputType="number"
             android:maxLength="6"
             android:textAlignment="textStart"
-            android:textSize="36dp"
+            android:textSize="36sp"
             android:typeface="monospace"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
 
         <TextView
             android:id="@+id/textViewEnterSMSCode"

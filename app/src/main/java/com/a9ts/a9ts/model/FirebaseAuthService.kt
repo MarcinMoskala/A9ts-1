@@ -6,6 +6,7 @@ import com.google.firebase.auth.PhoneAuthCredential
 
 interface AuthService {
     val authUserId: String
+    val isLogged: Boolean
     fun getUser(): UserProfile
     fun signInWithPhoneAuthCredential(
         activity: Activity,
@@ -20,8 +21,12 @@ interface AuthService {
 
 class FirebaseAuthService : AuthService {
     private val auth = FirebaseAuth.getInstance()
+
     override val authUserId: String
         get() = auth.uid.toString()
+
+    override val isLogged: Boolean
+        get() = auth.uid != null
 
     override fun signInWithPhoneAuthCredential(
         activity: Activity,

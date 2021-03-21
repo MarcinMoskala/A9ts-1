@@ -1,9 +1,13 @@
 package com.a9ts.a9ts.main
 
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.lifecycle.*
+import com.a9ts.a9ts.auth.AuthStepTwoFragmentDirections
 import com.a9ts.a9ts.model.*
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -11,9 +15,8 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
-    var notificationList = listOf<Notification>()
-    var appointmentList = listOf<Appointment>()
-
+    private var notificationList = listOf<Notification>()
+    private var appointmentList = listOf<Appointment>()
 
     private val _notificationsAndAppointments = MutableLiveData<List<Any>>()
     val notificationsAndAppointments : LiveData<List<Any>>
@@ -48,13 +51,13 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     val snackMessage: LiveData<String?>
         get() = _snackMessage
 
-    private val _notLoggedEvent = MutableLiveData<Unit>()
-    val notLoggedEvent: LiveData<Unit>
-        get() = _notLoggedEvent
+    private val _profileNotOk = MutableLiveData<Unit>()
+    val profileNotOk: LiveData<Unit>
+        get() = _profileNotOk
 
 
-    private val _showUser = MutableLiveData<UserProfile>()
-    val showUser: LiveData<UserProfile>
+    private val _showUser = MutableLiveData<UserProfile?>()
+    val showUser: LiveData<UserProfile?>
         get() = _showUser
 
     private val _fabClicked = MutableLiveData<Boolean>()
@@ -89,8 +92,13 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     }
 
     init {
-        if (authUserId == "null") {
-            _notLoggedEvent.value = Unit
+
+        if (!authService.isLogged) {
+            _profileNotOk.value = Unit
+        } else {
+            //TODO tu nastane to ze sa mu najprv otvori Agenda, potom da request na DB, zisti ze nema profil a az potom redirect... nie je to idealne...
+            // ale je to dost edge case, malo ludi to zazije
+            databaseService.hasProfileFilled(authService.authUserId, onTrue = {}, onFalse = { _profileNotOk.value = Unit })
         }
     }
 
@@ -100,9 +108,10 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
 
             if (user != null) {
                 _showUser.value = user
-            } else if (authService.authUserId != "null") {
-                _showUser.value = UserProfile(authService.authUserId, "No name", authService.getPhoneNumber())
             }
+//            else if (authService.authUserId != "null") {
+//                _showUser.value = UserProfile(authService.authUserId, "No name", authService.getPhoneNumber())
+//            }
         }
     }
 

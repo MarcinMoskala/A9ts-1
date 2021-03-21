@@ -25,9 +25,10 @@
             android:text="Add new friends"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/linear_layout" />
 
         <LinearLayout
+            android:id="@+id/linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -37,7 +38,7 @@
             android:paddingTop="@{viewModel.hasResults ? @dimen/one_dp : 0}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/addNewFriendsButton">
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
@@ -45,7 +46,7 @@
                 android:layout_height="wrap_content"
                 tools:itemCount="4"
                 tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/appointment_item"
+                tools:listitem="@layout/add_friends_item"
                 tools:orientation="vertical"
                 tools:scrollbars="vertical" />
         </LinearLayout>

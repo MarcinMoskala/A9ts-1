@@ -44,6 +44,16 @@ fun String.normalized() = Normalizer.normalize(this, Normalizer.Form.NFD)
     .toLowerCase(Locale.ROOT)
     .trim()
 
+
+/*fun String.firstWord(): String {
+    if (!this.contains(' ')) return this
+
+
+    val i = input.indexOf(' ')
+    val word = input.substring(0, i)
+    val rest = input.substring(i)
+}*/
+
 fun String.putLastWordFirst(): String? {
     if (!this.contains(' ')) return null
 
@@ -99,7 +109,6 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
 
     Timber.d("Notification received. Title: ${message.notification?.title}; Body: ${message.notification?.body};")
 
-    //askmarcin not shure which intent to put here
     val pendingIntent = PendingIntent.getActivity(appContext, notificationID, intent, PendingIntent.FLAG_ONE_SHOT)
 
 
@@ -121,6 +130,11 @@ fun dateAndTimeFormatted(date: Date) : String {
     val timeText = DateFormat.format("HH:mm", date).toString()
     return dateText.plus(", ").plus(timeText)
 }
+
+fun appointmentWith(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
+     if (authUserID == invitorUserId) inviteeFullName else invitorFullName
+
+
 
 
 

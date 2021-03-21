@@ -10,7 +10,7 @@ import com.a9ts.a9ts.model.Friend
 class FriendListAdapter(
     private val friends: List<Friend>,
     val onClick: (friendUserId: String, friendFullName: String) -> Unit,
-    val onClickInvited: (friendUserId: String) -> Unit) : RecyclerView.Adapter<FriendListAdapter.ViewHolder>() {
+    val onClickInvitedNoAcceptYet: (friendUserId: String) -> Unit) : RecyclerView.Adapter<FriendListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return AddFriendsItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -23,8 +23,8 @@ class FriendListAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(friends[position])
         when (friends[position].state) {
-            Friend.STATE_I_INVITED -> holder.itemView.setOnClickListener { onClickInvited(friends[position].fullName!!)}
-            Friend.STATE_ACCEPTED -> holder.itemView.setOnClickListener { onClick(friends[position].authUserId!!, friends[position].fullName!!) }
+            Friend.STATE_I_INVITED -> holder.itemView.setOnClickListener { onClickInvitedNoAcceptYet(friends[position].fullName)}
+            Friend.STATE_ACCEPTED -> holder.itemView.setOnClickListener { onClick(friends[position].authUserId!!, friends[position].fullName) }
         }
     }
 
@@ -40,7 +40,7 @@ class FriendListAdapter(
                 if (friend.state == Friend.STATE_I_INVITED) {
                     button.text = "Invited"
                     button.isEnabled = false
-                    button.visibility = View.VISIBLE
+//                    button.visibility = View.VISIBLE
                 } else {
                     button.visibility = View.GONE
                 }

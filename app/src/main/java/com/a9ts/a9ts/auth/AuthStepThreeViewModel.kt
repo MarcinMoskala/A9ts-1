@@ -4,7 +4,9 @@ import androidx.lifecycle.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.UserProfile
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -26,15 +28,18 @@ class AuthStepThreeViewModel : ViewModel(), KoinComponent {
         }
     }
 
+
     fun onSubmitClicked() {
-
-
         viewModelScope.launch {
             _userProfileSubmitted.value = databaseService.createUserProfile(
-                UserProfile(authService.authUserId, fullName.value!!.trim(), authService.getPhoneNumber())
+                UserProfile(authUserId = authService.authUserId,
+                    fullName = fullName.value!!.trim(),
+                    telephone = authService.getPhoneNumber(),
+                    deviceToken = FirebaseMessaging.getInstance().token.await())
             )
         }
     }
+
 
     fun onSubmitClickedDone() {
         _userProfileSubmitted.value = null
