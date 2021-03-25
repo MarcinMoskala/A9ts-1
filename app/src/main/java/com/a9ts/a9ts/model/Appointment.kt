@@ -23,7 +23,7 @@ data class Appointment(
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString(),
-        parcel.readParcelable(Timestamp::class.java.classLoader)!!, //askmarin is this OK? "!!"
+        parcel.readParcelable(Timestamp::class.java.classLoader)!!,
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readString()!!,

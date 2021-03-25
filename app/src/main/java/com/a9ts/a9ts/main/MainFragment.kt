@@ -80,7 +80,7 @@ class MainFragment : Fragment() {
             binding.recyclerView.layoutManager = LinearLayoutManager(context)
 
 
-            val itemListNotification: List<ItemAdapter> = items.mapNotNull { item ->
+            val itemList: List<ItemAdapter> = items.mapNotNull { item ->
                 when (item) {
                     is Notification -> when (item.notificationType) {
                         Notification.TYPE_APP_INVITATION -> makeNotificationNewAppointmentItemAdapter(item)
@@ -94,7 +94,7 @@ class MainFragment : Fragment() {
                 }
             }
 
-            binding.recyclerView.adapter = ItemListAdapter(itemListNotification)
+            binding.recyclerView.adapter = ItemListAdapter(itemList)
         })
 
 //        viewModel.onCreateView() //populate recyclerview

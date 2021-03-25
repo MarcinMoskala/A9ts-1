@@ -420,7 +420,7 @@ class FirestoreService : DatabaseService {
             // rest should be under it order by DateTime asc
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun getAcceptedAppointments: {${e.message}")
-            null //askmarcin what is better, return an empty list or a null?
+            null
         }
     }
 

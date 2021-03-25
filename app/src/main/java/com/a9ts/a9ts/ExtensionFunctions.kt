@@ -131,7 +131,7 @@ fun dateAndTimeFormatted(date: Date) : String {
     return dateText.plus(", ").plus(timeText)
 }
 
-fun appointmentWith(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
+fun getMyAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
      if (authUserID == invitorUserId) inviteeFullName else invitorFullName
 
 

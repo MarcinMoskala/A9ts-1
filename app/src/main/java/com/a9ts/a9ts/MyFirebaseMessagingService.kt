@@ -3,32 +3,22 @@ package com.a9ts.a9ts
 import android.app.NotificationManager
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.FirebaseAuthService
-import com.a9ts.a9ts.model.FirestoreService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+
+import org.koin.android.ext.android.inject
+// askmarcin in other ViewModels I have the "inject" like this
+// import org.koin.core.component.inject and I need to extend KoinComponent...Why not here?
+
 import timber.log.Timber
 
-class MyFirebaseMessagingService(
-    private val databaseService: DatabaseService,
-    private val authService: AuthService
-) : FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+    private val controller : MyFirebaseMessagingServiceController by inject()
 
     override fun onNewToken(newToken: String) {
         super.onNewToken(newToken)
-        if (authService.isLogged) {
-            databaseService.updateDeviceToken(
-                authService.authUserId,
-                newToken,
-                onSuccess = {
-                    // TODO tak ci tak by si to mal niekam poznacit a hned ako bude mat isLogged tak si to zapisat
-                    Timber.d("FCM deviceToken updated in DB.: $newToken")
-                })
-        } else {
-            Timber.e("FCM devideToken... Tried to update... not Logged... Ignored.")
-        }
+        controller.onNewToken(newToken)
     }
-
 
     // TODO zamysliet sa ako handlovat notifikacie ktore pridu kym som v appke... ci ich vobec treba... mozno hej, ak som mimo main fragment
     override fun onMessageReceived(message: RemoteMessage) {
@@ -45,3 +35,21 @@ class MyFirebaseMessagingService(
     }
 }
 
+class MyFirebaseMessagingServiceController(
+    private val databaseService: DatabaseService,
+    private val authService: AuthService
+) {
+    fun onNewToken(newToken: String) {
+        if (authService.isLogged) {
+            databaseService.updateDeviceToken(
+                authService.authUserId,
+                newToken,
+                onSuccess = {
+                    // TODO tak ci tak by si to mal niekam poznacit a hned ako bude mat isLogged tak si to zapisat
+                    Timber.d("FCM deviceToken updated in DB.: $newToken")
+                })
+        } else {
+            Timber.e("FCM devideToken... Tried to update... not Logged... Ignored.")
+        }
+    }
+}

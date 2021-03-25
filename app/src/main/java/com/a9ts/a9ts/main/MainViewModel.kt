@@ -1,17 +1,13 @@
 package com.a9ts.a9ts.main
 
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import androidx.lifecycle.*
-import com.a9ts.a9ts.auth.AuthStepTwoFragmentDirections
 import com.a9ts.a9ts.model.*
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinApiExtension
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
+class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver {
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
@@ -19,7 +15,7 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     private var appointmentList = listOf<Appointment>()
 
     private val _notificationsAndAppointments = MutableLiveData<List<Any>>()
-    val notificationsAndAppointments : LiveData<List<Any>>
+    val notificationsAndAppointments: LiveData<List<Any>>
         get() = _notificationsAndAppointments
 
     val hasAppointments = MediatorLiveData<Boolean>().apply {
@@ -45,8 +41,8 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     private val _friendNotificationRejected = MutableLiveData<BaseViewHolder?>()
     val friendNotificationRejected: LiveData<BaseViewHolder?>
         get() = _friendNotificationRejected
-    
-    
+
+
     private val _snackMessage = MutableLiveData<String?>()
     val snackMessage: LiveData<String?>
         get() = _snackMessage
@@ -119,8 +115,7 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
     fun onFriendNotificationAccepted(holder: BaseViewHolder, authUserId: String?, notificationId: String?) {
 
         viewModelScope.launch {
-            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId!!, notificationId!!))
-            {
+            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId!!, notificationId!!)) {
                 _friendNotificationAccepted.value = holder
             }
         }
@@ -134,8 +129,7 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
 
     fun onFriendNotificationRejected(holder: BaseViewHolder, authUserId: String?, notificationId: String?) {
         viewModelScope.launch {
-            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId!!, notificationId!!))
-            {
+            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId!!, notificationId!!)) {
                 _friendNotificationRejected.value = holder
             }
         }
@@ -165,7 +159,7 @@ class MainViewModel : ViewModel(), KoinComponent, LifecycleObserver  {
         // generate ID UUID.randomUUID().toString()
     }
 
-   
+
     fun snackMessageDone() {
         _snackMessage.value = null
     }

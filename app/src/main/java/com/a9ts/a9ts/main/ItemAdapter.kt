@@ -11,7 +11,7 @@ import com.a9ts.a9ts.databinding.AppointmentItemBinding
 import com.a9ts.a9ts.databinding.NotificationFriendInvitationItemBinding
 import com.a9ts.a9ts.databinding.NotificationNewAppointmentItemBinding
 import com.a9ts.a9ts.dateAndTimeFormatted
-import com.a9ts.a9ts.appointmentWith
+import com.a9ts.a9ts.getMyAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import timber.log.Timber
@@ -61,9 +61,9 @@ class AppointmentItemAdapter(
     override fun setupView(holder: BaseViewHolder) {
         val binding = AppointmentItemBinding.bind(holder.view)
 
-        val appointmentWithFullName = appointmentWith(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
+        val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
-        binding.fullname.text = appointmentWithFullName
+        binding.fullname.text = appointmentPartnerName
 
         val date = appointment.dateAndTime.toDate()
 

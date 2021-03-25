@@ -25,7 +25,7 @@
 
         <service
             android:name=".MyFirebaseMessagingService"
-            android:permission="com.google.android.c2dm.persmission.SEND">
+            android:permission="com.google.android.c2dm.permission.SEND"><!--maybe rendundant now -->
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
                 <action android:name="com.google.android.c2dm.persmission.RECEIVE" />

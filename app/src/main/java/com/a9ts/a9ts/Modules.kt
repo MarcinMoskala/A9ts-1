@@ -10,6 +10,6 @@ import org.koin.dsl.module
 val appModule = module {
     single <AuthService> {FirebaseAuthService()}
     single <DatabaseService> {FirestoreService()}
-    single { MyFirebaseMessagingService(get(), get()) }
+    single { MyFirebaseMessagingServiceController(get(), get()) }
 //    viewModel { DetailViewModel(get(), get()) }
 }

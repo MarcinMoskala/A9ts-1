@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.a9ts.a9ts.R
-import com.a9ts.a9ts.appointmentWith
+import com.a9ts.a9ts.getMyAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
@@ -21,9 +21,13 @@ class DetailViewModel(val appointment: Appointment, app: Application) : AndroidV
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
 
-    private val _appointmentWith = MutableLiveData<String>()
-    val appointmentWith: LiveData<String>
-        get() = _appointmentWith
+    private val _appointmentPartnerName = MutableLiveData<String>()
+    val appointmentPartnerName: LiveData<String>
+        get() = _appointmentPartnerName
+
+
+
+
 
     private val _cancelButtonDescription = MutableLiveData<String>()
     val cancelButtonDescription: LiveData<String>
@@ -61,7 +65,7 @@ class DetailViewModel(val appointment: Appointment, app: Application) : AndroidV
     }
 
     init {
-        _appointmentWith.value = appointmentWith(
+        _appointmentPartnerName.value = getMyAppointmentPartnerName(
             authUserID = authService.authUserId,
             invitorUserId = appointment.invitorUserId,
             inviteeFullName = appointment.inviteeName,
@@ -71,7 +75,7 @@ class DetailViewModel(val appointment: Appointment, app: Application) : AndroidV
         // no cancelation yet
         if (appointment.canceledByInvitee == null && appointment.canceledByInvitor == null) {
             _iCanInviteLayoutVisibility.value = View.VISIBLE
-            this._cancelButtonDescription.value = app.getString(R.string.cancel_button_description, appointmentWith.value!!.substringBefore(' ')) //askmarcin why is this nullable?
+            this._cancelButtonDescription.value = app.getString(R.string.cancel_button_description, appointmentPartnerName.value?.substringBefore(' '))
         }
 
         if (appointment.canceledByInvitee != null && appointment.canceledByInvitor != null) {
