@@ -1,6 +1,7 @@
 package com.a9ts.a9ts.composeexample
 
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +17,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,12 +26,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.a9ts.a9ts.R
 import com.a9ts.a9ts.getMyAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
+import com.example.jatpackcomposebasics.ui.theme.LightGrey
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -42,7 +42,7 @@ val myAppointment = Appointment(
     inviteeUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2",
     invitorName = "Peter Veres",
     invitorUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
-    state = Appointment.STATE_I_AM_INVITED
+    state = Appointment.STATE_I_INVITED
 )
 
 class ComposeExampleFragment : Fragment() {
@@ -90,6 +90,10 @@ class ComposeExampleFragment : Fragment() {
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
+            val date = appointment.dateAndTime.toDate()
+            val dateFormatted = DateFormat.format("E dd LLL", date).toString()
+            val timeFormatted = DateFormat.format("HH:mm", date).toString()
+
             val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
             BlackLine()
@@ -99,9 +103,14 @@ class ComposeExampleFragment : Fragment() {
                     .background(Color(255, 255, 255))
                     .padding(8.dp)
             ) {
+
+                if (appointment.state == Appointment.STATE_I_INVITED) {
+                    Text("Waiting to accept...")
+                }
+
                 Column(Modifier.width(90.dp)) {
-                    Text("Thu 18 Mar", fontWeight = FontWeight.Bold)
-                    Text("22:00", color = colorResource(id = R.color.textLight),
+                    Text(dateFormatted, fontWeight = FontWeight.Bold)
+                    Text(timeFormatted, color = LightGrey,
                         modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 0.dp))
                 }
                 Column() {
@@ -126,6 +135,11 @@ class ComposeExampleFragment : Fragment() {
                     appointment = myAppointment,
                     authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
                 )
+                AppointmentBox(
+                    appointment = myAppointment,
+                    authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
+                )
+                BlackLine()
             }
         }
     }

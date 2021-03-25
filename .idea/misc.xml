@@ -3,9 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/CODING/Kotlin Work/A9ts/app/src/main/res/layout/appointment_item.xml" value="0.3537037037037037" />
+        <entry key="../../../../layout/compose-model-1616659091139.xml" value="0.33" />
         <entry key="..\:/CODING/Kotlin Work/A9ts/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.468018018018018" />
         <entry key="..\:/CODING/Kotlin Work/A9ts/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.45225225225225224" />
+        <entry key="app/src/main/res/layout/appointment_item.xml" value="0.5432291666666667" />
         <entry key="app/src/main/res/layout/compose_example_fragment.xml" value="0.48233695652173914" />
       </map>
     </option>
