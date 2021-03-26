@@ -19,7 +19,35 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_in_left"/>
     </fragment>
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.a9ts.a9ts.main.MainFragment"
+        android:label="Agenda">
 
+        <action
+            android:id="@+id/action_mainFragment_to_authStepOneFragment"
+            app:destination="@id/authStepOneFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_in_left"
+            app:popUpTo="@id/authStepOneFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_mainFragment_to_stepOneFragment"
+            app:destination="@id/stepOneFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_in_left" />
+        <action
+            android:id="@+id/action_mainFragment_to_detailFragment"
+            app:destination="@id/detailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_in_left" />
+    </fragment>
     <fragment
         android:id="@+id/authStepTwoFragment"
         android:name="com.a9ts.a9ts.auth.AuthStepTwoFragment"
@@ -67,40 +95,7 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_in_left"/>
     </fragment>
-    <fragment
-        android:id="@+id/mainFragment"
-        android:name="com.a9ts.a9ts.main.MainFragment"
-        android:label="Agenda"
-        tools:layout="@layout/main_fragment">
 
-        <action
-            android:id="@+id/action_mainFragment_to_authStepOneFragment"
-            app:destination="@id/authStepOneFragment"
-            app:popUpTo="@id/authStepOneFragment"
-            app:popUpToInclusive="true"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_in_left"/>
-        <action
-            android:id="@+id/action_mainFragment_to_stepOneFragment"
-            app:destination="@id/stepOneFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_in_left"/>
-        <action
-            android:id="@+id/action_mainFragment_to_detailFragment"
-            app:destination="@id/detailFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_in_left"
-            />
-        <action
-            android:id="@+id/action_mainFragment_to_composeExampleFragment"
-            app:destination="@id/composeExampleFragment" />
-    </fragment>
     <fragment
         android:id="@+id/stepOneFragment"
         android:name="com.a9ts.a9ts.addappointment.StepOneFragment"
@@ -162,17 +157,5 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_in_left" />
-    </fragment>
-    <fragment
-        android:id="@+id/composeExampleFragment"
-        android:name="com.a9ts.a9ts.composeexample.ComposeExampleFragment"
-        android:label="fragment_compose_example"
-        tools:layout="@layout/compose_example_fragment" >
-        <action
-            android:id="@+id/action_composeExampleFragment_to_detailFragment"
-            app:destination="@id/detailFragment" />
-        <action
-            android:id="@+id/action_composeExampleFragment_to_stepOneFragment"
-            app:destination="@id/stepOneFragment" />
     </fragment>
 </navigation>

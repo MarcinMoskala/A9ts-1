@@ -91,12 +91,6 @@ class MainActivity : AppCompatActivity() {
                 throw RuntimeException("Test Crash") // Force a crash to test Crashlytics
             }
 
-
-            R.id.action_compose -> {
-                navController.navigate(R.id.composeExampleFragment)
-                return true
-            }
-
             android.R.id.home -> { // if "Up" button pressed, do Back
                 onBackPressed()
                 return true

@@ -26,11 +26,4 @@
         android:title="Debug: Crash"
         app:showAsAction="never"
         />
-    <item
-        android:id="@+id/action_compose"
-        android:orderInCategory="500"
-        android:title="Debug: Compose fragment"
-        app:showAsAction="never"
-        />
-
 </menu>
