@@ -9,7 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
 import androidx.compose.material.Divider
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,8 +32,11 @@ import com.a9ts.a9ts.getMyAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
+import com.a9ts.a9ts.model.Notification
 import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
+import com.example.jatpackcomposebasics.ui.theme.BgGrey
 import com.example.jatpackcomposebasics.ui.theme.LightGrey
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -42,120 +47,191 @@ val myAppointment = Appointment(
     inviteeUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2",
     invitorName = "Peter Veres",
     invitorUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
+    dateAndTime = Timestamp.now(),
     state = Appointment.STATE_I_INVITED
 )
 
-class ComposeExampleFragment : Fragment() {
+val myAppointmentNotification = Notification(
+    authUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
+    fullName = "Peter Veres",
+    notificationType = Notification.TYPE_APP_INVITATION,
+    dateAndTime = Timestamp.now()
+)
 
+
+class ComposeExampleFragment : Fragment() {
     val viewModel by viewModels<ComposableExampleFragmentViewModel>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return ComposeView(requireContext()).apply {
-            setContent {
+            setContent() {
                 A9tsTheme {
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        AppointmentsList(viewModel)
+                    Row(
+                        modifier = Modifier
+                            .background(BgGrey)
+                            .fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            AppointmentsList(viewModel)
+                        }
                     }
                 }
             }
         }
     }
+}
 
-    class ComposableExampleFragmentViewModel : ViewModel(), KoinComponent {
-        private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
-        val appointmentList: LiveData<List<Appointment>>
-            get() = _appointmentList
+class ComposableExampleFragmentViewModel : ViewModel(), KoinComponent {
+    private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
+    val appointmentList: LiveData<List<Appointment>>
+        get() = _appointmentList
 
-        private val authService: AuthService by inject()
-        private val databaseService: DatabaseService by inject()
+    private val authService: AuthService by inject()
+    private val databaseService: DatabaseService by inject()
 
-        fun getUserId(): String {
-            return authService.authUserId
-        }
-
-        init {
-            viewModelScope.launch {
-                databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
-                    _appointmentList.value = appointmentList
-                }
-            }
-        }
+    fun getUserId(): String {
+        return authService.authUserId
     }
 
-
-    @Composable
-    fun AppointmentBox(
-        appointment: Appointment,
-        authUserId: String
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-
-            val date = appointment.dateAndTime.toDate()
-            val dateFormatted = DateFormat.format("E dd LLL", date).toString()
-            val timeFormatted = DateFormat.format("HH:mm", date).toString()
-
-            val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
-
-            BlackLine()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(255, 255, 255))
-                    .padding(8.dp)
-            ) {
-
-                if (appointment.state == Appointment.STATE_I_INVITED) {
-                    Text("Waiting to accept...")
-                }
-
-                Column(Modifier.width(90.dp)) {
-                    Text(dateFormatted, fontWeight = FontWeight.Bold)
-                    Text(timeFormatted, color = LightGrey,
-                        modifier = Modifier.padding(0.dp, 8.dp, 0.dp, 0.dp))
-                }
-                Column() {
-                    Text(appointmentPartnerName, fontWeight = FontWeight.Bold)
-                }
-            }
-
-        }
-    }
-
-    @Composable
-    fun BlackLine() {
-        Divider(color = Color.Black, thickness = 1.dp)
-    }
-
-    @Preview
-    @Composable
-    fun AppointmentBoxPreview() {
-        A9tsTheme {
-            Column(modifier = Modifier.padding(8.dp)) {
-                AppointmentBox(
-                    appointment = myAppointment,
-                    authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
-                )
-                AppointmentBox(
-                    appointment = myAppointment,
-                    authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
-                )
-                BlackLine()
+    init {
+        viewModelScope.launch {
+            databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
+                _appointmentList.value = appointmentList
             }
         }
-    }
-
-    @Composable
-    fun AppointmentsList(viewModel: ComposableExampleFragmentViewModel) {
-        val appointmentList: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
-
-        LazyColumn {
-            items(appointmentList) { myAppointment ->
-                AppointmentBox(myAppointment, viewModel.getUserId())
-            }
-        }
-
-        if (appointmentList.isNotEmpty()) BlackLine()
     }
 }
+
+
+@Composable
+fun AppointmentBox(
+    appointment: Appointment,
+    authUserId: String
+) {
+    BlackLine()
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        val date = appointment.dateAndTime.toDate()
+        val dateFormatted = DateFormat.format("E dd LLL", date).toString()
+        val timeFormatted = DateFormat.format("HH:mm", date).toString()
+
+        val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
+
+        if (appointment.state == Appointment.STATE_I_INVITED) {
+            WaitingToBeAcceptedRow()
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        )
+        {
+            Column(Modifier.width(90.dp)) {
+                Text(dateFormatted, fontWeight = FontWeight.Bold)
+                Text(
+                    timeFormatted,
+                    color = LightGrey,
+                    modifier = Modifier.padding(start = 0.dp, top = 8.dp, end = 0.dp, bottom = 0.dp)
+                )
+            }
+            Column { Text(appointmentPartnerName, fontWeight = FontWeight.Bold) }
+        }
+    }
+}
+
+@Composable
+fun BlackLine() {
+    Divider(color = Color.Black, thickness = 1.dp)
+}
+
+@Composable
+fun WaitingToBeAcceptedRow() {
+    StateRow(LightGrey, "Waiting to be accepted ...")
+}
+
+@Composable
+fun StateRow(bgColor: Color, text: String) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 0.dp)
+            .background(bgColor),
+
+        ) {
+        Text(
+            text = text,
+            color = Color.White,
+            modifier = Modifier
+                .padding(4.dp)
+        )
+    }
+}
+
+@Composable
+fun AppointmentsList(viewModel: ComposableExampleFragmentViewModel) {
+    val appointmentList: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
+
+    LazyColumn {
+        items(appointmentList) { myAppointment ->
+            AppointmentBox(myAppointment, viewModel.getUserId())
+        }
+    }
+
+    if (appointmentList.isNotEmpty()) BlackLine()
+}
+
+/*@Preview
+@Composable
+fun AppointmentBoxPreview() {
+    A9tsTheme {
+        Column(modifier = Modifier.padding(8.dp)) {
+            AppointmentBox(
+                appointment = myAppointment,
+                authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
+            )
+            AppointmentBox(
+                appointment = myAppointment,
+                authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
+            )
+            BlackLine()
+        }
+    }
+}*/
+
+
+@Preview
+@Composable
+fun PreviewNotificationBox() {
+    NotificationBox(myAppointmentNotification)
+}
+
+@Composable
+fun NotificationBox(notification: Notification) {
+    Surface(
+        color = Color.White,
+        elevation = 4.dp,
+
+        ) {
+        Column(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text("Appointment with ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween)
+            {
+                Button(onClick = { }) { Text("Yes") }
+                Button(onClick = { }) { Text("No") }
+
+            }
+        }
+    }
+}
+
+
 
 
