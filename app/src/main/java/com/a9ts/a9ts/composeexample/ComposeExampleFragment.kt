@@ -1,18 +1,17 @@
 package com.a9ts.a9ts.composeexample
 
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Divider
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -28,18 +27,24 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import com.a9ts.a9ts.dateFormatted
 import com.a9ts.a9ts.getMyAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.Notification
+import com.a9ts.a9ts.timeFormatted
 import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
 import com.example.jatpackcomposebasics.ui.theme.BgGrey
 import com.example.jatpackcomposebasics.ui.theme.LightGrey
+import com.example.jatpackcomposebasics.ui.theme.Shapes
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import timber.log.Timber
 
 
 val myAppointment = Appointment(
@@ -58,6 +63,12 @@ val myAppointmentNotification = Notification(
     dateAndTime = Timestamp.now()
 )
 
+val myFriendNotification = Notification(
+    authUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
+    fullName = "Igor Križko",
+    notificationType = Notification.TYPE_FRIEND_INVITATION
+)
+
 
 class ComposeExampleFragment : Fragment() {
     val viewModel by viewModels<ComposableExampleFragmentViewModel>()
@@ -66,13 +77,17 @@ class ComposeExampleFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent() {
                 A9tsTheme {
-                    Row(
-                        modifier = Modifier
-                            .background(BgGrey)
-                            .fillMaxWidth()
-                    ) {
+                    Scaffold(backgroundColor = BgGrey,
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = { findNavController().navigate(ComposeExampleFragmentDirections.actionComposeExampleFragmentToStepOneFragment())}
+                            ) {
+                                Icon(Icons.Filled.Add,"")
+                            }
+                        }) {
                         Column(modifier = Modifier.padding(8.dp)) {
-                            AppointmentsList(viewModel)
+                            NotificationsList(viewModel)
+                            AppointmentsList(viewModel.appointmentList, viewModel.getUserId(), findNavController())
                         }
                     }
                 }
@@ -81,10 +96,16 @@ class ComposeExampleFragment : Fragment() {
     }
 }
 
+
 class ComposableExampleFragmentViewModel : ViewModel(), KoinComponent {
     private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
     val appointmentList: LiveData<List<Appointment>>
         get() = _appointmentList
+
+    private var _notificationList = MutableLiveData<List<Notification>>(listOf())
+    val notificationList: LiveData<List<Notification>>
+        get() = _notificationList
+
 
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
@@ -98,30 +119,67 @@ class ComposableExampleFragmentViewModel : ViewModel(), KoinComponent {
             databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
                 _appointmentList.value = appointmentList
             }
+
+            databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
+                _notificationList.value = notificationList
+            }
         }
     }
+
+    fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.acceptAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
+// TODO         _snackMessage.value = "✔ Appointment accepted"
+                Timber.d("✔ Appointment accepted.")
+            }
+        }
+    }
+
+    fun onAppointmentNotificationRejected(invitorUserId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId!!, appointmentId, notificationId)) {
+// TODO         _snackMessage.value = "❌ Appointment rejected"
+                Timber.d("❌ Appointment rejected.")
+            }
+        }
+    }
+
+    fun onFriendNotificationAccepted(authUserId: String, notificationId: String) {
+
+        viewModelScope.launch {
+            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId, notificationId)) {
+                Timber.d("✔ Friendship accepted.")
+            }
+        }
+    }
+
+    fun onFriendNotificationRejected(authUserId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId, notificationId)) {
+                Timber.d("❌ Friendsih request rejected.")
+            }
+        }
+    }
+    // generate ID UUID.randomUUID().toString()
 }
 
-
 @Composable
-fun AppointmentBox(
-    appointment: Appointment,
-    authUserId: String
-) {
+fun AppointmentBox(appointment: Appointment, authUserId: String, navController: NavController) {
     BlackLine()
     Column(
         Modifier
             .fillMaxWidth()
             .background(Color.White)
+            .clickable {
+                navController.navigate(ComposeExampleFragmentDirections.actionComposeExampleFragmentToDetailFragment(appointment))
+            }
     ) {
         val date = appointment.dateAndTime.toDate()
-        val dateFormatted = DateFormat.format("E dd LLL", date).toString()
-        val timeFormatted = DateFormat.format("HH:mm", date).toString()
 
         val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
         if (appointment.state == Appointment.STATE_I_INVITED) {
-            WaitingToBeAcceptedRow()
+            AppointmentWaitingToBeAcceptedRow()
         }
 
         Row(
@@ -131,9 +189,9 @@ fun AppointmentBox(
         )
         {
             Column(Modifier.width(90.dp)) {
-                Text(dateFormatted, fontWeight = FontWeight.Bold)
+                Text(date.dateFormatted(), fontWeight = FontWeight.Bold)
                 Text(
-                    timeFormatted,
+                    date.timeFormatted(),
                     color = LightGrey,
                     modifier = Modifier.padding(start = 0.dp, top = 8.dp, end = 0.dp, bottom = 0.dp)
                 )
@@ -149,12 +207,12 @@ fun BlackLine() {
 }
 
 @Composable
-fun WaitingToBeAcceptedRow() {
-    StateRow(LightGrey, "Waiting to be accepted ...")
+fun AppointmentWaitingToBeAcceptedRow() {
+    AppointmentStateRow(LightGrey, "Waiting to be accepted ...")
 }
 
 @Composable
-fun StateRow(bgColor: Color, text: String) {
+fun AppointmentStateRow(bgColor: Color, text: String) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -173,64 +231,117 @@ fun StateRow(bgColor: Color, text: String) {
 }
 
 @Composable
-fun AppointmentsList(viewModel: ComposableExampleFragmentViewModel) {
-    val appointmentList: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
+fun AppointmentsList(appointmentList: LiveData<List<Appointment>>, authUserId: String, navController: NavController) {
+    val appointmentList: List<Appointment> by appointmentList.observeAsState(listOf())
 
     LazyColumn {
-        items(appointmentList) { myAppointment ->
-            AppointmentBox(myAppointment, viewModel.getUserId())
+        items(appointmentList) { appointment ->
+            AppointmentBox(appointment, authUserId, navController)
         }
     }
 
     if (appointmentList.isNotEmpty()) BlackLine()
 }
 
-/*@Preview
 @Composable
-fun AppointmentBoxPreview() {
-    A9tsTheme {
-        Column(modifier = Modifier.padding(8.dp)) {
-            AppointmentBox(
-                appointment = myAppointment,
-                authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
-            )
-            AppointmentBox(
-                appointment = myAppointment,
-                authUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2" //Robert Veres
-            )
-            BlackLine()
+fun NotificationsList(viewModel: ComposableExampleFragmentViewModel) {
+    val notificationList: List<Notification> by viewModel.notificationList.observeAsState(listOf())
+
+    LazyColumn(Modifier.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 8.dp)) {
+        items(notificationList) { notification ->
+            when (notification.notificationType) {
+                Notification.TYPE_APP_INVITATION -> NotificationBox(
+                    notification = notification,
+                    onAccept = {
+                        viewModel.onAppointmentNotificationAccepted(
+                            invitorUserId = notification.authUserId,
+                            appointmentId = notification.appointmentId,
+                            notificationId = notification.id!!
+                        )
+                    }, onReject = {
+                        viewModel.onAppointmentNotificationRejected(
+                            invitorUserId = notification.authUserId,
+                            appointmentId = notification.appointmentId,
+                            notificationId = notification.id!!
+                        )
+                    }, acceptText = "Agree!", rejectText = "I can't"
+                )
+
+                Notification.TYPE_FRIEND_INVITATION -> NotificationBox(
+                    notification = notification,
+                    onAccept = {
+                        viewModel.onFriendNotificationAccepted(
+                            authUserId = notification.authUserId,
+                            notificationId = notification.id!!
+                        )
+                    }, onReject = {
+                        viewModel.onFriendNotificationRejected(
+                            authUserId = notification.authUserId,
+                            notificationId = notification.id!!
+                        )
+                    }, acceptText = "Add friend", rejectText = "Reject"
+                )
+            }
         }
     }
-}*/
+}
+
+
+@Composable
+fun NotificationBox(
+    notification: Notification,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+    acceptText: String,
+    rejectText: String
+) {
+    Surface(
+        color = Color.White,
+        elevation = 6.dp,
+        shape = Shapes.small,
+        modifier = Modifier.padding(8.dp)
+
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            when (notification.notificationType) {
+                Notification.TYPE_APP_INVITATION -> {
+                    Text("Appointment with ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
+                    Text(
+                        "${notification.dateAndTime!!.toDate().dateFormatted()} ${notification.dateAndTime!!.toDate().timeFormatted()}",
+                        Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                    )
+                }
+                Notification.TYPE_FRIEND_INVITATION -> {
+                    Text("Friend invitation from ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
+                }
+            }
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween)
+            {
+                Button(onClick = { onAccept() }) { Text(acceptText) }
+                Button(onClick = { onReject() }) { Text(rejectText) }
+            }
+        }
+    }
+}
 
 
 @Preview
 @Composable
 fun PreviewNotificationBox() {
-    NotificationBox(myAppointmentNotification)
-}
-
-@Composable
-fun NotificationBox(notification: Notification) {
-    Surface(
-        color = Color.White,
-        elevation = 4.dp,
-
-        ) {
-        Column(
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text("Appointment with ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween)
-            {
-                Button(onClick = { }) { Text("Yes") }
-                Button(onClick = { }) { Text("No") }
-
+    A9tsTheme() {
+        Scaffold(backgroundColor = BgGrey) {
+            Column {
+                NotificationBox(myAppointmentNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
+                NotificationBox(myFriendNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
             }
         }
     }
 }
+
+
 
 
 

@@ -44,6 +44,8 @@ fun String.normalized() = Normalizer.normalize(this, Normalizer.Form.NFD)
     .toLowerCase(Locale.ROOT)
     .trim()
 
+fun Date.timeFormatted() = DateFormat.format("HH:mm", this).toString()
+fun Date.dateFormatted() = DateFormat.format("E dd LLL", this).toString()
 
 /*fun String.firstWord(): String {
     if (!this.contains(' ')) return this

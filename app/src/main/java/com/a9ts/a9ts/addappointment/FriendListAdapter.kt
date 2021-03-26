@@ -38,7 +38,7 @@ class FriendListAdapter(
                 fullname.text = friend.fullName
 
                 if (friend.state == Friend.STATE_I_INVITED) {
-                    button.text = "Invited"
+                    button.text = "nvited"
                     button.isEnabled = false
 //                    button.visibility = View.VISIBLE
                 } else {

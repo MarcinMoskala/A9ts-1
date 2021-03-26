@@ -19,8 +19,8 @@ private val LightColorPalette = lightColors(
     secondary = Teal200,
 
 
-    onSecondary = Color.Red,
-    onBackground = Color.Green,
+    onSecondary = Color.White,
+//    onBackground = Color.Green,
     onSurface = Color.Blue
 
 )
