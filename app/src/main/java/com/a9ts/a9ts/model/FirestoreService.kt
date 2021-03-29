@@ -97,11 +97,13 @@ class FirestoreService : DatabaseService {
             .whereGreaterThan("state", Appointment.STATE_I_AM_INVITED)
             .addSnapshotListener { querySnapshot, e ->
                 Timber.d("getAppointmentListener")
+
                 if (e != null) {
                     Timber.w("getAppointmentListener failed: $e")
                     return@addSnapshotListener
                 }
 
+                // kvoli naslednemu sortingu davam do ArrayList
                 val appointmentList = ArrayList<Appointment>()
                 if (querySnapshot != null) {
                     for (element in querySnapshot) {

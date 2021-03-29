@@ -1,9 +1,7 @@
 package com.a9ts.a9ts.main
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,8 +11,11 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -23,15 +24,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.a9ts.a9ts.dateFormatted
 import com.a9ts.a9ts.getMyAppointmentPartnerName
-import com.a9ts.a9ts.main.MainFragmentDirections
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
@@ -73,23 +70,56 @@ val myFriendNotification = Notification(
 class MainFragment : Fragment() {
     val viewModel by viewModels<MainFragmentViewModel>()
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        // TODO Add your menu entries here
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        setHasOptionsMenu(true)
         return ComposeView(requireContext()).apply {
             setContent() {
                 A9tsTheme {
-                    Scaffold(backgroundColor = BgGrey,
+                    val scaffoldState = rememberScaffoldState()
+                    Scaffold(
+                        backgroundColor = BgGrey,
+                        scaffoldState = scaffoldState,
+                        snackbarHost = {
+                            scaffoldState.snackbarHostState
+                        },
+
                         floatingActionButton = {
                             FloatingActionButton(
-                                onClick = { findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment())}
+                                onClick = { findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment()) }
                             ) {
-                                Icon(Icons.Filled.Add,"")
+                                Icon(Icons.Filled.Add, "")
                             }
-                        }) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            NotificationsList(viewModel)
-                            AppointmentsList(viewModel.appointmentList, viewModel.getUserId(), findNavController())
+                        })
+                    { // content
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                NotificationsList(viewModel, scaffoldState)
+                                AppointmentsList(viewModel.appointmentList, viewModel.getUserId(), findNavController())
+                            }
+
+/*                            Button(
+                                onClick = {
+                                lifecycleScope.launch {
+                                    scaffoldState.snackbarHostState.showSnackbar(message = "Yo", actionLabel = "HIDE")
+                                }
+                            }) {
+                                Text(text = "Snack")
+                            }*/
+
+                            DefaultSnackbar(
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                snackbarHostState = scaffoldState.snackbarHostState,
+                                onDismiss = {
+                                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                                })
                         }
                     }
+
                 }
             }
         }
@@ -105,7 +135,6 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
     private var _notificationList = MutableLiveData<List<Notification>>(listOf())
     val notificationList: LiveData<List<Notification>>
         get() = _notificationList
-
 
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
@@ -161,6 +190,44 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
         }
     }
     // generate ID UUID.randomUUID().toString()
+}
+
+@Composable
+fun DefaultSnackbar(
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+) {
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = modifier,
+        snackbar = { data ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                action = {
+                    data.actionLabel?.let { actionLabel ->
+                        TextButton(
+                            onClick = {
+                                onDismiss()
+                            }
+                        ) {
+                            Text(
+                                text = actionLabel,
+                                style = MaterialTheme.typography.body2,
+                                color = Color.White,
+                            )
+                        }
+                    }
+                },
+            ) {
+                Text(
+                    text = data.message,
+                    style = MaterialTheme.typography.body2,
+                    color = Color.White
+                )
+            }
+        }
+    )
 }
 
 @Composable
@@ -243,9 +310,11 @@ fun AppointmentsList(appointmentList: LiveData<List<Appointment>>, authUserId: S
     if (appointmentList.isNotEmpty()) BlackLine()
 }
 
+
 @Composable
-fun NotificationsList(viewModel: MainFragmentViewModel) {
+fun NotificationsList(viewModel: MainFragmentViewModel,scaffoldState: ScaffoldState) {
     val notificationList: List<Notification> by viewModel.notificationList.observeAsState(listOf())
+    val scope = rememberCoroutineScope()
 
     LazyColumn(Modifier.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 8.dp)) {
         items(notificationList) { notification ->
@@ -258,12 +327,19 @@ fun NotificationsList(viewModel: MainFragmentViewModel) {
                             appointmentId = notification.appointmentId,
                             notificationId = notification.id!!
                         )
+                        scope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(message = "✔ Appointment accepted.", actionLabel = "Ok")
+                        }
                     }, onReject = {
                         viewModel.onAppointmentNotificationRejected(
                             invitorUserId = notification.authUserId,
                             appointmentId = notification.appointmentId,
                             notificationId = notification.id!!
                         )
+                        scope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(message = "❌ Appointment rejected.", actionLabel = "Ok")
+                        }
+
                     }, acceptText = "Agree!", rejectText = "I can't"
                 )
 
@@ -326,7 +402,6 @@ fun NotificationBox(
         }
     }
 }
-
 
 @Preview
 @Composable
