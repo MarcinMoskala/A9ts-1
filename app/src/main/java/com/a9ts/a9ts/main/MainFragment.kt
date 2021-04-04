@@ -1,5 +1,7 @@
 package com.a9ts.a9ts.main
 
+//askmarcin why do I have to import .R explicitly? .* seems not to be enough
+
 import android.os.Bundle
 import android.view.*
 import androidx.compose.foundation.background
@@ -29,14 +31,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import com.a9ts.a9ts.R
-import com.a9ts.a9ts.dateFormatted
-import com.a9ts.a9ts.getMyAppointmentPartnerName
+import com.a9ts.a9ts.*
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.Notification
-import com.a9ts.a9ts.timeFormatted
 import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
 import com.example.jatpackcomposebasics.ui.theme.BgGrey
 import com.example.jatpackcomposebasics.ui.theme.LightGrey
@@ -83,6 +82,7 @@ class MainFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_about -> {
+                viewModel.onAboutUser()
                 return true
             }
             else -> super.onOptionsItemSelected(item)
@@ -90,6 +90,13 @@ class MainFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        viewModel.aboutUser.observe(viewLifecycleOwner, { aboutUser ->
+            aboutUser?.let {
+                toast(aboutUser)
+                viewModel.onAboutUserShowed()
+            }
+        })
+
         setHasOptionsMenu(true)
         return ComposeView(requireContext()).apply {
             setContent() {
@@ -100,9 +107,7 @@ class MainFragment : Fragment() {
                         scaffoldState = scaffoldState,
                         snackbarHost = {
                             scaffoldState.snackbarHostState
-                        },
-
-                        floatingActionButton = {
+                        }, floatingActionButton = {
                             FloatingActionButton(
                                 onClick = { findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment()) }
                             ) {
@@ -116,15 +121,6 @@ class MainFragment : Fragment() {
                                 AppointmentsList(viewModel.appointmentList, viewModel.getUserId(), findNavController())
                             }
 
-/*                            Button(
-                                onClick = {
-                                lifecycleScope.launch {
-                                    scaffoldState.snackbarHostState.showSnackbar(message = "Yo", actionLabel = "HIDE")
-                                }
-                            }) {
-                                Text(text = "Snack")
-                            }*/
-
                             DefaultSnackbar(
                                 modifier = Modifier.align(Alignment.BottomCenter),
                                 snackbarHostState = scaffoldState.snackbarHostState,
@@ -133,7 +129,6 @@ class MainFragment : Fragment() {
                                 })
                         }
                     }
-
                 }
             }
         }
@@ -142,6 +137,10 @@ class MainFragment : Fragment() {
 
 
 class MainFragmentViewModel : ViewModel(), KoinComponent {
+    private var _aboutUser = MutableLiveData<String?>()
+    val aboutUser: LiveData<String?>
+        get() = _aboutUser
+
     private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
     val appointmentList: LiveData<List<Appointment>>
         get() = _appointmentList
@@ -172,7 +171,6 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
     fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
         viewModelScope.launch {
             if (databaseService.acceptAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-// TODO         _snackMessage.value = "✔ Appointment accepted"
                 Timber.d("✔ Appointment accepted.")
             }
         }
@@ -180,7 +178,7 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
 
     fun onAppointmentNotificationRejected(invitorUserId: String, appointmentId: String, notificationId: String) {
         viewModelScope.launch {
-            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId!!, appointmentId, notificationId)) {
+            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
 // TODO         _snackMessage.value = "❌ Appointment rejected"
                 Timber.d("❌ Appointment rejected.")
             }
@@ -203,7 +201,16 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
             }
         }
     }
-    // generate ID UUID.randomUUID().toString()
+
+    fun onAboutUser() {
+        viewModelScope.launch {
+            _aboutUser.value = databaseService.getUser(authService.authUserId)?.fullName
+        }
+    }
+
+    fun onAboutUserShowed() {
+        _aboutUser.value = null
+    }
 }
 
 @Composable
@@ -326,7 +333,7 @@ fun AppointmentsList(appointmentList: LiveData<List<Appointment>>, authUserId: S
 
 
 @Composable
-fun NotificationsList(viewModel: MainFragmentViewModel,scaffoldState: ScaffoldState) {
+fun NotificationsList(viewModel: MainFragmentViewModel, scaffoldState: ScaffoldState) {
     val notificationList: List<Notification> by viewModel.notificationList.observeAsState(listOf())
     val scope = rememberCoroutineScope()
 
