@@ -41,8 +41,8 @@
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_in_left" />
         <action
-            android:id="@+id/action_mainFragment_to_detailFragment"
-            app:destination="@id/detailFragment"
+            android:id="@+id/action_mainFragment_to_composeDetailFragment"
+            app:destination="@id/composeDetailFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
@@ -147,15 +147,11 @@
         tools:layout="@layout/add_friends_fragment"
         />
     <fragment
-        android:id="@+id/detailFragment"
-        android:label=""
-        android:name="com.a9ts.a9ts.detail.DetailFragment">
+        android:id="@+id/composeDetailFragment"
+        android:name="com.a9ts.a9ts.composedetail.ComposeDetailFragment"
+        android:label="ComposeDetailFragment" >
         <argument
             android:name="appointment"
-            app:argType="com.a9ts.a9ts.model.Appointment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/fade_out"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_in_left" />
+            app:argType="com.a9ts.a9ts.model.Appointment" />
     </fragment>
 </navigation>

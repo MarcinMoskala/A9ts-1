@@ -26,49 +26,17 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.a9ts.a9ts.*
 import com.a9ts.a9ts.model.Appointment
-import com.a9ts.a9ts.model.AuthService
-import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.Notification
+import com.a9ts.a9ts.model.mockAppointmentNotification
 import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
 import com.example.jatpackcomposebasics.ui.theme.BgGrey
 import com.example.jatpackcomposebasics.ui.theme.LightGrey
 import com.example.jatpackcomposebasics.ui.theme.Shapes
-import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import timber.log.Timber
-
-
-val myAppointment = Appointment(
-    inviteeName = "Robert Veres",
-    inviteeUserId = "Os7gzVjFkyNVYVQMiPmQLZIh8Sw2",
-    invitorName = "Peter Veres",
-    invitorUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
-    dateAndTime = Timestamp.now(),
-    state = Appointment.STATE_I_INVITED
-)
-
-val myAppointmentNotification = Notification(
-    authUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
-    fullName = "Peter Veres",
-    notificationType = Notification.TYPE_APP_INVITATION,
-    dateAndTime = Timestamp.now()
-)
-
-
-val myFriendNotification = Notification(
-    authUserId = "pujbtIPGlieNOsxCTGcQVdiR5Ob2",
-    fullName = "Igor Križko",
-    notificationType = Notification.TYPE_FRIEND_INVITATION
-)
 
 
 class MainFragment : Fragment() {
@@ -90,6 +58,7 @@ class MainFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+
         viewModel.aboutUser.observe(viewLifecycleOwner, { aboutUser ->
             aboutUser?.let {
                 toast(aboutUser)
@@ -98,6 +67,7 @@ class MainFragment : Fragment() {
         })
 
         setHasOptionsMenu(true)
+
         return ComposeView(requireContext()).apply {
             setContent() {
                 A9tsTheme {
@@ -132,84 +102,6 @@ class MainFragment : Fragment() {
                 }
             }
         }
-    }
-}
-
-
-class MainFragmentViewModel : ViewModel(), KoinComponent {
-    private var _aboutUser = MutableLiveData<String?>()
-    val aboutUser: LiveData<String?>
-        get() = _aboutUser
-
-    private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
-    val appointmentList: LiveData<List<Appointment>>
-        get() = _appointmentList
-
-    private var _notificationList = MutableLiveData<List<Notification>>(listOf())
-    val notificationList: LiveData<List<Notification>>
-        get() = _notificationList
-
-    private val authService: AuthService by inject()
-    private val databaseService: DatabaseService by inject()
-
-    fun getUserId(): String {
-        return authService.authUserId
-    }
-
-    init {
-        viewModelScope.launch {
-            databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
-                _appointmentList.value = appointmentList
-            }
-
-            databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
-                _notificationList.value = notificationList
-            }
-        }
-    }
-
-    fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.acceptAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-                Timber.d("✔ Appointment accepted.")
-            }
-        }
-    }
-
-    fun onAppointmentNotificationRejected(invitorUserId: String, appointmentId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-// TODO         _snackMessage.value = "❌ Appointment rejected"
-                Timber.d("❌ Appointment rejected.")
-            }
-        }
-    }
-
-    fun onFriendNotificationAccepted(authUserId: String, notificationId: String) {
-
-        viewModelScope.launch {
-            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId, notificationId)) {
-                Timber.d("✔ Friendship accepted.")
-            }
-        }
-    }
-
-    fun onFriendNotificationRejected(authUserId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId, notificationId)) {
-                Timber.d("❌ Friendsih request rejected.")
-            }
-        }
-    }
-
-    fun onAboutUser() {
-        viewModelScope.launch {
-            _aboutUser.value = databaseService.getUser(authService.authUserId)?.fullName
-        }
-    }
-
-    fun onAboutUserShowed() {
-        _aboutUser.value = null
     }
 }
 
@@ -259,7 +151,7 @@ fun AppointmentBox(appointment: Appointment, authUserId: String, navController: 
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
-                navController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment))
+                navController.navigate(MainFragmentDirections.actionMainFragmentToComposeDetailFragment(appointment))
             }
     ) {
         val date = appointment.dateAndTime.toDate()
@@ -430,15 +322,9 @@ fun PreviewNotificationBox() {
     A9tsTheme() {
         Scaffold(backgroundColor = BgGrey) {
             Column {
-                NotificationBox(myAppointmentNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
-                NotificationBox(myFriendNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
+                NotificationBox(mockAppointmentNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
+                NotificationBox(mockAppointmentNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")
             }
         }
     }
 }
-
-
-
-
-
-

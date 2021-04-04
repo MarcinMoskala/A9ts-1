@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.detail
+package com.a9ts.a9ts.composedetail
 
 import android.app.Application
 import android.text.format.DateFormat
