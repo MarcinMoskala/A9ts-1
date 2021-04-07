@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import com.a9ts.a9ts.Constants.Companion.CHANNEL_ID
+import com.a9ts.a9ts.model.Appointment
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -136,6 +137,8 @@ fun dateAndTimeFormatted(date: Date) : String {
 fun getMyAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
      if (authUserID == invitorUserId) inviteeFullName else invitorFullName
 
+fun getMyAppointmentPartnerName(authUserID: String, appointment: Appointment) : String =
+    if (authUserID == appointment.invitorUserId) appointment.inviteeName else appointment.invitorName
 
 
 

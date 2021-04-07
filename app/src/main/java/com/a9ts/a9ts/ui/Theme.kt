@@ -1,4 +1,4 @@
-package com.example.jatpackcomposebasics.ui.theme
+package com.a9ts.a9ts.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
@@ -25,6 +25,7 @@ private val LightColorPalette = lightColors(
     onSurface = Color.Blue
 
 )
+
 
 @Composable
 fun A9tsTheme(

@@ -34,7 +34,6 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
     }
 
     init {
-        viewModelScope.launch {
             databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
                 _appointmentList.value = appointmentList
             }
@@ -42,7 +41,6 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
             databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
                 _notificationList.value = notificationList
             }
-        }
     }
 
     fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {

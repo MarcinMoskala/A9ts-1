@@ -1,4 +1,4 @@
-package com.example.jatpackcomposebasics.ui.theme
+package com.a9ts.a9ts.ui
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
@@ -12,6 +12,14 @@ val Typography = Typography(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
+    ),
+    h1 = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 24.sp
+    ),
+    button = TextStyle(
+        
     )
     /* Other default text styles to override
     button = TextStyle(

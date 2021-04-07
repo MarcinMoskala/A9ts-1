@@ -151,7 +151,7 @@
         android:name="com.a9ts.a9ts.composedetail.ComposeDetailFragment"
         android:label="ComposeDetailFragment" >
         <argument
-            android:name="appointment"
-            app:argType="com.a9ts.a9ts.model.Appointment" />
+            android:name="appointmentId"
+            app:argType="string" />
     </fragment>
 </navigation>

@@ -29,13 +29,14 @@ import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.a9ts.a9ts.*
+import com.a9ts.a9ts.R
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
-import com.example.jatpackcomposebasics.ui.theme.A9tsTheme
-import com.example.jatpackcomposebasics.ui.theme.BgGrey
-import com.example.jatpackcomposebasics.ui.theme.LightGrey
-import com.example.jatpackcomposebasics.ui.theme.Shapes
+import com.a9ts.a9ts.ui.A9tsTheme
+import com.a9ts.a9ts.ui.BgGrey
+import com.a9ts.a9ts.ui.LightGrey
+import com.a9ts.a9ts.ui.Shapes
 import kotlinx.coroutines.launch
 
 
@@ -151,7 +152,7 @@ fun AppointmentBox(appointment: Appointment, authUserId: String, navController: 
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
-                navController.navigate(MainFragmentDirections.actionMainFragmentToComposeDetailFragment(appointment))
+                navController.navigate(MainFragmentDirections.actionMainFragmentToComposeDetailFragment(appointment.id!!))
             }
     ) {
         val date = appointment.dateAndTime.toDate()

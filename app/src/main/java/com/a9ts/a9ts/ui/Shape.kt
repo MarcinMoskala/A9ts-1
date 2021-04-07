@@ -1,4 +1,4 @@
-package com.example.jatpackcomposebasics.ui.theme
+package com.a9ts.a9ts.ui
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes

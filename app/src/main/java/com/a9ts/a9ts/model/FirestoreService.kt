@@ -40,11 +40,30 @@ interface DatabaseService {
     fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
     fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
     fun updateDeviceToken(authUserId: String, deviceToken: String?, onSuccess: (deviceToken: String) -> Unit)
-
+    fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment : Appointment?) -> Unit)
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
+
+    override fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment : Appointment?) -> Unit)
+    {
+        db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId)
+            .addSnapshotListener { appointmentSnapshot, e ->
+                if (e != null) {
+                    Timber.w("getAppointmentListener failed: $e")
+                    return@addSnapshotListener
+                }
+
+                var appointment : Appointment? = null
+
+                if (appointmentSnapshot != null) {
+                    appointment = appointmentSnapshot.toObject()
+                }
+
+                onSuccess(appointment)
+            }
+    }
 
     override suspend fun cancelAppointmentRequest(invitorIsCanceling: Boolean, invitorId: String, inviteeId: String, appointmentId: String): Boolean =
         db.runBatch { batch ->
