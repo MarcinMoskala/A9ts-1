@@ -152,7 +152,7 @@ fun AppointmentBox(appointment: Appointment, authUserId: String, navController: 
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
-                navController.navigate(MainFragmentDirections.actionMainFragmentToComposeDetailFragment(appointment.id!!))
+                navController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment.id!!))
             }
     ) {
         val date = appointment.dateAndTime.toDate()

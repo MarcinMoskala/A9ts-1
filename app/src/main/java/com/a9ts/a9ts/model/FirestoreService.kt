@@ -35,7 +35,7 @@ interface DatabaseService {
     suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
     suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
 
-    suspend fun cancelAppointmentRequest(invitorIsCanceling: Boolean, invitorId: String, inviteeId: String, appointmentId: String): Boolean
+    suspend fun cancelAppointmentRequest(authUserId: String, invitorId: String, inviteeId: String, appointmentId: String): Boolean
 
     fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
     fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
@@ -65,15 +65,15 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun cancelAppointmentRequest(invitorIsCanceling: Boolean, invitorId: String, inviteeId: String, appointmentId: String): Boolean =
+    override suspend fun cancelAppointmentRequest(authUserId: String, invitorId: String, inviteeId: String, appointmentId: String): Boolean =
         db.runBatch { batch ->
             val appointmentInvitor = db.collection(UserProfile.COLLECTION).document(invitorId).collection(Appointment.COLLECTION).document(appointmentId)
             val appointmentInvitee = db.collection(UserProfile.COLLECTION).document(inviteeId).collection(Appointment.COLLECTION).document(appointmentId)
 
-            if (invitorIsCanceling) {
+            if (authUserId == invitorId) { // invitor is canceling
                 batch.update(appointmentInvitor, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
                 batch.update(appointmentInvitee, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
-            } else {
+            } else { // invitee is canceling
                 batch.update(appointmentInvitor, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
                 batch.update(appointmentInvitee, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
             }
