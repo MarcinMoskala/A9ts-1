@@ -148,7 +148,7 @@
         />
     <fragment
         android:id="@+id/detailFragment"
-        android:name="com.a9ts.a9ts.detail.ComposeDetailFragment"
+        android:name="com.a9ts.a9ts.detail.DetailFragment"
         android:label="Appointment">
         <argument
             android:name="appointmentId"

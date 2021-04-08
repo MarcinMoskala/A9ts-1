@@ -26,9 +26,9 @@ class DetailViewModel(appointmentId: String) : ViewModel(), KoinComponent {
         }
     }
 
-    fun cancelAppointment(authUserId: String, invitorId:String, inviteeId:String, appointmentId: String) {
+    fun cancelAppointment(authUserId: String, appointment: Appointment) {
         viewModelScope.launch {
-            databaseService.cancelAppointmentRequest(authUserId, invitorId, inviteeId, appointmentId)
+            databaseService.cancelAppointmentRequest(authUserId, appointment)
             //TODO if toto je false tak nastav Toast<Livedata<String>> na nieco
         }
     }

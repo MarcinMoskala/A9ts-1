@@ -271,6 +271,18 @@ fun NotificationsList(viewModel: MainFragmentViewModel, scaffoldState: ScaffoldS
                         )
                     }, acceptText = "Add friend", rejectText = "Reject"
                 )
+
+                Notification.TYPE_CANCELLATION -> NotificationBox(
+                    notification = notification,
+                    onAccept = {
+                        viewModel.onCancellationAccepted(
+                            appPartnerId = notification.authUserId,
+                            appointmentId = notification.appointmentId,
+                            notificationId = notification.id!!
+                        )
+                    },
+                    acceptText = "Ok"
+                )
             }
         }
     }
@@ -281,9 +293,9 @@ fun NotificationsList(viewModel: MainFragmentViewModel, scaffoldState: ScaffoldS
 fun NotificationBox(
     notification: Notification,
     onAccept: () -> Unit,
-    onReject: () -> Unit,
+    onReject: () -> Unit = {},
     acceptText: String,
-    rejectText: String
+    rejectText: String = ""
 ) {
     Surface(
         color = Color.White,
@@ -306,6 +318,14 @@ fun NotificationBox(
                 Notification.TYPE_FRIEND_INVITATION -> {
                     Text("Friend invitation from ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
                 }
+                Notification.TYPE_CANCELLATION -> {
+                    Text("${notification.fullName} cancelled your appointment.", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
+                    Text(
+                        "${notification.dateAndTime!!.toDate().dateFormatted()} ${notification.dateAndTime!!.toDate().timeFormatted()}",
+                        Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
+                    )
+                }
+
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween)

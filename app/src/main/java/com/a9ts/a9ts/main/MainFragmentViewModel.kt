@@ -72,7 +72,7 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
     fun onFriendNotificationRejected(authUserId: String, notificationId: String) {
         viewModelScope.launch {
             if (databaseService.rejectFriendInvite(authService.authUserId, authUserId, notificationId)) {
-                Timber.d("❌ Friendsih request rejected.")
+                Timber.d("❌ Friendship request rejected.")
             }
         }
     }
@@ -85,5 +85,13 @@ class MainFragmentViewModel : ViewModel(), KoinComponent {
 
     fun onAboutUserShowed() {
         _aboutUser.value = null
+    }
+
+    fun onCancellationAccepted(appPartnerId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.acceptAppointmentCancellation(authService.authUserId, appPartnerId, appointmentId, notificationId)) {
+                Timber.d("Cancellation accepted.")
+            }
+        }
     }
 }

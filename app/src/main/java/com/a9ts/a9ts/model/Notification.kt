@@ -18,6 +18,8 @@ data class Notification(
         const val NOT_SET = ""
         const val TYPE_APP_INVITATION = "appointment_invitation"
         const val TYPE_FRIEND_INVITATION = "friend_invitation"
+        const val TYPE_CANCELLATION = "appointment_cancellation"
+
         const val COLLECTION = "notification"
     }
 }

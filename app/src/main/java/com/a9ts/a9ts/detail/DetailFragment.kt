@@ -28,19 +28,13 @@ import com.a9ts.a9ts.ui.A9tsTheme
 import com.a9ts.a9ts.ui.LightGrey
 import timber.log.Timber
 
-class ComposeDetailFragment : Fragment() {
+class DetailFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
-        val args = ComposeDetailFragmentArgs.fromBundle(requireArguments())
+        val args = DetailFragmentArgs.fromBundle(requireArguments())
         val appointmentId = args.appointmentId
         val viewModelFactory = DetailViewModelFactory(appointmentId)
         val viewModel = ViewModelProvider(this, viewModelFactory).get(DetailViewModel::class.java)
-
-        viewModel.appointment.observe(viewLifecycleOwner, {
-            if (it != null) {
-                Timber.d("Invitee is ${it.inviteeName}")
-            }
-        })
 
         return ComposeView(requireContext()).apply {
             setContent() {
@@ -79,7 +73,7 @@ fun AppointmentDetail(viewModel: DetailViewModel, authUserId: String) {
 
         if (appointment!!.canceledByInvitee == null && appointment!!.canceledByInvitor == null) {
             enabled = true
-            onClick = { viewModel.cancelAppointment(authUserId, appointment!!.invitorUserId, appointment!!.inviteeUserId, appointment!!.id.toString()) }
+            onClick = { viewModel.cancelAppointment(authUserId, appointment!!) }
             buttonText = "Cancel appointment"
             captionText = "$appPartnerName will have to accept the cancellation, before appointment gets deleted for both of you."
         } else {

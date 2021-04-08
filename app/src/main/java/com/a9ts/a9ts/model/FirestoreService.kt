@@ -35,19 +35,43 @@ interface DatabaseService {
     suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
     suspend fun rejectAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
 
-    suspend fun cancelAppointmentRequest(authUserId: String, invitorId: String, inviteeId: String, appointmentId: String): Boolean
+    suspend fun cancelAppointmentRequest(authUserId: String, appointment: Appointment): Boolean
+    suspend fun getUserDeviceToken(userId: String): String?
 
     fun getNotificationsListener(authUserId: String, onSuccess: (List<Notification>) -> Unit)
     fun getAppointmentsListener(authUserId: String, onSuccess: (List<Appointment>) -> Unit)
     fun updateDeviceToken(authUserId: String, deviceToken: String?, onSuccess: (deviceToken: String) -> Unit)
-    fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment : Appointment?) -> Unit)
+    fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment: Appointment?) -> Unit)
+    suspend fun acceptAppointmentCancellation(authUserId: String, appPartnerId: String, appointmentId: String, notificationId: String): Boolean
 }
 
 class FirestoreService : DatabaseService {
     private val db = Firebase.firestore
 
-    override fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment : Appointment?) -> Unit)
-    {
+    override suspend fun acceptAppointmentCancellation(authUserId: String, appPartnerId: String, appointmentId: String, notificationId: String): Boolean {
+
+        // by design appointments maju same ID ak ide o rovnaky appointment
+        val myAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId)
+        val appPartnerAppointment = db.collection(UserProfile.COLLECTION).document(appPartnerId).collection(Appointment.COLLECTION).document(appointmentId)
+
+        val notification = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
+
+        return try {
+            db.runTransaction { transaction ->
+                transaction.delete(myAppointment)
+                transaction.delete(appPartnerAppointment)
+                transaction.delete(notification)
+                //TODO mozno pridat este notification aby som sa ja dozvedel ze moja cancellation bola prijata... iba nieco v zmysle ze bola prijata a Appointment deleted
+            }.await()
+            true
+
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun acceptAppointmentCancellation: {${e.message}")
+            false
+        }
+    }
+
+    override fun getAppointmentListener(appointmentId: String, authUserId: String, onSuccess: (appointment: Appointment?) -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId)
             .addSnapshotListener { appointmentSnapshot, e ->
                 if (e != null) {
@@ -55,7 +79,7 @@ class FirestoreService : DatabaseService {
                     return@addSnapshotListener
                 }
 
-                var appointment : Appointment? = null
+                var appointment: Appointment? = null
 
                 if (appointmentSnapshot != null) {
                     appointment = appointmentSnapshot.toObject()
@@ -65,19 +89,77 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun cancelAppointmentRequest(authUserId: String, invitorId: String, inviteeId: String, appointmentId: String): Boolean =
-        db.runBatch { batch ->
-            val appointmentInvitor = db.collection(UserProfile.COLLECTION).document(invitorId).collection(Appointment.COLLECTION).document(appointmentId)
-            val appointmentInvitee = db.collection(UserProfile.COLLECTION).document(inviteeId).collection(Appointment.COLLECTION).document(appointmentId)
+    override suspend fun cancelAppointmentRequest(authUserId: String, appointment: Appointment): Boolean {
 
-            if (authUserId == invitorId) { // invitor is canceling
-                batch.update(appointmentInvitor, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
-                batch.update(appointmentInvitee, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
-            } else { // invitee is canceling
-                batch.update(appointmentInvitor, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
-                batch.update(appointmentInvitee, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
-            }
-        }.awaitWithStatus()
+        try {
+            val (notificationReceiverFullName, notificationReceiverId) = db.runTransaction { transaction ->
+
+                val appointmentInvitor = db.collection(UserProfile.COLLECTION).document(appointment.invitorUserId).collection(Appointment.COLLECTION).document(appointment.id!!)
+                val appointmentInvitee = db.collection(UserProfile.COLLECTION).document(appointment.inviteeUserId).collection(Appointment.COLLECTION).document(appointment.id)
+
+                val notification = Notification(
+                    notificationType = Notification.TYPE_CANCELLATION,
+                    authUserId = authUserId,
+                    appointmentId = appointment.id,
+                    dateAndTime = appointment.dateAndTime
+                )
+
+                val notificationReceiverId: String
+
+                if (authUserId == appointment.invitorUserId) { // I'm invitor and canceling
+                    transaction.update(appointmentInvitor, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
+                    transaction.update(appointmentInvitee, Appointment::canceledByInvitor.name, FieldValue.serverTimestamp())
+
+                    val inviteeNotification = db.collection(UserProfile.COLLECTION).document(appointment.inviteeUserId).collection(Notification.COLLECTION).document()
+
+                    notification.fullName = appointment.invitorName
+                    notificationReceiverId = appointment.inviteeUserId
+
+                    transaction.set(inviteeNotification, notification)
+                } else { // I'm invitee and canceling
+                    transaction.update(appointmentInvitor, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
+                    transaction.update(appointmentInvitee, Appointment::canceledByInvitee.name, FieldValue.serverTimestamp())
+
+                    val invitorNotification = db.collection(UserProfile.COLLECTION).document(appointment.invitorUserId).collection(Notification.COLLECTION).document()
+
+                    notification.fullName = appointment.inviteeName
+                    notificationReceiverId = appointment.invitorUserId
+
+                    transaction.set(invitorNotification, notification)
+                }
+
+                Pair(notification.fullName, notificationReceiverId)
+            }.await()
+
+            val dateAndTime = dateAndTimeFormatted(appointment.dateAndTime.toDate())
+
+            SystemPushNotification(
+                title = "Appointment cancelled by $notificationReceiverFullName",
+                body = dateAndTime,
+                token = getUserDeviceToken(notificationReceiverId).toString()
+            ).also { sendSystemPushNotification(it) }
+
+            return true
+
+        } catch (e: FirebaseFirestoreException) {
+            Timber.e("suspend fun acceptFriendInvite: {${e.message}")
+
+            return false
+        }
+    }
+
+    override suspend fun getUserDeviceToken(userId: String): String? = try {
+        val user: UserProfile? = db.collection(UserProfile.COLLECTION)
+            .document(userId)
+            .get()
+            .await()
+            .toObject()
+
+        user?.deviceToken
+    } catch (e: FirebaseFirestoreException) {
+        Timber.e("suspend fun getUserDeviceToken: {${e.message}")
+        null
+    }
 
     override fun updateDeviceToken(authUserId: String, deviceToken: String?, onSuccess: (deviceToken: String) -> Unit) {
         db.collection(UserProfile.COLLECTION).document(authUserId)
@@ -328,46 +410,6 @@ class FirestoreService : DatabaseService {
             false
         }
     }
-
-
-    /* override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
-         val userProfileDoc = db.collection(UserProfile.COLLECTION).document(userId)
-         val friendUserDocProfile = db.collection(UserProfile.COLLECTION).document(friendUserId)
-         val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
-             .collection(Notification.COLLECTION).document()
-
-
-         //Edge case:
-         // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
-         val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
-
-         if (iAmInvitedAlready.exists()) return false
-
-         val friendUser : UserProfile = friendUserDocProfile.get().await().toObject()!!
-
-         val user : UserProfile = userProfileDoc.get().await().toObject()!!
-
-         // write to my /friends with I_INVITED state
-         val usersFriendDoc = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId)
-         val usersFriend = Friend(friendUserId, fullName = friendUser.fullName, state = Friend.STATE_I_INVITED, telephone = friendUser.telephone)
-         usersFriendDoc.set(usersFriend).await()
-
-         // write to his /friends with I_AM_INVITED state
-         val userFriendsFriendDoc = db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Friend.COLLECTION).document(userId)
-         val userFriendsFriend = Friend(userId, fullName = user.fullName, state = Friend.STATE_I_AM_INVITED, telephone = user.telephone)
-         userFriendsFriendDoc.set(userFriendsFriend).await()
-
-         val invitation = Notification(
-             notificationType = Notification.TYPE_FRIEND_INVITATION,
-             fullName = user.fullName,
-             authUserId = userId
-         )
-
-         friendInvitationNotification.set(invitation).await()
-         Timber.d("ok 7")
-
-         return false
-     }*/
 
     override suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>? {
         try {
