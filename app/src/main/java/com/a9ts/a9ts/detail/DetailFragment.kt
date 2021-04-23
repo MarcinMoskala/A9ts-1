@@ -37,10 +37,14 @@ class DetailFragment : Fragment() {
         val viewModel = ViewModelProvider(this, viewModelFactory).get(DetailViewModel::class.java)
 
         return ComposeView(requireContext()).apply {
+
             setContent() {
+                val scaffoldState = rememberScaffoldState()
+
                 A9tsTheme {
-                    val scaffoldState = rememberScaffoldState()
-                    Scaffold { // content
+                    Scaffold (
+                        scaffoldState = scaffoldState
+                    ) { // content
                         // askmarcin where should I put the authUserId? I would like to have it accessible in the whole Activity... not sure if it's ok
                         AppointmentDetail(viewModel, viewModel.authUserId)
                     }

@@ -1,17 +1,26 @@
 <resources>
+
     <style name="Theme.A9ts" parent="Theme.MaterialComponents.Light.NoActionBar">
-<!--        <item name="colorPrimary">@color/primaryColor</item>-->
-<!--        <item name="colorOnPrimary">@color/white</item>-->
-<!--        <item name="colorSecondary">@color/primaryColor</item>-->
-<!--        <item name="colorOnSecondary">@color/white</item>-->
-<!--    <item name="android:textColorPrimary">@color/white</item>-->
+        <!--        <item name="colorPrimary">@color/primaryColor</item>-->
+        <!--        <item name="colorOnPrimary">@color/white</item>-->
+        <!--        <item name="colorSecondary">@color/primaryColor</item>-->
+        <!--        <item name="colorOnSecondary">@color/white</item>-->
+        <!--    <item name="android:textColorPrimary">@color/white</item>-->
         <item name="actionMenuTextColor">@color/white</item>
         <item name="android:actionMenuTextColor">@color/white</item>
     </style>
 
 
-
-    <style name="Theme.A9ts.Toolbarstyle" parent="ThemeOverlay.MaterialComponents.Toolbar.Primary" >
+    <style name="Theme.A9ts.Toolbarstyle" parent="ThemeOverlay.MaterialComponents.Toolbar.Primary">
         <item name="colorOnPrimary">@color/white</item>
     </style>
+
+    <style name="Theme.A9ts.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.A9ts.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.A9ts.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

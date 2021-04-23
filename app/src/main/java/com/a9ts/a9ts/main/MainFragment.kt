@@ -70,15 +70,17 @@ class MainFragment : Fragment() {
         setHasOptionsMenu(true)
 
         return ComposeView(requireContext()).apply {
-            setContent() {
+            setContent {
                 A9tsTheme {
                     val scaffoldState = rememberScaffoldState()
+
                     Scaffold(
                         backgroundColor = BgGrey,
                         scaffoldState = scaffoldState,
-                        snackbarHost = {
-                            scaffoldState.snackbarHostState
-                        }, floatingActionButton = {
+//                        snackbarHost = {
+//                            scaffoldState.snackbarHostState
+//                        },
+                        floatingActionButton = {
                             FloatingActionButton(
                                 onClick = { findNavController().navigate(MainFragmentDirections.actionMainFragmentToStepOneFragment()) }
                             ) {
@@ -92,12 +94,12 @@ class MainFragment : Fragment() {
                                 AppointmentsList(viewModel.appointmentList, viewModel.getUserId(), findNavController())
                             }
 
-                            DefaultSnackbar(
-                                modifier = Modifier.align(Alignment.BottomCenter),
-                                snackbarHostState = scaffoldState.snackbarHostState,
-                                onDismiss = {
-                                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-                                })
+//                            DefaultSnackbar(
+//                                modifier = Modifier.align(Alignment.BottomCenter),
+//                                snackbarHostState = scaffoldState.snackbarHostState,
+//                                onDismiss = {
+//                                    scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+//                                })
                         }
                     }
                 }
@@ -242,7 +244,7 @@ fun NotificationsList(viewModel: MainFragmentViewModel, scaffoldState: ScaffoldS
                             notificationId = notification.id!!
                         )
                         scope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar(message = "✔ Appointment accepted.", actionLabel = "Ok")
+                            scaffoldState.snackbarHostState.showSnackbar(message = "✔ Appointment accepted.")
                         }
                     }, onReject = {
                         viewModel.onAppointmentNotificationRejected(
@@ -251,7 +253,7 @@ fun NotificationsList(viewModel: MainFragmentViewModel, scaffoldState: ScaffoldS
                             notificationId = notification.id!!
                         )
                         scope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar(message = "❌ Appointment rejected.", actionLabel = "Ok")
+                            scaffoldState.snackbarHostState.showSnackbar(message = "❌ Appointment rejected.")
                         }
 
                     }, acceptText = "Agree!", rejectText = "I can't"
@@ -315,9 +317,11 @@ fun NotificationBox(
                         Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp)
                     )
                 }
+
                 Notification.TYPE_FRIEND_INVITATION -> {
                     Text("Friend invitation from ${notification.fullName}", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
                 }
+
                 Notification.TYPE_CANCELLATION -> {
                     Text("${notification.fullName} cancelled your appointment.", Modifier.padding(0.dp, 0.dp, 0.dp, 8.dp))
                     Text(
@@ -349,3 +353,5 @@ fun PreviewNotificationBox() {
         }
     }
 }
+
+

@@ -12,4 +12,5 @@
     <string name="cancel_button_description">%1$s will have to accept the cancelation, before appoinment gets deleted for both of you.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_compose">ComposeActivity</string>
 </resources>
