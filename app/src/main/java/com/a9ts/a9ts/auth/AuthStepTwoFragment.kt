@@ -73,16 +73,6 @@ class AuthStepTwoFragment : Fragment() {
             }
         }
 
-
-        // trick to unfocus the editText, so the keyboard comes up when it is focused by user
-//        binding.apply {
-//            buttonSendCode.isFocusable = true
-//            buttonSendCode.isFocusableInTouchMode = true
-//            buttonSendCode.requestFocus()
-//        }
-
-
-
         return binding.root
     }
 }

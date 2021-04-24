@@ -44,7 +44,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_calendar_icon" />
+            android:resource="@drawable/ic_launcher_a9ts_foreground" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:resource="@string/system_notification_channel_id" />

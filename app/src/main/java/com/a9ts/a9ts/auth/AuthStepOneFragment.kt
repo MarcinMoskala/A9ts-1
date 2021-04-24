@@ -26,6 +26,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
+
 class AuthStepOneFragment : Fragment() {
     val authService: AuthService by inject()
     val databaseService: DatabaseService by inject()
