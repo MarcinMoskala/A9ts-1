@@ -9,26 +9,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.findNavController
+import com.a9ts.a9ts.components.*
+import com.a9ts.a9ts.main.MainFragmentDirections
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
+import com.a9ts.a9ts.ui.BgGrey
 import com.a9ts.a9ts.ui.theme.A9tsTheme
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -42,8 +37,10 @@ import java.util.concurrent.TimeUnit
 
 class ComposeActivity : ComponentActivity() {
     private val viewModel: ComposeViewModel by viewModels()
+
     private val authService: AuthService by inject()
-    val databaseService: DatabaseService by inject()
+    private val databaseService: DatabaseService by inject()
+
     private var storedFullPhoneNumber = ""
     lateinit var navController: NavHostController
 
@@ -60,8 +57,7 @@ class ComposeActivity : ComponentActivity() {
 
         // automatic authentication without telephone number
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-
-            Timber.d("onVerificationCompleted: ${credential.smsCode}")
+            Timber.d("SMS code: ${credential.smsCode}")
 
             //TODO fillSMSCode(smsCode = credential.smsCode.toString())
 
@@ -73,26 +69,21 @@ class ComposeActivity : ComponentActivity() {
             Timber.d("onVerificationFailed : ${e.message}")
             when (e) {
                 is FirebaseAuthInvalidCredentialsException -> {
-                    // TODO: Vypisat Error ze cislo nie je ok
-                    // binding.editTextPhoneNumber.error = getString(R.string.invalid_phone_number)
+                    viewModel.onVerificationFailed() // wrong telephone number
                 }
+
                 is FirebaseTooManyRequestsException -> {
-                    Timber.d(getString(R.string.quota_exceeded))
+                    // fail silently
+                    Timber.e(getString(R.string.quota_exceeded))
                 }
             }
         }
 
         override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-            Timber.d("SMS code sent to: $storedFullPhoneNumber")
+            Timber.d("Verification code sent to: $storedFullPhoneNumber")
+
             navController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
-            viewModel.onCodeSent()
-            // TODO navigate to step 2, send verificationId and storedFullPhoneNumber
-//            findNavController().navigate(
-//                AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(
-//                    verificationId,
-//                    storedFullPhoneNumber
-//                )
-//            )
+            viewModel.onCodeSent() // stop the spinner
         }
     }
 
@@ -104,7 +95,9 @@ class ComposeActivity : ComponentActivity() {
             credential,
             onSuccess = {
                 viewModel.onSignInWithPhoneAuthCredential() // update device token
+
                 Timber.d("Success: User = ${authService.authUserId}")
+
                 databaseService.hasProfileFilled(
                     authService.authUserId,
                     onTrue = { // navigate to mainFragment; add Logout to menu
@@ -112,7 +105,7 @@ class ComposeActivity : ComponentActivity() {
 
                             // TODO: navigate to main
                             Timber.d("Navigating to main... User: ${authService.authUserId}")
-                            // mainAuthService.invalidateOptionsMenu()
+                            navController.navigate("main")
                         }, 300)
                     },
                     onFalse = { // navigate to Step 3
@@ -125,10 +118,8 @@ class ComposeActivity : ComponentActivity() {
                 Timber.d("Sign in success.")
             },
             onFailure = { exception ->
-                // tvarim sa ze vsetko je WrongCode Error, ale asi ich je viac
-                // The sms verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user.
                 Timber.d("Sign in failure: ${exception?.message}")
-                viewModel.onWrongSMSCode()
+                viewModel.onSignInWithPhoneAuthCredentialFailed(exception)
             })
     }
 
@@ -165,10 +156,13 @@ class ComposeActivity : ComponentActivity() {
 
         setContent {
             navController = rememberNavController()
+            val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
                 NavHost(navController, startDestination = "authStepOne")
                 {
+
+                    // Auth Step 1
                     composable("authStepOne") {
                         Scaffold(
                             topBar = {
@@ -182,6 +176,7 @@ class ComposeActivity : ComponentActivity() {
                         )
                     }
 
+                    // Auth Step 2
                     composable(
                         "authStepTwo/{verificationId}/{fullPhoneNumber}",
                         arguments = listOf(
@@ -202,133 +197,27 @@ class ComposeActivity : ComponentActivity() {
                             }
                         )
                     }
+
+                    // Main
+                    composable(
+                        "main"
+                    ) {
+                        Scaffold(
+                            backgroundColor = BgGrey,
+                            scaffoldState = scaffoldState,
+                            floatingActionButton = {
+                                FloatingActionButton(
+                                    onClick = { /*TODO navigate to AddAppointment*/ }
+                                ) {
+                                    Icon(Icons.Filled.Add, "")
+                                }
+                            })
+                        {
+                            MainComponent(viewModel, navController, scaffoldState.snackbarHostState, authService.authUserId)
+                        }
+                    }
                 }
-
-
-//                 vlastny Scaffold, ktory dostane parametre ako Nadpis, Ikony etc... v Navigation potom volat len tieto parametrizovane
-//                 Scaffoldy
-
             }
-        }
-    }
-}
-
-@Composable
-fun SmsCodeForm(viewModel: ComposeViewModel, verificationId: String) {
-    Column(
-        Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val wrongSmsCode: Boolean by viewModel.wrongSmsCode.observeAsState(false)
-        val smsCode = remember { mutableStateOf("") }
-
-        val maxChar = 6
-
-        OutlinedTextField(
-            value = smsCode.value,
-            label = { Text("Verification Code") },
-            textStyle = TextStyle(fontSize = 30.sp, textAlign = TextAlign.End, fontFamily = FontFamily.Monospace),
-            singleLine = true,
-            onValueChange = {
-                if (it.length <= maxChar) smsCode.value = it
-                if (wrongSmsCode) {
-                    viewModel.onSmsCodeKeyPressed()
-                }
-            },
-            placeholder = { Text("000000", fontSize = 30.sp, textAlign = TextAlign.End, fontFamily = FontFamily.Monospace, modifier = Modifier.fillMaxWidth()) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier
-                .width(200.dp)
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally),
-            isError = wrongSmsCode
-//            enabled = !loading
-        )
-        Spacer(Modifier.height(8.dp))
-
-        if (wrongSmsCode) {
-            Text("Wrong code. Please try again.", color = MaterialTheme.colors.error)
-        } else {
-            Text("Enter the 6-digit verification code")
-        }
-        Spacer(Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                viewModel.onSmsCodeSubmitted(smsCode.value, verificationId)
-            },
-            enabled = smsCode.value.length == maxChar
-        ) {
-            Text("SEND VERIFICATION CODE")
-        }
-
-    }
-}
-
-@Composable
-fun TelephoneForm(viewModel: ComposeViewModel) {
-    val countryCode = remember { mutableStateOf("+1") }
-    val telephoneNumber = remember { mutableStateOf("6505551234") }
-
-    val countryCodeErrorMsg: String by viewModel.countryCodeErrorMsg.observeAsState("")
-    val telephoneNumberErrorMsg: String by viewModel.telephoneNumberErrorMsg.observeAsState("")
-    val telephoneFormSpinner: Boolean by viewModel.telephoneFormSpinner.observeAsState(false)
-
-    Column(Modifier.padding(16.dp)) {
-        Row {
-
-            OutlinedTextField(
-                value = countryCode.value,
-//              label = { Text("Country Code") },
-                singleLine = true,
-                onValueChange = { countryCode.value = it },
-                placeholder = { Text("+421") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.width(70.dp),
-                isError = countryCodeErrorMsg.isNotBlank(),
-                enabled = !telephoneFormSpinner
-            )
-
-            Spacer(Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = telephoneNumber.value,
-                singleLine = true,
-                onValueChange = { telephoneNumber.value = it },
-                placeholder = { Text("9XX XXX XXX") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth(),
-                isError = telephoneNumberErrorMsg.isNotBlank(),
-                enabled = !telephoneFormSpinner
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (countryCodeErrorMsg.isNotBlank() || telephoneNumberErrorMsg.isNotBlank()) {
-            val errorMessage = "$countryCodeErrorMsg $telephoneNumberErrorMsg"
-            Text(errorMessage, color = MaterialTheme.colors.error)
-            Spacer(Modifier.height(8.dp))
-        }
-
-        Button(
-            onClick = {
-                viewModel.onSubmitTelephoneFormClicked(
-                    telephoneNumber = telephoneNumber.value,
-                    countryCode = countryCode.value
-                )
-            },
-            modifier = Modifier.align(Alignment.End),
-            enabled = !telephoneFormSpinner
-        ) {
-            Text("GET SMS CODE")
-        }
-
-        if (telephoneFormSpinner) {
-            Spacer(Modifier.height(32.dp))
-            CircularProgressIndicator(strokeWidth = 8.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     }
 }

@@ -4,17 +4,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
+import com.a9ts.a9ts.model.Notification
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import timber.log.Timber
+import kotlin.Exception
 
 class ComposeViewModel : ViewModel(), KoinComponent {
-    private var storedFullPhoneNumber = ""
-
     private val databaseService: DatabaseService by inject()
     private val authService: AuthService by inject()
 
@@ -41,6 +44,19 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _wrongSmsCode = MutableLiveData(false)
     val wrongSmsCode: LiveData<Boolean> = _wrongSmsCode
 
+    // Main
+    private var _aboutUser = MutableLiveData<String?>()
+    val aboutUser: LiveData<String?>
+        get() = _aboutUser
+
+    private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
+    val appointmentList: LiveData<List<Appointment>>
+        get() = _appointmentList
+
+    private var _notificationList = MutableLiveData<List<Notification>>(listOf())
+    val notificationList: LiveData<List<Notification>>
+        get() = _notificationList
+
     // General
     fun onSignInWithPhoneAuthCredential() {
         viewModelScope.launch {
@@ -52,7 +68,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    // Auth step 1
+    // Auth step 1 --------------------------------------------------------------
     fun onSubmitTelephoneFormClicked(countryCode: String, telephoneNumber: String) {
         //TODO: more robust error checking
         _countryCodeErrorMsg.value = if (countryCode.trim().isBlank()) "Country code can't be empty." else ""
@@ -71,22 +87,106 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    fun onVerificationFailed() {
+        _telephoneFormSpinner.value = false
+        _telephoneNumberErrorMsg.value = "Invalid telephone number."
+    }
+
     fun onCodeSent() {
         _telephoneFormSpinner.value = false
     }
 
-    // AuthStep2
+    fun onCountryCodeKeyPressed() {
+        if (countryCodeErrorMsg.value.toString().isNotBlank()) _countryCodeErrorMsg.value = ""
+    }
+
+    fun onTelephoneNumberKeyPressed() {
+        if (telephoneNumberErrorMsg.value.toString().isNotBlank()) _telephoneNumberErrorMsg.value = ""
+    }
+
+    // AuthStep2 ------------------------------------------------------------------------------
     fun onSmsCodeSubmitted(smsCode: String, verificationId: String) {
         _smsAndVerificationId.value = Pair(smsCode, verificationId)
     }
 
-    fun onWrongSMSCode() {
-        _wrongSmsCode.value = true
+    fun onSignInWithPhoneAuthCredentialFailed(exception: Exception?) {
+        if (exception is FirebaseAuthInvalidCredentialsException) {
+            _wrongSmsCode.value = true
+        } else {
+            Timber.e(exception)
+        }
+
     }
 
     fun onSmsCodeKeyPressed() {
-        _wrongSmsCode.value = false
+        if (wrongSmsCode.value!!) _wrongSmsCode.value = false
     }
 
+    //Main ------------------------------------------------------------------------------------
+
+    // askmarcin where and how to initiali this?
+    // TODO next
+    fun onInitMain() {
+        Timber.d("fired...")
+        databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
+            _appointmentList.value = appointmentList
+        }
+
+        databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
+            _notificationList.value = notificationList
+        }
+    }
+
+    fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.acceptAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
+                Timber.d("✔ Appointment accepted.")
+            }
+        }
+    }
+
+    fun onAppointmentNotificationRejected(invitorUserId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
+// TODO         _snackMessage.value = "❌ Appointment rejected"
+                Timber.d("❌ Appointment rejected.")
+            }
+        }
+    }
+
+    fun onFriendNotificationAccepted(authUserId: String, notificationId: String) {
+
+        viewModelScope.launch {
+            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId, notificationId)) {
+                Timber.d("✔ Friendship accepted.")
+            }
+        }
+    }
+
+    fun onFriendNotificationRejected(authUserId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId, notificationId)) {
+                Timber.d("❌ Friendship request rejected.")
+            }
+        }
+    }
+
+    fun onAboutUser() {
+        viewModelScope.launch {
+            _aboutUser.value = databaseService.getUser(authService.authUserId)?.fullName
+        }
+    }
+
+    fun onAboutUserShowed() {
+        _aboutUser.value = null
+    }
+
+    fun onCancellationAccepted(appPartnerId: String, appointmentId: String, notificationId: String) {
+        viewModelScope.launch {
+            if (databaseService.acceptAppointmentCancellation(authService.authUserId, appPartnerId, appointmentId, notificationId)) {
+                Timber.d("Cancellation accepted.")
+            }
+        }
+    }
 
 }
