@@ -99,7 +99,7 @@ class AuthStepOneFragment : Fragment() {
             }
 
             override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
-                toast("SMS code sent to: $storedFullPhoneNumber")
+                toast("Verification code sent to: $storedFullPhoneNumber")
 
                 findNavController().navigate(
                     AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(

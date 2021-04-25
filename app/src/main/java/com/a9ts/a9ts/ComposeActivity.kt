@@ -22,10 +22,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -87,6 +85,7 @@ class ComposeActivity : ComponentActivity() {
         override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
             Timber.d("SMS code sent to: $storedFullPhoneNumber")
             navController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
+            viewModel.onCodeSent()
             // TODO navigate to step 2, send verificationId and storedFullPhoneNumber
 //            findNavController().navigate(
 //                AuthStepOneFragmentDirections.actionAuthStepOneFragmentToAuthStepTwoFragment(
@@ -104,15 +103,15 @@ class ComposeActivity : ComponentActivity() {
             this@ComposeActivity,
             credential,
             onSuccess = {
-                viewModel.onUpdateDeviceToken()
-
+                viewModel.onSignInWithPhoneAuthCredential() // update device token
+                Timber.d("Success: User = ${authService.authUserId}")
                 databaseService.hasProfileFilled(
                     authService.authUserId,
                     onTrue = { // navigate to mainFragment; add Logout to menu
                         Handler(Looper.getMainLooper()).postDelayed({
 
                             // TODO: navigate to main
-                            Timber.d("Navigating to main...")
+                            Timber.d("Navigating to main... User: ${authService.authUserId}")
                             // mainAuthService.invalidateOptionsMenu()
                         }, 300)
                     },
@@ -126,13 +125,17 @@ class ComposeActivity : ComponentActivity() {
                 Timber.d("Sign in success.")
             },
             onFailure = { exception ->
+                // tvarim sa ze vsetko je WrongCode Error, ale asi ich je viac
+                // The sms verification code used to create the phone auth credential is invalid. Please resend the verification code sms and be sure use the verification code provided by the user.
                 Timber.d("Sign in failure: ${exception?.message}")
+                viewModel.onWrongSMSCode()
             })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // AuthStep 1
         viewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
 
@@ -149,6 +152,7 @@ class ComposeActivity : ComponentActivity() {
             }
         })
 
+        // AuthStep 2
         viewModel.smsAndVerificationId.observe(this, { pair ->
             if (pair.first != "" && pair.second != "") {
                 val smsCode = pair.first
@@ -194,7 +198,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                SMSCodeForm(viewModel, verificationId!!)
+                                SmsCodeForm(viewModel, verificationId!!)
                             }
                         )
                     }
@@ -210,43 +214,52 @@ class ComposeActivity : ComponentActivity() {
 }
 
 @Composable
-fun SMSCodeForm(viewModel: ComposeViewModel, verificationId: String) {
-
+fun SmsCodeForm(viewModel: ComposeViewModel, verificationId: String) {
     Column(
         Modifier
             .padding(16.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val wrongSmsCode: Boolean by viewModel.wrongSmsCode.observeAsState(false)
         val smsCode = remember { mutableStateOf("") }
+
         val maxChar = 6
+
         OutlinedTextField(
             value = smsCode.value,
-            label = { Text("SMS Code") },
+            label = { Text("Verification Code") },
             textStyle = TextStyle(fontSize = 30.sp, textAlign = TextAlign.End, fontFamily = FontFamily.Monospace),
             singleLine = true,
             onValueChange = {
-                if (it.length <= maxChar) smsCode.value = it},
+                if (it.length <= maxChar) smsCode.value = it
+                if (wrongSmsCode) {
+                    viewModel.onSmsCodeKeyPressed()
+                }
+            },
             placeholder = { Text("000000", fontSize = 30.sp, textAlign = TextAlign.End, fontFamily = FontFamily.Monospace, modifier = Modifier.fillMaxWidth()) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .width(200.dp)
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally),
-//            isError = countryCodeErrorMsg.isNotBlank(),
+            isError = wrongSmsCode
 //            enabled = !loading
         )
         Spacer(Modifier.height(8.dp))
 
-        Text("Enter the 6-digit verification code")
-
+        if (wrongSmsCode) {
+            Text("Wrong code. Please try again.", color = MaterialTheme.colors.error)
+        } else {
+            Text("Enter the 6-digit verification code")
+        }
         Spacer(Modifier.height(8.dp))
 
         Button(
             onClick = {
-                      viewModel.onSmsCodeSubmitted(smsCode.value, verificationId)
+                viewModel.onSmsCodeSubmitted(smsCode.value, verificationId)
             },
-//            enabled = !loading
+            enabled = smsCode.value.length == maxChar
         ) {
             Text("SEND VERIFICATION CODE")
         }
@@ -261,20 +274,21 @@ fun TelephoneForm(viewModel: ComposeViewModel) {
 
     val countryCodeErrorMsg: String by viewModel.countryCodeErrorMsg.observeAsState("")
     val telephoneNumberErrorMsg: String by viewModel.telephoneNumberErrorMsg.observeAsState("")
-    val loading: Boolean by viewModel.telephoneFormSpinner.observeAsState(false)
+    val telephoneFormSpinner: Boolean by viewModel.telephoneFormSpinner.observeAsState(false)
 
     Column(Modifier.padding(16.dp)) {
         Row {
 
             OutlinedTextField(
                 value = countryCode.value,
+//              label = { Text("Country Code") },
                 singleLine = true,
                 onValueChange = { countryCode.value = it },
                 placeholder = { Text("+421") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.width(70.dp),
                 isError = countryCodeErrorMsg.isNotBlank(),
-                enabled = !loading
+                enabled = !telephoneFormSpinner
             )
 
             Spacer(Modifier.width(8.dp))
@@ -287,11 +301,17 @@ fun TelephoneForm(viewModel: ComposeViewModel) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
                 isError = telephoneNumberErrorMsg.isNotBlank(),
-                enabled = !loading
+                enabled = !telephoneFormSpinner
             )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
+
+        if (countryCodeErrorMsg.isNotBlank() || telephoneNumberErrorMsg.isNotBlank()) {
+            val errorMessage = "$countryCodeErrorMsg $telephoneNumberErrorMsg"
+            Text(errorMessage, color = MaterialTheme.colors.error)
+            Spacer(Modifier.height(8.dp))
+        }
 
         Button(
             onClick = {
@@ -301,12 +321,12 @@ fun TelephoneForm(viewModel: ComposeViewModel) {
                 )
             },
             modifier = Modifier.align(Alignment.End),
-            enabled = !loading
+            enabled = !telephoneFormSpinner
         ) {
             Text("GET SMS CODE")
         }
 
-        if (loading) {
+        if (telephoneFormSpinner) {
             Spacer(Modifier.height(32.dp))
             CircularProgressIndicator(strokeWidth = 8.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
         }

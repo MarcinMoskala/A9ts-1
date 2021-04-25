@@ -38,10 +38,24 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _smsAndVerificationId = MutableLiveData(Pair("",""))
     val smsAndVerificationId: LiveData<Pair<String, String>> = _smsAndVerificationId
 
+    private val _wrongSmsCode = MutableLiveData(false)
+    val wrongSmsCode: LiveData<Boolean> = _wrongSmsCode
 
+    // General
+    fun onSignInWithPhoneAuthCredential() {
+        viewModelScope.launch {
+            databaseService.updateDeviceToken(
+                authUserId = authService.authUserId,
+                deviceToken = FirebaseMessaging.getInstance().token.await()) {
+                _deviceToken.value = it
+            }
+        }
+    }
+
+    // Auth step 1
     fun onSubmitTelephoneFormClicked(countryCode: String, telephoneNumber: String) {
         //TODO: more robust error checking
-        _countryCodeErrorMsg.value = if (countryCode.trim().isBlank()) "Country can't be empty." else ""
+        _countryCodeErrorMsg.value = if (countryCode.trim().isBlank()) "Country code can't be empty." else ""
         _telephoneNumberErrorMsg.value = if (telephoneNumber.trim().isBlank()) "Telephone can't be empty." else ""
 
         if (countryCodeErrorMsg.value == "" && telephoneNumberErrorMsg.value == "") {
@@ -57,18 +71,22 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun onUpdateDeviceToken() {
-        viewModelScope.launch {
-            databaseService.updateDeviceToken(
-                authUserId = authService.authUserId,
-                deviceToken = FirebaseMessaging.getInstance().token.await()) {
-                _deviceToken.value = it
-            }
-        }
+    fun onCodeSent() {
+        _telephoneFormSpinner.value = false
     }
 
+    // AuthStep2
     fun onSmsCodeSubmitted(smsCode: String, verificationId: String) {
         _smsAndVerificationId.value = Pair(smsCode, verificationId)
     }
+
+    fun onWrongSMSCode() {
+        _wrongSmsCode.value = true
+    }
+
+    fun onSmsCodeKeyPressed() {
+        _wrongSmsCode.value = false
+    }
+
 
 }
