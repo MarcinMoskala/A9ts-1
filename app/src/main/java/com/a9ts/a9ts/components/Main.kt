@@ -6,22 +6,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.a9ts.a9ts.ComposeViewModel
 import com.a9ts.a9ts.dateFormatted
 import com.a9ts.a9ts.getMyAppointmentPartnerName
-import com.a9ts.a9ts.main.MainFragmentDirections
-import com.a9ts.a9ts.main.MainFragmentViewModel
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
@@ -31,17 +26,26 @@ import com.a9ts.a9ts.ui.BgGrey
 import com.a9ts.a9ts.ui.LightGrey
 import com.a9ts.a9ts.ui.Shapes
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.navigation.NavHostController
+import timber.log.Timber
 
 @Composable
 fun MainComponent(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
-    viewModel.onInitMain() // askmarcin, this should be done differently I think
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            NotificationsList(viewModel, snackbarHostState)
-            AppointmentsList(viewModel.appointmentList, authUserId, navHostController)
-        }
+    val dbInitialized = remember { mutableStateOf(false) }
+    // askmarcin - not sure if
+    // "val dbInitialized = remember { mutableStateOf(false) }" or
+    // "var dbInitialized by remember { mutableStateOf(false) }" is considered better
+
+    if (!dbInitialized.value) {
+        Timber.d("dbInitialize: false... Initializing DB")
+        viewModel.onMainInit() // askmarcin, this should be done differently I think
+        dbInitialized.value = true
+    }
+
+    Column(modifier = Modifier
+        .padding(8.dp)
+        .fillMaxSize()) {
+        NotificationsList(viewModel, snackbarHostState)
+        AppointmentsList(viewModel, authUserId, navHostController)
     }
 }
 
@@ -96,14 +100,15 @@ fun NotificationBox(
 }
 
 @Composable
-fun AppointmentBox(appointment: Appointment, authUserId: String, navController: NavController) {
+fun AppointmentRow(appointment: Appointment, authUserId: String, navHostController: NavHostController) {
     BlackLine()
     Column(
         Modifier
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
-                navController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment.id!!))
+                // TODO: navigate to detail
+                // navHostController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment.id!!))
             }
     ) {
         val date = appointment.dateAndTime.toDate()
@@ -111,7 +116,7 @@ fun AppointmentBox(appointment: Appointment, authUserId: String, navController: 
         val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
         if (appointment.state == Appointment.STATE_I_INVITED) {
-            AppointmentWaitingToBeAcceptedRow()
+            AppointmentWaitingToBeAcceptedTag()
         }
 
         Row(
@@ -134,17 +139,12 @@ fun AppointmentBox(appointment: Appointment, authUserId: String, navController: 
 }
 
 @Composable
-fun BlackLine() {
-    Divider(color = Color.Black, thickness = 1.dp)
+fun AppointmentWaitingToBeAcceptedTag() {
+    AppointmentStateTag(LightGrey, "Waiting to be accepted ...")
 }
 
 @Composable
-fun AppointmentWaitingToBeAcceptedRow() {
-    AppointmentStateRow(LightGrey, "Waiting to be accepted ...")
-}
-
-@Composable
-fun AppointmentStateRow(bgColor: Color, text: String) {
+fun AppointmentStateTag(bgColor: Color, text: String) {
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -163,16 +163,16 @@ fun AppointmentStateRow(bgColor: Color, text: String) {
 }
 
 @Composable
-fun AppointmentsList(appointmentList: LiveData<List<Appointment>>, authUserId: String, navController: NavController) {
-    val appointmentList: List<Appointment> by appointmentList.observeAsState(listOf())
+fun AppointmentsList(viewModel: ComposeViewModel, authUserId: String, navHostController: NavHostController) {
+    val appointments: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
 
     LazyColumn {
-        items(appointmentList) { appointment ->
-            AppointmentBox(appointment, authUserId, navController)
+        items(appointments) { appointment ->
+            AppointmentRow(appointment, authUserId, navHostController)
         }
     }
 
-    if (appointmentList.isNotEmpty()) BlackLine()
+    if (appointments.isNotEmpty()) BlackLine()
 }
 
 
@@ -243,7 +243,7 @@ fun NotificationsList(viewModel: ComposeViewModel, snackbarHostState: SnackbarHo
 @Preview
 @Composable
 fun PreviewNotificationBox() {
-    A9tsTheme() {
+    A9tsTheme {
         Scaffold(backgroundColor = BgGrey) {
             Column {
                 NotificationBox(mockAppointmentNotification, onAccept = {}, onReject = {}, "Agree!", "I can't")

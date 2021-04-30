@@ -29,7 +29,8 @@ interface DatabaseService {
     suspend fun getFriends(authUserId: String): List<Friend>?
     suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
 
-    suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean
+    suspend fun sendFriendInvite(userId: String, friendUserId: String) : Pair<UserProfile, UserProfile>?
+
     suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
     suspend fun rejectFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
     suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean
@@ -355,7 +356,7 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
+    override suspend fun sendFriendInvite(userId: String, friendUserId: String): Pair<UserProfile, UserProfile>? {
         val userProfileDoc = db.collection(UserProfile.COLLECTION).document(userId)
         val friendUserDocProfile = db.collection(UserProfile.COLLECTION).document(friendUserId)
         val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
@@ -367,7 +368,7 @@ class FirestoreService : DatabaseService {
         val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
 
 
-        if (iAmInvitedAlready.exists()) return false
+        if (iAmInvitedAlready.exists()) return null
 
         return try {
             val (user, friendUser) = db.runTransaction { transaction ->
@@ -396,18 +397,13 @@ class FirestoreService : DatabaseService {
 
             }.await()
 
-            SystemPushNotification(
-                title = "Friend invitation from: ${(user.fullName)}",
-                body = "",
-                token = (friendUser.deviceToken)
-            ).also { sendSystemPushNotification(it) }
+            Pair(user, friendUser)
 
             //TODO moze sa stat ze uspesne zapise ale neuspesne posle systemNotification...Nie je uplny pruser, ale stoji za zamyslenie
 
-            true
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun sendFriendInvite: {${e.message}")
-            false
+            null
         }
     }
 
@@ -564,22 +560,5 @@ class FirestoreService : DatabaseService {
     }.awaitWithStatus()
 
 
-    private suspend fun sendSystemPushNotification(systemNotification: SystemPushNotification) {
-        try {
-            val response = RetrofitInstance.api.postNotification(
-                title = systemNotification.title,
-                body = systemNotification.body,
-                token = systemNotification.token
-            )
 
-            if (response.isSuccessful) {
-                Timber.d("Response: $response")
-            } else {
-                val error = response.errorBody()
-                Timber.e("Error: $error")
-            }
-        } catch (e: Exception) {
-            Timber.e(e.toString())
-        }
-    }
 }

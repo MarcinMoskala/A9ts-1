@@ -31,9 +31,9 @@ class AddFriendsViewModel : ViewModel(), KoinComponent {
     }
 
     fun onButtonClicked(userId : String, viewHolderPosition : Int) {
-        viewModelScope.launch {
-            _buttonClicked.value = Pair(databaseService.sendFriendInvite(authService.authUserId, userId), viewHolderPosition)
-        }
+//        viewModelScope.launch {
+//            _buttonClicked.value = Pair(databaseService.sendFriendInvite(authService.authUserId, userId), viewHolderPosition)
+//        }
     }
 
     fun onTextChanged(s: CharSequence?) {

@@ -1,13 +1,11 @@
 package com.a9ts.a9ts
 
+import androidx.compose.material.SnackbarHostState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.a9ts.a9ts.model.Appointment
-import com.a9ts.a9ts.model.AuthService
-import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.Notification
+import com.a9ts.a9ts.model.*
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
@@ -56,6 +54,34 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private var _notificationList = MutableLiveData<List<Notification>>(listOf())
     val notificationList: LiveData<List<Notification>>
         get() = _notificationList
+
+    // AddAppointmentStepOne
+    private val _addAppointmentStepOneFriends = MutableLiveData<List<Friend>>()
+    val addAppointmentStepOneFriends : LiveData<List<Friend>>
+        get() = _addAppointmentStepOneFriends
+
+    // AddFriends
+    private val _addFriendsList = MutableLiveData<List<Friend>>()
+    val addFriendsList: LiveData<List<Friend>>
+        get() = _addFriendsList
+
+    suspend fun onInviteFriendClicked(userId : String) : Boolean { // askmarcin not sure if the snackbar call should be here...
+
+        val userAndFriendUser : Pair<UserProfile, UserProfile>? = databaseService.sendFriendInvite(authService.authUserId, userId)
+
+        return if (userAndFriendUser != null) {
+            SystemPushNotification( //askmarcin - shouldn't this be in the viewholder?
+                title = "Friend invitation from: ${(userAndFriendUser.first.fullName)}",
+                body = "",
+                token = (userAndFriendUser.second.deviceToken)
+            ).also { sendSystemPushNotification(it) }
+            true
+        } else {
+            false
+        }
+    }
+
+
 
     // General
     fun onSignInWithPhoneAuthCredential() {
@@ -126,7 +152,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
     // askmarcin where and how to initiali this?
     // TODO next
-    fun onInitMain() {
+    fun onMainInit() {
         Timber.d("fired...")
         databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
             _appointmentList.value = appointmentList
@@ -186,6 +212,22 @@ class ComposeViewModel : ViewModel(), KoinComponent {
             if (databaseService.acceptAppointmentCancellation(authService.authUserId, appPartnerId, appointmentId, notificationId)) {
                 Timber.d("Cancellation accepted.")
             }
+        }
+    }
+
+    // AddAppointmentStepOne
+
+    fun onAddAppointmentStepOneInit() {
+        viewModelScope.launch {
+            _addAppointmentStepOneFriends.value =  databaseService.getFriends(authService.authUserId)
+        }
+    }
+
+    // AddFriend
+
+    fun onFriendSearchChange(s: String) {
+        viewModelScope.launch {
+            _addFriendsList.value = databaseService.getNonFriends(s, authService.authUserId)
         }
     }
 

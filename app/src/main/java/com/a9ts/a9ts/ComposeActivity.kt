@@ -12,15 +12,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import androidx.navigation.findNavController
 import com.a9ts.a9ts.components.*
-import com.a9ts.a9ts.main.MainFragmentDirections
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.ui.BgGrey
@@ -42,7 +38,7 @@ class ComposeActivity : ComponentActivity() {
     private val databaseService: DatabaseService by inject()
 
     private var storedFullPhoneNumber = ""
-    lateinit var navController: NavHostController
+    lateinit var navHostController: NavHostController
 
     fun fillSMSCode(smsCode: String) {
         val editText = findViewById<EditText>(R.id.editTextVerificationCode)
@@ -82,7 +78,7 @@ class ComposeActivity : ComponentActivity() {
         override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
             Timber.d("Verification code sent to: $storedFullPhoneNumber")
 
-            navController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
+            navHostController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
             viewModel.onCodeSent() // stop the spinner
         }
     }
@@ -105,7 +101,7 @@ class ComposeActivity : ComponentActivity() {
 
                             // TODO: navigate to main
                             Timber.d("Navigating to main... User: ${authService.authUserId}")
-                            navController.navigate("main")
+                            navHostController.navigate("main")
                         }, 300)
                     },
                     onFalse = { // navigate to Step 3
@@ -155,11 +151,11 @@ class ComposeActivity : ComponentActivity() {
         })
 
         setContent {
-            navController = rememberNavController()
+            navHostController = rememberNavController()
             val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
-                NavHost(navController, startDestination = "authStepOne")
+                NavHost(navHostController, startDestination = "add_friend")
                 {
 
                     // Auth Step 1
@@ -207,13 +203,36 @@ class ComposeActivity : ComponentActivity() {
                             scaffoldState = scaffoldState,
                             floatingActionButton = {
                                 FloatingActionButton(
-                                    onClick = { /*TODO navigate to AddAppointment*/ }
+                                    onClick = { navHostController.navigate("add_appointment_step_1") }
                                 ) {
                                     Icon(Icons.Filled.Add, "")
                                 }
                             })
                         {
-                            MainComponent(viewModel, navController, scaffoldState.snackbarHostState, authService.authUserId)
+                            MainComponent(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                        }
+                    }
+
+                    // AddAppointmentStepOne
+                    composable(
+                        "add_appointment_step_1"
+                    ) {
+                        Scaffold(
+                            backgroundColor = BgGrey,
+                        ) {
+                            AddAppointmentStepOne(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                        }
+                    }
+
+                    // AddFriend
+                    composable(
+                        "add_friend"
+                    ) {
+                        Scaffold(
+                            backgroundColor = BgGrey,
+                            scaffoldState = scaffoldState,
+                        ) {
+                            AddFriend(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
                         }
                     }
                 }

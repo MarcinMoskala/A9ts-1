@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.fragment.app.Fragment
 import com.a9ts.a9ts.Constants.Companion.CHANNEL_ID
 import com.a9ts.a9ts.model.Appointment
+import com.a9ts.a9ts.model.SystemPushNotification
 import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -32,10 +33,6 @@ fun Fragment.toast(message: String) {
 
 fun AppCompatActivity.toast(message: String) {
     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-}
-
-fun View.snack(message: String, duration: Int = Snackbar.LENGTH_LONG) {
-    Snackbar.make(this, message, duration).show()
 }
 
 // " Róbert  Joseph  Vereš" -> "robert joseph veres"
@@ -139,6 +136,25 @@ fun getMyAppointmentPartnerName(authUserID: String, invitorUserId: String, invit
 
 fun getMyAppointmentPartnerName(authUserID: String, appointment: Appointment) : String =
     if (authUserID == appointment.invitorUserId) appointment.inviteeName else appointment.invitorName
+
+suspend fun sendSystemPushNotification(systemNotification: SystemPushNotification) {
+    try {
+        val response = RetrofitInstance.api.postNotification(
+            title = systemNotification.title,
+            body = systemNotification.body,
+            token = systemNotification.token
+        )
+
+        if (response.isSuccessful) {
+            Timber.d("Response: $response")
+        } else {
+            val error = response.errorBody()
+            Timber.e("Error: $error")
+        }
+    } catch (e: Exception) {
+        Timber.e(e.toString())
+    }
+}
 
 
 
