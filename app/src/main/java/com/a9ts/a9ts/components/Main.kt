@@ -14,9 +14,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.ComposeViewModel
 import com.a9ts.a9ts.dateFormatted
-import com.a9ts.a9ts.getMyAppointmentPartnerName
+import com.a9ts.a9ts.getMyIdAppointmentPartnerName
 import com.a9ts.a9ts.model.Appointment
 import com.a9ts.a9ts.model.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
@@ -53,7 +54,7 @@ fun MainComponent(viewModel: ComposeViewModel, navHostController: NavHostControl
 fun NotificationBox(
     notification: Notification,
     onAccept: () -> Unit,
-    onReject: () -> Unit = {},
+    onReject: (() -> Unit)? = null,
     acceptText: String,
     rejectText: String = ""
 ) {
@@ -93,7 +94,10 @@ fun NotificationBox(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween)
             {
                 Button(onClick = { onAccept() }) { Text(acceptText) }
-                Button(onClick = { onReject() }) { Text(rejectText) }
+
+                if (onReject != null) {
+                    Button(onClick = { onReject() }) { Text(rejectText) }
+                }
             }
         }
     }
@@ -107,13 +111,14 @@ fun AppointmentRow(appointment: Appointment, authUserId: String, navHostControll
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
+                navHostController.navigate("appointment/${appointment.id}")
                 // TODO: navigate to detail
                 // navHostController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment.id!!))
             }
     ) {
         val date = appointment.dateAndTime.toDate()
 
-        val appointmentPartnerName = getMyAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
+        val appointmentPartnerName = getMyIdAppointmentPartnerName(authUserId, appointment.invitorUserId, appointment.invitorName, appointment.inviteeName)
 
         if (appointment.state == Appointment.STATE_I_INVITED) {
             AppointmentWaitingToBeAcceptedTag()

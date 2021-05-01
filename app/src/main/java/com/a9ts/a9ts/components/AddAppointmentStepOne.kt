@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,7 +49,26 @@ fun AddAppointmentStepOne(viewModel: ComposeViewModel, navHostController: NavHos
                 items(friends) { friend ->
                     Column(Modifier.background(Color.White)) {
                         BlackLine()
-                        Text(friend.fullName, Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
+                        Row(
+                            Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                friend.fullName,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Button(
+                                onClick = {},
+                                enabled = false,
+                                // bit of a hack, basicly doing visibility = gone
+                                modifier = Modifier.alpha(if (friend.state == Friend.STATE_I_INVITED) 1f else 0f )
+                            ) {
+                                Text("Invited")
+                            }
+                        }
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package com.a9ts.a9ts
 
-import androidx.compose.material.SnackbarHostState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -64,6 +63,13 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _addFriendsList = MutableLiveData<List<Friend>>()
     val addFriendsList: LiveData<List<Friend>>
         get() = _addFriendsList
+
+    // AppointmentDetail
+    private val _appointment = MutableLiveData<Appointment>()
+    val appointment: LiveData<Appointment>
+        get() = _appointment
+
+
 
     suspend fun onInviteFriendClicked(userId : String) : Boolean { // askmarcin not sure if the snackbar call should be here...
 
@@ -215,7 +221,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    // AddAppointmentStepOne
+    // AddAppointmentStepOne --------------------------------------------
 
     fun onAddAppointmentStepOneInit() {
         viewModelScope.launch {
@@ -223,12 +229,32 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    // AddFriend
+    // AddFriend --------------------------------------------------------
 
     fun onFriendSearchChange(s: String) {
         viewModelScope.launch {
             _addFriendsList.value = databaseService.getNonFriends(s, authService.authUserId)
         }
+    }
+
+
+    // AppointmentDetail ------------------------------------------------
+
+    fun onAppointmentDetailInit(appointmentId: String) {
+        databaseService.getAppointmentListener(appointmentId, authService.authUserId) { appointment ->
+            _appointment.value = appointment
+        }
+    }
+
+    fun cancelAppointment(appointment: Appointment) {
+        viewModelScope.launch {
+            databaseService.cancelAppointmentRequest(authService.authUserId, appointment)
+            //TODO if toto je false tak nastav Toast<Livedata<String>> na nieco
+        }
+    }
+
+    fun getAuthUserIdAppointmentPartnerName(appointment: Appointment): String {
+        return getMyIdAppointmentPartnerName(authService.authUserId, appointment)
     }
 
 }

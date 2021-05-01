@@ -155,7 +155,7 @@ class ComposeActivity : ComponentActivity() {
             val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
-                NavHost(navHostController, startDestination = "add_friend")
+                NavHost(navHostController, startDestination = "main")
                 {
 
                     // Auth Step 1
@@ -201,6 +201,11 @@ class ComposeActivity : ComponentActivity() {
                         Scaffold(
                             backgroundColor = BgGrey,
                             scaffoldState = scaffoldState,
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "My agenda") }
+                                )
+                            },
                             floatingActionButton = {
                                 FloatingActionButton(
                                     onClick = { navHostController.navigate("add_appointment_step_1") }
@@ -219,6 +224,11 @@ class ComposeActivity : ComponentActivity() {
                     ) {
                         Scaffold(
                             backgroundColor = BgGrey,
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "New appointment with...") }
+                                )
+                            }
                         ) {
                             AddAppointmentStepOne(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
                         }
@@ -231,10 +241,37 @@ class ComposeActivity : ComponentActivity() {
                         Scaffold(
                             backgroundColor = BgGrey,
                             scaffoldState = scaffoldState,
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "Invite friends") }
+                                )
+                            }
                         ) {
-                            AddFriend(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                            AddFriend(viewModel, scaffoldState.snackbarHostState, authService.authUserId)
                         }
                     }
+
+                    // AddFriend
+                    composable(
+                        "appointment/{appointmentId}",
+                        arguments = listOf(
+                            navArgument("appointmentId") { type = NavType.StringType })
+                    ) {
+                        val appointmentId = it.arguments?.getString("appointmentId")
+
+                        Scaffold(
+                            backgroundColor = BgGrey,
+                            scaffoldState = scaffoldState,
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "Appointment") }
+                                )
+                            }
+                        ) {
+                            AppointmentDetail(viewModel, appointmentId!!)
+                        }
+                    }
+
                 }
             }
         }

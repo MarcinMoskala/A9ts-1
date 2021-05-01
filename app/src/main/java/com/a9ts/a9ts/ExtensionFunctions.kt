@@ -131,10 +131,10 @@ fun dateAndTimeFormatted(date: Date) : String {
     return dateText.plus(", ").plus(timeText)
 }
 
-fun getMyAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
+fun getMyIdAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
      if (authUserID == invitorUserId) inviteeFullName else invitorFullName
 
-fun getMyAppointmentPartnerName(authUserID: String, appointment: Appointment) : String =
+fun getMyIdAppointmentPartnerName(authUserID: String, appointment: Appointment) : String =
     if (authUserID == appointment.invitorUserId) appointment.inviteeName else appointment.invitorName
 
 suspend fun sendSystemPushNotification(systemNotification: SystemPushNotification) {

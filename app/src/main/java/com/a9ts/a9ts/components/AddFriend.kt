@@ -29,7 +29,7 @@ import androidx.compose.runtime.getValue
 
 
 @Composable
-fun AddFriend(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
+fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState, authUserId: String) {
     val search = remember { mutableStateOf("") }
     val friends: List<Friend> by viewModel.addFriendsList.observeAsState(listOf())
 
@@ -61,7 +61,7 @@ fun AddFriend(viewModel: ComposeViewModel, navHostController: NavHostController,
         }
 
         if (friends.isNotEmpty()) {
-            Spacer(androidx.compose.ui.Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
