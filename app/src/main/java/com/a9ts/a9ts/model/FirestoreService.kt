@@ -23,7 +23,7 @@ interface DatabaseService {
 
     suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>? //TODO make it into a sealed class
 
-    suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean
+    suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>?
 
     suspend fun getUser(authUserId: String): UserProfile?
     suspend fun getFriends(authUserId: String): List<Friend>?
@@ -217,7 +217,7 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Boolean =
+    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>? =
         try {
             val authUserDoc = db.collection(UserProfile.COLLECTION).document(authUserId)
             val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
@@ -231,7 +231,7 @@ class FirestoreService : DatabaseService {
             val friendUserNotification =
                 db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Notification.COLLECTION).document()
 
-            val (notification, authUser, friendUser) = db.runTransaction { transaction ->
+            val returnData = db.runTransaction { transaction ->
                 val authUser: UserProfile? = transaction.get(authUserDoc).toObject()
                 val authUserFullName = authUser?.fullName!!
 
@@ -267,18 +267,10 @@ class FirestoreService : DatabaseService {
                 Triple(notification, authUser, friendUser)
             }.await()
 
-            // send systemPushNotification
-            val dateAndTime = dateAndTimeFormatted(notification.dateAndTime!!.toDate())
-            SystemPushNotification(
-                title = "Appointment invitation from: ${authUser.fullName}",
-                body = dateAndTime,
-                token = (friendUser).deviceToken
-            ).also { sendSystemPushNotification(it) }
-
-            true
+            returnData
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun sendAppointment: {${e.message}")
-            false
+            null
         }
 
 

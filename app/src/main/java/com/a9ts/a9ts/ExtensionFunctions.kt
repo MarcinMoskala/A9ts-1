@@ -20,10 +20,7 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.text.Normalizer
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import java.time.*
 import java.util.*
 import kotlin.random.Random
 
@@ -71,6 +68,20 @@ fun String.putLastWordFirst(): String? {
     }
 
     return lastWord.plus(swapped)
+}
+
+
+fun toUTCTimestamp(localDate: LocalDate, localTime: LocalTime) : Long {
+    val localDateTime = LocalDateTime.of(
+        localDate.year,
+        localDate.month,
+        localDate.dayOfMonth,
+        localTime.hour,
+        localTime.minute
+    )
+
+    val instant: Instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant()
+    return instant.toEpochMilli() / 1000
 }
 
 fun toUTCTimestamp(localTimestampSeconds: Long): Long {

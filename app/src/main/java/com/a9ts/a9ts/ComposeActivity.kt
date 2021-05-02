@@ -13,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -21,6 +22,7 @@ import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.ui.BgGrey
 import com.a9ts.a9ts.ui.theme.A9tsTheme
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -40,6 +42,7 @@ class ComposeActivity : ComponentActivity() {
     private var storedFullPhoneNumber = ""
     lateinit var navHostController: NavHostController
 
+    // TODO, when SMS is autofilled by the Phone, make it User friendly
     fun fillSMSCode(smsCode: String) {
         val editText = findViewById<EditText>(R.id.editTextVerificationCode)
         editText.setText(smsCode)
@@ -122,7 +125,8 @@ class ComposeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // AuthStep 1
+        //askmarcin - not sure if those two viewModel call should be here... One of them needs Activity...
+        // ---- AuthStep 1 -------------------------------------------------------------------------
         viewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
 
@@ -130,16 +134,17 @@ class ComposeActivity : ComponentActivity() {
                 storedFullPhoneNumber = fullTelephoneNumber
 
                 val options = PhoneAuthOptions.newBuilder(authService.getAuth())
-                    .setPhoneNumber(fullTelephoneNumber)   // Phone number to verify
-                    .setTimeout(60L, TimeUnit.SECONDS)  // Timeout and unit
-                    .setActivity(this)                  // Activity (for callback binding)
-                    .setCallbacks(callbacks)           // OnVerificationStateChangedCallbacks
+                    .setPhoneNumber(fullTelephoneNumber)
+                    .setTimeout(60L, TimeUnit.SECONDS)
+                    // IMPORTANT: I need Activity here - (I think becasue of CAPTCHA in some cases)
+                    .setActivity(this)
+                    .setCallbacks(callbacks)
                     .build()
                 PhoneAuthProvider.verifyPhoneNumber(options)
             }
         })
 
-        // AuthStep 2
+        // ---- AuthStep 2 -------------------------------------------------------------------------
         viewModel.smsAndVerificationId.observe(this, { pair ->
             if (pair.first != "" && pair.second != "") {
                 val smsCode = pair.first
@@ -158,6 +163,7 @@ class ComposeActivity : ComponentActivity() {
                 NavHost(navHostController, startDestination = "main")
                 {
 
+
                     // Auth Step 1
                     composable("authStepOne") {
                         Scaffold(
@@ -167,10 +173,11 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                TelephoneForm(viewModel)
+                                AuthStepOne(viewModel)
                             }
                         )
                     }
+
 
                     // Auth Step 2
                     composable(
@@ -189,10 +196,11 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                SmsCodeForm(viewModel, verificationId!!)
+                                AuthStepTwo(viewModel, verificationId!!)
                             }
                         )
                     }
+
 
                     // Main
                     composable(
@@ -208,19 +216,20 @@ class ComposeActivity : ComponentActivity() {
                             },
                             floatingActionButton = {
                                 FloatingActionButton(
-                                    onClick = { navHostController.navigate("add_appointment_step_1") }
+                                    onClick = { navHostController.navigate("addAppointmentStepOne") }
                                 ) {
                                     Icon(Icons.Filled.Add, "")
                                 }
                             })
                         {
-                            MainComponent(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                            Main(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
                         }
                     }
 
+
                     // AddAppointmentStepOne
                     composable(
-                        "add_appointment_step_1"
+                        "addAppointmentStepOne"
                     ) {
                         Scaffold(
                             backgroundColor = BgGrey,
@@ -230,13 +239,38 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddAppointmentStepOne(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                            AddAppointmentStepOne(viewModel, navHostController, scaffoldState.snackbarHostState)
                         }
                     }
 
+
+                    // AddAppointmentStepTwo
+                    composable(
+                        "addAppointmentStepTwo/{friendFullName}/{friendUserId}",
+                        arguments = listOf(
+                            navArgument("friendFullName") { type = NavType.StringType },
+                            navArgument("friendUserId") { type = NavType.StringType })
+                    ) {
+                        val friendFullName = it.arguments?.getString("friendFullName")
+                        val friendUserId = it.arguments?.getString("friendUserId")
+
+                        Scaffold(
+                            backgroundColor = BgGrey,
+                            scaffoldState = scaffoldState,
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "Appointment with $friendFullName") }
+                                )
+                            }
+                        ) {
+                            AddAppointmentStepTwo(viewModel, navHostController, scaffoldState.snackbarHostState, friendUserId!!, friendFullName!!)
+                        }
+                    }
+
+
                     // AddFriend
                     composable(
-                        "add_friend"
+                        "addFriend"
                     ) {
                         Scaffold(
                             backgroundColor = BgGrey,
@@ -251,7 +285,8 @@ class ComposeActivity : ComponentActivity() {
                         }
                     }
 
-                    // AddFriend
+
+                    // Appointment
                     composable(
                         "appointment/{appointmentId}",
                         arguments = listOf(
@@ -268,13 +303,13 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AppointmentDetail(viewModel, appointmentId!!)
+                            Appointment(viewModel, appointmentId!!)
                         }
                     }
-
                 }
             }
         }
     }
 }
+
 

@@ -21,7 +21,7 @@ import com.a9ts.a9ts.ComposeViewModel
 
 
 @Composable
-fun AppointmentDetail(viewModel: ComposeViewModel, appointmentId: String) {
+fun Appointment(viewModel: ComposeViewModel, appointmentId: String) {
     val dbInitialized = remember { mutableStateOf(false)}
 
     if (!dbInitialized.value) {

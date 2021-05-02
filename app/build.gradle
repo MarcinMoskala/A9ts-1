@@ -17,6 +17,9 @@ android {
     defaultConfig {
         applicationId "com.a9ts.a9ts"
         minSdkVersion 26 // only 60% - ofEpochSecond works from 26
+
+        // Note, this only has to be done if you intend to target an Android API level < 26.
+        // To find out more about desugaring you can check out: https://developer.android.com/studio/write/java8-support#library-desugaring.
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -124,6 +127,10 @@ dependencies {
 
     //Jetpack Compose Navigation
     implementation "androidx.navigation:navigation-compose:1.0.0-alpha10"
+
+    // 3rd party Datepicker jetpack compose
+    implementation "io.github.vanpra.compose-material-dialogs:core:0.3.4"
+    implementation "io.github.vanpra.compose-material-dialogs:datetime:0.3.4"
 
 
 }

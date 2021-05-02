@@ -8,7 +8,6 @@ import androidx.compose.material.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.a9ts.a9ts.components.AppointmentDetail
 import com.a9ts.a9ts.ui.A9tsTheme
 
 class DetailFragment : Fragment() {

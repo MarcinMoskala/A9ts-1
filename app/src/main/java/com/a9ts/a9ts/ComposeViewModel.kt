@@ -12,7 +12,8 @@ import kotlinx.coroutines.tasks.await
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
-import kotlin.Exception
+import java.time.LocalDate
+import java.time.LocalTime
 
 class ComposeViewModel : ViewModel(), KoinComponent {
     private val databaseService: DatabaseService by inject()
@@ -35,7 +36,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     val telephoneFormSpinner: LiveData<Boolean> = _telephoneFormSpinner
 
     // Auth step 2
-    private val _smsAndVerificationId = MutableLiveData(Pair("",""))
+    private val _smsAndVerificationId = MutableLiveData(Pair("", ""))
     val smsAndVerificationId: LiveData<Pair<String, String>> = _smsAndVerificationId
 
     private val _wrongSmsCode = MutableLiveData(false)
@@ -56,7 +57,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
     // AddAppointmentStepOne
     private val _addAppointmentStepOneFriends = MutableLiveData<List<Friend>>()
-    val addAppointmentStepOneFriends : LiveData<List<Friend>>
+    val addAppointmentStepOneFriends: LiveData<List<Friend>>
         get() = _addAppointmentStepOneFriends
 
     // AddFriends
@@ -70,10 +71,9 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         get() = _appointment
 
 
+    suspend fun onInviteFriendClicked(userId: String): Boolean {
 
-    suspend fun onInviteFriendClicked(userId : String) : Boolean { // askmarcin not sure if the snackbar call should be here...
-
-        val userAndFriendUser : Pair<UserProfile, UserProfile>? = databaseService.sendFriendInvite(authService.authUserId, userId)
+        val userAndFriendUser: Pair<UserProfile, UserProfile>? = databaseService.sendFriendInvite(authService.authUserId, userId)
 
         return if (userAndFriendUser != null) {
             SystemPushNotification( //askmarcin - shouldn't this be in the viewholder?
@@ -88,19 +88,19 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     }
 
 
-
     // General
     fun onSignInWithPhoneAuthCredential() {
         viewModelScope.launch {
             databaseService.updateDeviceToken(
                 authUserId = authService.authUserId,
-                deviceToken = FirebaseMessaging.getInstance().token.await()) {
+                deviceToken = FirebaseMessaging.getInstance().token.await()
+            ) {
                 _deviceToken.value = it
             }
         }
     }
 
-    // Auth step 1 --------------------------------------------------------------
+    // AuthSteoOne --------------------------------------------------------------
     fun onSubmitTelephoneFormClicked(countryCode: String, telephoneNumber: String) {
         //TODO: more robust error checking
         _countryCodeErrorMsg.value = if (countryCode.trim().isBlank()) "Country code can't be empty." else ""
@@ -136,7 +136,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         if (telephoneNumberErrorMsg.value.toString().isNotBlank()) _telephoneNumberErrorMsg.value = ""
     }
 
-    // AuthStep2 ------------------------------------------------------------------------------
+    // AuthStepTwo ------------------------------------------------------------------------------
     fun onSmsCodeSubmitted(smsCode: String, verificationId: String) {
         _smsAndVerificationId.value = Pair(smsCode, verificationId)
     }
@@ -225,9 +225,37 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
     fun onAddAppointmentStepOneInit() {
         viewModelScope.launch {
-            _addAppointmentStepOneFriends.value =  databaseService.getFriends(authService.authUserId)
+            _addAppointmentStepOneFriends.value = databaseService.getFriends(authService.authUserId)
         }
     }
+
+    // AddAppointmentStepTwo --------------------------------------------
+
+    suspend fun onAddAppointmentStepTwoSubmit(friendUserId: String, localDate: LocalDate, localTime: LocalTime) : Boolean {
+
+        val returnData = databaseService.sendAppointment(
+            authService.authUserId,
+            friendUserId,
+            toUTCTimestamp(localDate, localTime)
+        )
+
+        return if (returnData != null) {
+            val (notification, authUser, friendUser) = returnData
+
+            val dateAndTime = dateAndTimeFormatted(notification.dateAndTime!!.toDate())
+            SystemPushNotification(
+                title = "Appointment invitation from: ${authUser.fullName}",
+                body = dateAndTime,
+                token = (friendUser).deviceToken
+            ).also { sendSystemPushNotification(it) }
+
+            true
+        } else {
+            false
+        }
+
+    }
+
 
     // AddFriend --------------------------------------------------------
 

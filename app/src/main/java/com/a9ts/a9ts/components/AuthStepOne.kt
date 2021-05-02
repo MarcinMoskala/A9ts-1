@@ -16,7 +16,7 @@ import androidx.compose.runtime.getValue
 
 
 @Composable
-fun TelephoneForm(viewModel: ComposeViewModel) {
+fun AuthStepOne(viewModel: ComposeViewModel) {
     val countryCode = remember { mutableStateOf("+1") }
     val telephoneNumber = remember { mutableStateOf("6505551234") }
 

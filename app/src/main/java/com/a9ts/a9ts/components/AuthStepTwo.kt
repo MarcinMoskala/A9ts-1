@@ -22,7 +22,7 @@ import com.a9ts.a9ts.ComposeViewModel
 import androidx.compose.runtime.getValue
 
 @Composable
-fun SmsCodeForm(viewModel: ComposeViewModel, verificationId: String) {
+fun AuthStepTwo(viewModel: ComposeViewModel, verificationId: String) {
     Column(
         Modifier
             .padding(16.dp)

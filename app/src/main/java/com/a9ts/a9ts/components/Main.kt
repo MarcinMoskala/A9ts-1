@@ -30,11 +30,11 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
-fun MainComponent(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
+fun Main(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
     val dbInitialized = remember { mutableStateOf(false) }
     // askmarcin - not sure if
     // "val dbInitialized = remember { mutableStateOf(false) }" or
-    // "var dbInitialized by remember { mutableStateOf(false) }" is considered better
+    // "var dbInitialized by remember { mutableStateOf(false) }" is considered better?
 
     if (!dbInitialized.value) {
         Timber.d("dbInitialize: false... Initializing DB")

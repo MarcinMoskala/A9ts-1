@@ -81,13 +81,13 @@ class StepTwoViewModel(friendUserId: String, friendFullName: String) :
     
 
     fun onSubmit() {
-        viewModelScope.launch {
-            _submitClicked.value = databaseService.sendAppointment(
-                authService.authUserId,
-                friendUserId.value!!,
-                dateTimeInSeconds
-            )
-        }
+//        viewModelScope.launch {
+//            _submitClicked.value = databaseService.sendAppointment(
+//                authService.authUserId,
+//                friendUserId.value!!,
+//                dateTimeInSeconds
+//            )
+//        }
     }
 
     fun onSubmitDone() {
