@@ -48,10 +48,6 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
 
     // Main
-    private var _aboutUser = MutableLiveData<String?>()
-    val aboutUser: LiveData<String?>
-        get() = _aboutUser
-
     private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
     val appointmentList: LiveData<List<Appointment>>
         get() = _appointmentList
@@ -226,16 +222,6 @@ class ComposeViewModel : ViewModel(), KoinComponent {
                 Timber.d("❌ Friendship request rejected.")
             }
         }
-    }
-
-    fun onAboutUser() {
-        viewModelScope.launch {
-            _aboutUser.value = databaseService.getUser(authService.authUserId)?.fullName
-        }
-    }
-
-    fun onAboutUserShowed() {
-        _aboutUser.value = null
     }
 
     fun onCancellationAccepted(appPartnerId: String, appointmentId: String, notificationId: String) {

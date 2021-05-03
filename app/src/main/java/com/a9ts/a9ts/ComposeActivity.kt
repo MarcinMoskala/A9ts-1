@@ -248,7 +248,8 @@ class ComposeActivity : ComponentActivity() {
                                 TopAppBar(
                                     title = {
                                         Box(Modifier.fillMaxWidth()) {
-                                            var expanded by remember { mutableStateOf(true) }
+                                            var expanded by remember { mutableStateOf(false) }
+
 
                                             Text(
                                                 text = "My agenda",
