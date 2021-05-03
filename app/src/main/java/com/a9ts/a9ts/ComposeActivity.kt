@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -13,7 +14,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
-import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -22,7 +22,6 @@ import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.ui.BgGrey
 import com.a9ts.a9ts.ui.theme.A9tsTheme
-import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -56,11 +55,12 @@ class ComposeActivity : ComponentActivity() {
 
         // automatic authentication without telephone number
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-            Timber.d("SMS code: ${credential.smsCode}")
+            Timber.d("Auto-fill SMS code: ${credential.smsCode}")
 
+            viewModel.onVerificationCompleted(credential.smsCode!!)
             //TODO fillSMSCode(smsCode = credential.smsCode.toString())
 
-            signInWithPhoneAuthCredential(credential)
+            signInWithPhoneAuthCredential(credential, wait = true)
         }
 
         //SMS cant be sent
@@ -86,7 +86,8 @@ class ComposeActivity : ComponentActivity() {
         }
     }
 
-    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
+    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait : Boolean = false) {
+        val waitMillis = if (wait) 500L else 0L
         Timber.d("signInWithPhoneAuthCredential SmsCode: ${credential.smsCode}")
 
         authService.signInWithPhoneAuthCredential(
@@ -101,17 +102,16 @@ class ComposeActivity : ComponentActivity() {
                     authService.authUserId,
                     onTrue = { // navigate to mainFragment; add Logout to menu
                         Handler(Looper.getMainLooper()).postDelayed({
-
-                            // TODO: navigate to main
                             Timber.d("Navigating to main... User: ${authService.authUserId}")
                             navHostController.navigate("main")
-                        }, 300)
+                        }, waitMillis)
                     },
                     onFalse = { // navigate to Step 3
                         Handler(Looper.getMainLooper()).postDelayed({
                             // TODO: navigate to AuthStep 3
+                            navHostController.navigate("authStepThree")
                             Timber.d("Navigating to AuthStep3...")
-                        }, 300)
+                        }, waitMillis)
                     }
                 )
                 Timber.d("Sign in success.")
@@ -126,7 +126,7 @@ class ComposeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         //askmarcin - not sure if those two viewModel call should be here... One of them needs Activity...
-        // ---- AuthStep 1 -------------------------------------------------------------------------
+        // ---- AuthStep 1 ------------------------------------------------------------------------
         viewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
 
@@ -144,7 +144,7 @@ class ComposeActivity : ComponentActivity() {
             }
         })
 
-        // ---- AuthStep 2 -------------------------------------------------------------------------
+        // ---- AuthStep 2 ------------------------------------------------------------------------
         viewModel.smsAndVerificationId.observe(this, { pair ->
             if (pair.first != "" && pair.second != "") {
                 val smsCode = pair.first
@@ -155,16 +155,25 @@ class ComposeActivity : ComponentActivity() {
             }
         })
 
+
+        // ---- Toast -----------------------------------------------------------------------------
+        viewModel.toastMessage.observe(this, { message ->
+            if (message != "") {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            }
+        })
+
+
         setContent {
             navHostController = rememberNavController()
             val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
-                NavHost(navHostController, startDestination = "main")
+                NavHost(navHostController, startDestination = "authStepOne")
                 {
 
 
-                    // Auth Step 1
+                    // AuthStepOne
                     composable("authStepOne") {
                         Scaffold(
                             topBar = {
@@ -179,7 +188,7 @@ class ComposeActivity : ComponentActivity() {
                     }
 
 
-                    // Auth Step 2
+                    // AuthStepTwo
                     composable(
                         "authStepTwo/{verificationId}/{fullPhoneNumber}",
                         arguments = listOf(
@@ -197,6 +206,23 @@ class ComposeActivity : ComponentActivity() {
                             },
                             content = {
                                 AuthStepTwo(viewModel, verificationId!!)
+                            }
+                        )
+                    }
+
+                    // AuthStepThree
+                    composable(
+                        "authStepThree",
+                    ) {
+
+                        Scaffold(
+                            topBar = {
+                                TopAppBar(
+                                    title = { Text(text = "Your profile") }
+                                )
+                            },
+                            content = {
+                                AuthStepThree(viewModel, navHostController)
                             }
                         )
                     }
@@ -256,14 +282,13 @@ class ComposeActivity : ComponentActivity() {
 
                         Scaffold(
                             backgroundColor = BgGrey,
-                            scaffoldState = scaffoldState,
                             topBar = {
                                 TopAppBar(
                                     title = { Text(text = "Appointment with $friendFullName") }
                                 )
                             }
                         ) {
-                            AddAppointmentStepTwo(viewModel, navHostController, scaffoldState.snackbarHostState, friendUserId!!, friendFullName!!)
+                            AddAppointmentStepTwo(viewModel, navHostController, friendUserId!!)
                         }
                     }
 

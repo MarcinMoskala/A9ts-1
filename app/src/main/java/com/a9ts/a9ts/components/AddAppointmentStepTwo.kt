@@ -13,6 +13,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.navigate
+import androidx.navigation.compose.popUpTo
 import com.a9ts.a9ts.ComposeViewModel
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.buttons
@@ -28,9 +30,7 @@ import java.time.format.FormatStyle
 fun AddAppointmentStepTwo(
     viewModel: ComposeViewModel,
     navHostController: NavHostController,
-    snackbarHostState: SnackbarHostState,
-    friendUserId: String,
-    friendFullname : String
+    friendUserId: String
 ) {
 
 
@@ -53,9 +53,9 @@ fun AddAppointmentStepTwo(
                 val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value)
 
                 if (success) {
-                    snackbarHostState.showSnackbar(message = "✔ Invite sent to $friendFullname", null)
-                } else {
-                    snackbarHostState.showSnackbar(message = "❌ Invite failed. Try again.", null)
+                    navHostController.navigate("main") {
+                        popUpTo("main") { inclusive = true } //without curly doesnt work
+                    }
                 }
             }
         }) {

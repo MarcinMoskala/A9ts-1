@@ -31,6 +31,11 @@ fun AuthStepTwo(viewModel: ComposeViewModel, verificationId: String) {
     ) {
         val wrongSmsCode: Boolean by viewModel.wrongSmsCode.observeAsState(false)
         val smsCode = remember { mutableStateOf("") }
+        val autoFilledSMS: String by viewModel.autoFilledSMS.observeAsState("")
+
+        if (autoFilledSMS.isNotEmpty()) {
+            smsCode.value = autoFilledSMS
+        }
 
         val maxChar = 6
 

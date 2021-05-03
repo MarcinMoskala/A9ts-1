@@ -25,7 +25,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _fullTelephoneNumber = MutableLiveData<String>()
     val fullTelephoneNumber: LiveData<String> = _fullTelephoneNumber
 
-    // Auth step 1
+    // AuthStepOne
     private val _countryCodeErrorMsg = MutableLiveData("")
     val countryCodeErrorMsg: LiveData<String> = _countryCodeErrorMsg
 
@@ -35,12 +35,17 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _telephoneFormSpinner = MutableLiveData(false)
     val telephoneFormSpinner: LiveData<Boolean> = _telephoneFormSpinner
 
-    // Auth step 2
+    // AuthStepTwo
     private val _smsAndVerificationId = MutableLiveData(Pair("", ""))
     val smsAndVerificationId: LiveData<Pair<String, String>> = _smsAndVerificationId
 
     private val _wrongSmsCode = MutableLiveData(false)
     val wrongSmsCode: LiveData<Boolean> = _wrongSmsCode
+
+    // AuthStepThree
+    private val _autoFilledSMS = MutableLiveData("")
+    val autoFilledSMS: LiveData<String> = _autoFilledSMS
+
 
     // Main
     private var _aboutUser = MutableLiveData<String?>()
@@ -69,6 +74,11 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private val _appointment = MutableLiveData<Appointment>()
     val appointment: LiveData<Appointment>
         get() = _appointment
+
+    // UI
+    private val _toastMessage = MutableLiveData<String>("")
+    val toastMessage: LiveData<String>
+        get() = _toastMessage
 
 
     suspend fun onInviteFriendClicked(userId: String): Boolean {
@@ -154,6 +164,21 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         if (wrongSmsCode.value!!) _wrongSmsCode.value = false
     }
 
+
+    // AuthStepThree ----------------------------------------------------
+
+    suspend fun onProfileFullNameSubmitted(fullName: String): Boolean {
+        return databaseService.createUserProfile(
+            UserProfile(
+                authUserId = authService.authUserId,
+                fullName = fullName.trim(),
+                telephone = authService.getPhoneNumber(),
+                deviceToken = FirebaseMessaging.getInstance().token.await()
+            )
+        )
+    }
+
+
     //Main ------------------------------------------------------------------------------------
 
     // askmarcin where and how to initiali this?
@@ -231,7 +256,7 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
     // AddAppointmentStepTwo --------------------------------------------
 
-    suspend fun onAddAppointmentStepTwoSubmit(friendUserId: String, localDate: LocalDate, localTime: LocalTime) : Boolean {
+    suspend fun onAddAppointmentStepTwoSubmit(friendUserId: String, localDate: LocalDate, localTime: LocalTime): Boolean {
 
         val returnData = databaseService.sendAppointment(
             authService.authUserId,
@@ -243,14 +268,22 @@ class ComposeViewModel : ViewModel(), KoinComponent {
             val (notification, authUser, friendUser) = returnData
 
             val dateAndTime = dateAndTimeFormatted(notification.dateAndTime!!.toDate())
-            SystemPushNotification(
+
+
+            //TODO make this faster and async
+            Timber.d("Before notification")
+            SystemPushNotification( //askmarcin this takes 2 seconds, how to make it faster, run in background...
                 title = "Appointment invitation from: ${authUser.fullName}",
                 body = dateAndTime,
                 token = (friendUser).deviceToken
             ).also { sendSystemPushNotification(it) }
+            Timber.d("After notification")
 
+
+            _toastMessage.value = "✔ Invite sent to ${friendUser.fullName}"
             true
         } else {
+            _toastMessage.value = "❌ Invite failed. Try again..."
             false
         }
 
@@ -283,6 +316,10 @@ class ComposeViewModel : ViewModel(), KoinComponent {
 
     fun getAuthUserIdAppointmentPartnerName(appointment: Appointment): String {
         return getMyIdAppointmentPartnerName(authService.authUserId, appointment)
+    }
+
+    fun onVerificationCompleted(smsCode: String) {
+        _autoFilledSMS.value = smsCode
     }
 
 }
