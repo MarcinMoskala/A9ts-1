@@ -9,11 +9,20 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -86,7 +95,7 @@ class ComposeActivity : ComponentActivity() {
         }
     }
 
-    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait : Boolean = false) {
+    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait: Boolean = false) {
         val waitMillis = if (wait) 500L else 0L
         Timber.d("signInWithPhoneAuthCredential SmsCode: ${credential.smsCode}")
 
@@ -169,7 +178,7 @@ class ComposeActivity : ComponentActivity() {
             val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
-                NavHost(navHostController, startDestination = "authStepOne")
+                NavHost(navHostController, startDestination = "main")
                 {
 
 
@@ -237,8 +246,49 @@ class ComposeActivity : ComponentActivity() {
                             scaffoldState = scaffoldState,
                             topBar = {
                                 TopAppBar(
-                                    title = { Text(text = "My agenda") }
-                                )
+                                    title = {
+                                        Box(Modifier.fillMaxWidth()) {
+                                            var expanded by remember { mutableStateOf(true) }
+
+                                            Text(
+                                                text = "My agenda",
+                                                modifier = Modifier.align(Alignment.BottomStart)
+                                            ) // Title
+
+                                            Box(Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .padding(end = 8.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.MoreVert,
+                                                    contentDescription = "",
+                                                    tint = Color.White,
+                                                    modifier = Modifier
+                                                        .clickable { expanded = !expanded }
+                                                )
+                                                DropdownMenu(
+                                                    expanded = expanded,
+                                                    onDismissRequest = { expanded = false },
+                                                    offset = DpOffset(6.dp, 6.dp),
+                                                    modifier = Modifier
+                                                        .align(Alignment.BottomEnd)
+                                                ) {
+                                                    DropdownMenuItem(onClick = { /* Handle refresh! */ }) {
+                                                        Text("Refresh")
+                                                    }
+                                                    DropdownMenuItem(onClick = { /* Handle settings! */ }) {
+                                                        Text("Settings")
+                                                    }
+                                                    Divider()
+                                                    DropdownMenuItem(onClick = { /* Handle send feedback! */ }) {
+                                                        Text("Send Feedback")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+
+                                    )
                             },
                             floatingActionButton = {
                                 FloatingActionButton(

@@ -33,7 +33,9 @@ fun AuthStepTwo(viewModel: ComposeViewModel, verificationId: String) {
         val smsCode = remember { mutableStateOf("") }
         val autoFilledSMS: String by viewModel.autoFilledSMS.observeAsState("")
 
-        if (autoFilledSMS.isNotEmpty()) {
+        val autoFillSMSFilled = autoFilledSMS.isNotEmpty()
+
+        if (autoFillSMSFilled) {
             smsCode.value = autoFilledSMS
         }
 
@@ -54,8 +56,8 @@ fun AuthStepTwo(viewModel: ComposeViewModel, verificationId: String) {
                 .width(200.dp)
                 .fillMaxWidth()
                 .align(Alignment.CenterHorizontally),
-            isError = wrongSmsCode
-//            enabled = !loading
+            isError = wrongSmsCode,
+            enabled = !autoFillSMSFilled
         )
         Spacer(Modifier.height(8.dp))
 
@@ -70,7 +72,7 @@ fun AuthStepTwo(viewModel: ComposeViewModel, verificationId: String) {
             onClick = {
                 viewModel.onSmsCodeSubmitted(smsCode.value, verificationId)
             },
-            enabled = smsCode.value.length == maxChar
+            enabled = !autoFillSMSFilled && smsCode.value.length == maxChar
         ) {
             Text("SEND VERIFICATION CODE")
         }
