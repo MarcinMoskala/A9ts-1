@@ -197,6 +197,7 @@ fun NotificationsList(viewModel: ComposeViewModel, snackbarHostState: SnackbarHo
                             appointmentId = notification.appointmentId,
                             notificationId = notification.id!!
                         )
+                        // TODO only if success
                         scope.launch {
                             snackbarHostState.showSnackbar(message = "✔ Appointment accepted.")
                         }
@@ -206,6 +207,8 @@ fun NotificationsList(viewModel: ComposeViewModel, snackbarHostState: SnackbarHo
                             appointmentId = notification.appointmentId,
                             notificationId = notification.id!!
                         )
+
+                        // TODO only if success
                         scope.launch {
                             snackbarHostState.showSnackbar(message = "❌ Appointment rejected.")
                         }

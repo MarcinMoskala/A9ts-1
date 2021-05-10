@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.model.*
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.messaging.FirebaseMessaging
@@ -55,6 +57,12 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     private var _notificationList = MutableLiveData<List<Notification>>(listOf())
     val notificationList: LiveData<List<Notification>>
         get() = _notificationList
+
+    private var _fullName = MutableLiveData("")
+    val fullName: LiveData<String>
+        get() = _fullName
+
+
 
     // AddAppointmentStepOne
     private val _addAppointmentStepOneFriends = MutableLiveData<List<Friend>>()
@@ -188,6 +196,10 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
             _notificationList.value = notificationList
         }
+
+        viewModelScope.launch {
+            _fullName.value = databaseService.getUser(authService.authUserId)?.fullName
+        }
     }
 
     fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
@@ -231,6 +243,13 @@ class ComposeViewModel : ViewModel(), KoinComponent {
             }
         }
     }
+
+    fun onLogout(navHostController: NavHostController) {
+        authService.signOut()
+        navHostController.navigate("authStepOne")
+        _toastMessage.value = "You were logged out."
+    }
+
 
     // AddAppointmentStepOne --------------------------------------------
 
@@ -307,5 +326,6 @@ class ComposeViewModel : ViewModel(), KoinComponent {
     fun onVerificationCompleted(smsCode: String) {
         _autoFilledSMS.value = smsCode
     }
+
 
 }

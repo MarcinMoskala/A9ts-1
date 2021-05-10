@@ -9,18 +9,18 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -173,6 +173,7 @@ class ComposeActivity : ComponentActivity() {
         })
 
 
+        // --- NAVIGATION -------------------------------------------------------------------------
         setContent {
             navHostController = rememberNavController()
             val scaffoldState = rememberScaffoldState()
@@ -256,10 +257,12 @@ class ComposeActivity : ComponentActivity() {
                                                 modifier = Modifier.align(Alignment.BottomStart)
                                             ) // Title
 
-                                            Box(Modifier
-                                                .align(Alignment.BottomEnd)
-                                                .padding(end = 8.dp)
+                                            Box(
+                                                Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(end = 8.dp)
                                             ) {
+                                                val fullName: String by viewModel.fullName.observeAsState("")
                                                 Icon(
                                                     Icons.Default.MoreVert,
                                                     contentDescription = "",
@@ -274,15 +277,13 @@ class ComposeActivity : ComponentActivity() {
                                                     modifier = Modifier
                                                         .align(Alignment.BottomEnd)
                                                 ) {
-                                                    DropdownMenuItem(onClick = { /* Handle refresh! */ }) {
-                                                        Text("Refresh")
-                                                    }
-                                                    DropdownMenuItem(onClick = { /* Handle settings! */ }) {
-                                                        Text("Settings")
-                                                    }
+                                                    Text(text="I'm $fullName",
+                                                    modifier = Modifier.padding(16.dp),
+                                                        style = MaterialTheme.typography.body1,
+                                                        )
                                                     Divider()
-                                                    DropdownMenuItem(onClick = { /* Handle send feedback! */ }) {
-                                                        Text("Send Feedback")
+                                                    DropdownMenuItem(onClick = { viewModel.onLogout(navHostController) }) {
+                                                        Text("Logout", fontWeight = FontWeight.Bold)
                                                     }
                                                 }
                                             }

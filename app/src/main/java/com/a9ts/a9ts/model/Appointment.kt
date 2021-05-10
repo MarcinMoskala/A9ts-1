@@ -8,7 +8,7 @@ import com.google.firebase.firestore.ServerTimestamp
 
 
 data class Appointment(
-    @DocumentId val id : String? = null, //null aby som ho mohol ignorovat pri zapise a vlozil ID sam za mna
+    @DocumentId val id : String? = null, // must be nullabe for Auto generated ID
     val dateAndTime: Timestamp = Timestamp.now(),
     val invitorName: String = "",
     val inviteeName: String = "",
@@ -16,11 +16,11 @@ data class Appointment(
     val inviteeUserId: String = "",
     val state: Int = -1,
 
-    @ServerTimestamp val created: Timestamp? = null, //musim mat moznost dat null, lebo chcem poslat "null" aby vyplnil timestamp namiesto mna
-    val accepted: Timestamp? = null,
+    @ServerTimestamp val created: Timestamp? = null, // must be nullabe for Auto generated timestamp
+    val accepted: Timestamp? = null, // TODO maybe NULL is not needed here
     val canceledByInvitor: Timestamp? = null,
     val canceledByInvitee: Timestamp? = null,
-) : Parcelable {
+) : Parcelable { // TODO maybe I don't need the parcelable now
     constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readParcelable(Timestamp::class.java.classLoader)!!,
