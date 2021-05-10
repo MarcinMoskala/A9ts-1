@@ -100,15 +100,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun fillSMSCode(smsCode: String) {
-        val editText = findViewById<EditText>(R.id.editTextVerificationCode)
-        editText.setText(smsCode)
-        editText.isEnabled = false
-
-        val button = findViewById<Button>(R.id.button_send_code)
-        button.isEnabled = false
-    }
-
     private fun clearAllSystemNotifications() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()
