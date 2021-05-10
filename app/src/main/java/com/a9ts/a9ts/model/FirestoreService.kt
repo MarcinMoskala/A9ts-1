@@ -217,7 +217,7 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>? =
+    override suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>? =
         try {
             val authUserDoc = db.collection(UserProfile.COLLECTION).document(authUserId)
             val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
@@ -237,8 +237,6 @@ class FirestoreService : DatabaseService {
 
                 val friendUser: UserProfile? = transaction.get(friendUserDoc).toObject()
                 val friendUserFullName = friendUser?.fullName!!
-
-                val utcDateTimeInSeconds = toUTCTimestamp(dateTimeInSeconds)
 
                 val authUserAppointmentData = Appointment(
                     dateAndTime = Timestamp(utcDateTimeInSeconds, 0),
