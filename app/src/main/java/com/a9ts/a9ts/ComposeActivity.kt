@@ -1,10 +1,11 @@
 package com.a9ts.a9ts
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -49,16 +50,6 @@ class ComposeActivity : ComponentActivity() {
 
     private var storedFullPhoneNumber = ""
     lateinit var navHostController: NavHostController
-
-    // TODO, when SMS is autofilled by the Phone, make it User friendly
-    fun fillSMSCode(smsCode: String) {
-        val editText = findViewById<EditText>(R.id.editTextVerificationCode)
-        editText.setText(smsCode)
-        editText.isEnabled = false
-
-        val button = findViewById<Button>(R.id.button_send_code)
-        button.isEnabled = false
-    }
 
     private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
@@ -133,6 +124,8 @@ class ComposeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        createSystemNotificationChannel()
 
         //askmarcin - not sure if those two viewModel call should be here... One of them needs Activity...
         // ---- AuthStep 1 ------------------------------------------------------------------------
@@ -277,13 +270,18 @@ class ComposeActivity : ComponentActivity() {
                                                     modifier = Modifier
                                                         .align(Alignment.BottomEnd)
                                                 ) {
-                                                    Text(text="I'm $fullName",
-                                                    modifier = Modifier.padding(16.dp),
+                                                    Text(
+                                                        text = "I'm $fullName",
+                                                        modifier = Modifier.padding(16.dp),
                                                         style = MaterialTheme.typography.body1,
-                                                        )
+                                                    )
                                                     Divider()
                                                     DropdownMenuItem(onClick = { viewModel.onLogout(navHostController) }) {
                                                         Text("Logout", fontWeight = FontWeight.Bold)
+                                                    }
+
+                                                    DropdownMenuItem(onClick = { viewModel.onShowDeviceToken() }) {
+                                                        Text("Show DeviceToken")
                                                     }
                                                 }
                                             }
@@ -387,6 +385,27 @@ class ComposeActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun clearAllSystemNotifications() {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancelAll()
+    }
+
+    private fun createSystemNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(Constants.CHANNEL_ID, Constants.CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
+                // TODO set it up properly with appropirate CHANNEL_NAME sensible default etc
+                lightColor = android.graphics.Color.GREEN //rozsvieti LED na nasom telefon nejakou farbou
+                enableLights(true)
+                description = "New A9ts notification"
+            }
+
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 }
+
+
 
 

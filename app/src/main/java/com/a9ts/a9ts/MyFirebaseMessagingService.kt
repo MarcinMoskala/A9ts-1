@@ -49,7 +49,7 @@ class MyFirebaseMessagingServiceController(
                     Timber.d("FCM deviceToken updated in DB.: $newToken")
                 })
         } else {
-            Timber.e("FCM devideToken... Tried to update... not Logged... Ignored.")
+            Timber.e("FCM deviceToken... Tried to update... not Logged... Ignored.")
         }
     }
 }

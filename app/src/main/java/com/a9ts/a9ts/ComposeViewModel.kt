@@ -114,6 +114,13 @@ class ComposeViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    fun onShowDeviceToken() {
+        viewModelScope.launch {
+            val deviceToken = FirebaseMessaging.getInstance().token.await()
+            _toastMessage.value = deviceToken
+        }
+    }
+
     // AuthSteoOne --------------------------------------------------------------
     fun onSubmitTelephoneFormClicked(countryCode: String, telephoneNumber: String) {
         //TODO: more robust error checking

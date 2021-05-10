@@ -122,12 +122,10 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
 
     val pendingIntent = PendingIntent.getActivity(appContext, notificationID, intent, PendingIntent.FLAG_ONE_SHOT)
 
-
-
     val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
         .setContentTitle(message.notification?.title)
         .setContentText(message.notification?.body)
-        .setSmallIcon(R.drawable.ic_calendar_icon)
+        .setSmallIcon(R.drawable.ic_launcher_a9ts_foreground)
         .setPriority(NotificationCompat.PRIORITY_HIGH) //Kvoli API < 26... Inak ide podla CHANNEL Importance
         .setAutoCancel(true) //notification automatically dismisses itself as it takes you to the app
         .setContentIntent(pendingIntent)
@@ -136,11 +134,13 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
     notify(notificationID, notification)
 }
 
+
 fun dateAndTimeFormatted(date: Date) : String {
     val dateText = DateFormat.format("E dd LLL", date).toString()
     val timeText = DateFormat.format("HH:mm", date).toString()
     return dateText.plus(", ").plus(timeText)
 }
+
 
 fun getMyIdAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
      if (authUserID == invitorUserId) inviteeFullName else invitorFullName

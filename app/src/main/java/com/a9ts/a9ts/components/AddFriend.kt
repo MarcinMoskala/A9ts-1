@@ -33,6 +33,9 @@ fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState,
     val search = remember { mutableStateOf("") }
     val friends: List<Friend> by viewModel.addFriendsList.observeAsState(listOf())
 
+    // TODO need to clear friends when first navigated to AddFriend, otherwise the old list from previous search will show after revisiting this view
+    // askmarcin not sure how to do that - probably the ViewModel should be connected to this Composable and not the whole Activity... but how?
+
     Column(
         Modifier
             .fillMaxWidth()
