@@ -18,13 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
-import com.a9ts.a9ts.ComposeViewModel
 import com.a9ts.a9ts.model.dataclass.Friend
 import timber.log.Timber
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @Composable
-fun AddAppointmentStepOne(viewModel: ComposeViewModel, navHostController: NavHostController) {
+fun AddAppointmentStepOne(
+    navHostController: NavHostController,
+    viewModel: AddAppointmentStepOneViewModel = viewModel()
+) {
     val dbInitialized = remember { mutableStateOf(false) }
     val friends: List<Friend> by viewModel.addAppointmentStepOneFriends.observeAsState(listOf())
 
@@ -62,22 +65,18 @@ fun AddAppointmentStepOne(viewModel: ComposeViewModel, navHostController: NavHos
 
 @Composable
 private fun FriendRow(friend: Friend, navHostController: NavHostController) {
-    val shouldShowDialog = remember { mutableStateOf(false) }
+    val showInvitationNotYetAccepted = remember { mutableStateOf(false) }
 
-    if (shouldShowDialog.value) {
-        InvitationNotYetAcceptedDialog(friend.fullName, shouldShowDialog)
-    }
+    InvitationNotYetAcceptedDialog(friend.fullName, showInvitationNotYetAccepted)
 
     Column(
         Modifier
             .background(Color.White)
             .clickable {
                 if (friend.state == Friend.STATE_I_INVITED) {
-                    // TODO: setStateToShowAlert
-                    shouldShowDialog.value = true
+                    showInvitationNotYetAccepted.value = true
                 } else {
                     navHostController.navigate("addAppointmentStepTwo/${friend.fullName}/${friend.authUserId}")
-
                 }
             }) {
         BlackLine()
@@ -109,7 +108,7 @@ fun InvitationNotYetAcceptedDialog(fullName: String, shouldShowDialog: MutableSt
     if (shouldShowDialog.value) {
         AlertDialog(
             onDismissRequest = { shouldShowDialog.value = false },
-            title = { Text("Can't create appointment)") },
+            title = { Text("Can't create appointment") },
             text = { Text("$fullName hasn't accepted your friend invitation yet.") },
 
             confirmButton = {

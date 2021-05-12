@@ -14,14 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.a9ts.a9ts.ComposeViewModel
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.tools.dateAndTimeFormatted
 import com.a9ts.a9ts.ui.theme.LightGrey
-
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun Appointment(viewModel: ComposeViewModel, appointmentId: String) {
+fun Appointment(appointmentId: String, viewModel: AppointmentViewModel = viewModel()) {
     val dbInitialized = remember { mutableStateOf(false)}
 
     if (!dbInitialized.value) {

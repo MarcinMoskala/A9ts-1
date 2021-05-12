@@ -14,7 +14,7 @@
         android:theme="@style/Theme.A9ts"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".ComposeActivity"
+            android:name=".Activity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

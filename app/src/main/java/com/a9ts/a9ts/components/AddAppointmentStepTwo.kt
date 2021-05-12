@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
-import com.a9ts.a9ts.ComposeViewModel
+import com.a9ts.a9ts.ActivityViewModel
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.buttons
 import com.vanpra.composematerialdialogs.datetime.datepicker
@@ -25,15 +25,15 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AddAppointmentStepTwo(
-    viewModel: ComposeViewModel,
+    activityViewModel: ActivityViewModel,
     navHostController: NavHostController,
-    friendUserId: String
+    friendUserId: String,
+    viewModel: AddAppointmentStepTwoViewModel = viewModel()
 ) {
-
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -50,7 +50,7 @@ fun AddAppointmentStepTwo(
 
         Button(onClick = {
             scope.launch {
-                val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value)
+                val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value, activityViewModel)
 
                 if (success) {
                     navHostController.navigate("main") {
@@ -88,7 +88,6 @@ fun MyTimeField(localTime: MutableState<LocalTime>) {
             value = TextFieldValue(localDateFormatted),
             onValueChange = { },
             onClick = { dialog.show() },
-//          label = { Text(text = "Time") }
         )
     }
 }
@@ -116,7 +115,6 @@ fun MyDateField(localDate: MutableState<LocalDate>) {
             value = TextFieldValue(localDateFormatted),
             onValueChange = { },
             onClick = { dialog.show() },
-//          label = { Text(text = "Date") }
         )
     }
 }

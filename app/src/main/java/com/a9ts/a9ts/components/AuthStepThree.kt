@@ -16,11 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
-import com.a9ts.a9ts.ComposeViewModel
+import com.a9ts.a9ts.ActivityViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun AuthStepThree(viewModel: ComposeViewModel, navHostController: NavHostController) {
+fun AuthStepThree(viewModel: ActivityViewModel, navHostController: NavHostController) {
 
     Column(Modifier.padding(16.dp)) {
         val fullName = remember { mutableStateOf("")}

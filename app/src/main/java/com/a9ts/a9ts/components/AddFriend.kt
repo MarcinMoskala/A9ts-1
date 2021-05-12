@@ -21,19 +21,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.a9ts.a9ts.ComposeViewModel
 import com.a9ts.a9ts.model.dataclass.Friend
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @Composable
-fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState) {
+fun AddFriend(snackbarHostState: SnackbarHostState, viewModel: AddFriendViewModel = viewModel()) {
     val search = remember { mutableStateOf("") }
     val friends: List<Friend> by viewModel.addFriendsList.observeAsState(listOf())
-
-    // TODO need to clear friends when first navigated to AddFriend, otherwise the old list from previous search will show after revisiting this view
-    // askmarcin not sure how to do that - probably the ViewModel should be connected to this Composable and not the whole Activity... but how?
 
     Column(
         Modifier
@@ -58,7 +55,6 @@ fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState)
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier = Modifier.fillMaxWidth(),
-                //colors = TextFieldDefaults.outlinedTextFieldColors(backgroundColor = Color.White)
             )
         }
 
@@ -69,8 +65,6 @@ fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState)
                     .fillMaxWidth()
             ) {
                 items(friends) { friend ->
-//                    var isInvited = mutableMapOf(friend.authUserId,false)
-
                     FriendRow(friend, viewModel, snackbarHostState)
                 }
             }
@@ -85,7 +79,7 @@ fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState)
 @Composable
 private fun FriendRow(
     friend: Friend,
-    viewModel: ComposeViewModel,
+    viewModel: AddFriendViewModel,
     snackbarHostState: SnackbarHostState
 ) {
     val scope = rememberCoroutineScope()
@@ -116,7 +110,6 @@ private fun FriendRow(
             ) {
                 Text(if (isInvited.value) "Invited" else "Invite")
             }
-
         }
     }
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
-import com.a9ts.a9ts.ComposeViewModel
+import com.a9ts.a9ts.ActivityViewModel
 import com.a9ts.a9ts.tools.dateFormatted
 import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
 import com.a9ts.a9ts.model.dataclass.Appointment
@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
-fun Main(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
+fun Main(viewModel: ActivityViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
     val dbInitialized = remember { mutableStateOf(false) }
     // askmarcin - not sure if
     // "val dbInitialized = remember { mutableStateOf(false) }" or
@@ -168,7 +168,7 @@ fun AppointmentStateTag(bgColor: Color, text: String) {
 }
 
 @Composable
-fun AppointmentsList(viewModel: ComposeViewModel, authUserId: String, navHostController: NavHostController) {
+fun AppointmentsList(viewModel: ActivityViewModel, authUserId: String, navHostController: NavHostController) {
     val appointments: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
 
     LazyColumn {
@@ -182,7 +182,7 @@ fun AppointmentsList(viewModel: ComposeViewModel, authUserId: String, navHostCon
 
 
 @Composable
-fun NotificationsList(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState) {
+fun NotificationsList(viewModel: ActivityViewModel, snackbarHostState: SnackbarHostState) {
     val notificationList: List<Notification> by viewModel.notificationList.observeAsState(listOf())
     val scope = rememberCoroutineScope()
 

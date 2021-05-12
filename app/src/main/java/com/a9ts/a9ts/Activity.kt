@@ -40,11 +40,12 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import org.koin.android.ext.android.inject
+import org.koin.core.component.inject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
-class ComposeActivity : ComponentActivity() {
-    private val viewModel: ComposeViewModel by viewModels()
+class Activity : ComponentActivity() {
+    private val viewModel: ActivityViewModel by viewModels()
 
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
@@ -59,9 +60,7 @@ class ComposeActivity : ComponentActivity() {
             Timber.d("Auto-fill SMS code: ${credential.smsCode}")
 
             viewModel.onVerificationCompleted(credential.smsCode!!)
-            //TODO fillSMSCode(smsCode = credential.smsCode.toString())
-
-            signInWithPhoneAuthCredential(credential, wait = true)
+            signInWithPhoneAuthCredential(this@Activity, credential, wait = true)
         }
 
         //SMS cant be sent
@@ -87,12 +86,16 @@ class ComposeActivity : ComponentActivity() {
         }
     }
 
-    private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait: Boolean = false) {
+    fun signInWithPhoneAuthCredential(
+        activity: Activity,
+        credential: PhoneAuthCredential,
+        wait: Boolean = false
+    ) {
         val waitMillis = if (wait) 500L else 0L
         Timber.d("signInWithPhoneAuthCredential SmsCode: ${credential.smsCode}")
 
         authService.signInWithPhoneAuthCredential(
-            this@ComposeActivity,
+            activity,
             credential,
             onSuccess = {
                 viewModel.onSignInWithPhoneAuthCredential() // update device token
@@ -128,8 +131,6 @@ class ComposeActivity : ComponentActivity() {
 
         createSystemNotificationChannel()
 
-        //askmarcin - not sure if those two viewModel call should be here... One of them needs Activity...
-        // ---- AuthStep 1 ------------------------------------------------------------------------
         viewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
 
@@ -139,6 +140,7 @@ class ComposeActivity : ComponentActivity() {
                 val options = PhoneAuthOptions.newBuilder(authService.getAuth())
                     .setPhoneNumber(fullTelephoneNumber)
                     .setTimeout(60L, TimeUnit.SECONDS)
+
                     // IMPORTANT: I need Activity here - (I think becasue of CAPTCHA in some cases)
                     .setActivity(this)
                     .setCallbacks(callbacks)
@@ -154,7 +156,7 @@ class ComposeActivity : ComponentActivity() {
                 val verificationId = pair.second
                 val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
 
-                signInWithPhoneAuthCredential(credential)
+                signInWithPhoneAuthCredential(this, credential)
             }
         })
 
@@ -168,6 +170,8 @@ class ComposeActivity : ComponentActivity() {
 
 
         // --- NAVIGATION -------------------------------------------------------------------------
+        // TODO: the navigation should be done with a sealed class, currently has to pass Strings as navigate paramaters
+        // also quite a lot can be extracted, lot of code duplication right now
         setContent {
             navHostController = rememberNavController()
             val scaffoldState = rememberScaffoldState()
@@ -316,7 +320,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddAppointmentStepOne(viewModel, navHostController)
+                            AddAppointmentStepOne(navHostController)
                         }
                     }
 
@@ -357,7 +361,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddFriend(viewModel, scaffoldState.snackbarHostState)
+                            AddFriend(snackbarHostState = scaffoldState.snackbarHostState)
                         }
                     }
 
@@ -379,7 +383,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            Appointment(viewModel, appointmentId!!)
+                            Appointment(appointmentId!!)
                         }
                     }
                 }
@@ -393,7 +397,7 @@ class ComposeActivity : ComponentActivity() {
     }
 
     private fun createSystemNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // leave here even when redundant, so I don't forget to put it back in case I'll deploy for <26
             val channel = NotificationChannel(Constants.CHANNEL_ID, Constants.CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT).apply {
                 // TODO set it up properly with appropirate CHANNEL_NAME sensible default etc
                 lightColor = android.graphics.Color.GREEN //rozsvieti LED na nasom telefon nejakou farbou

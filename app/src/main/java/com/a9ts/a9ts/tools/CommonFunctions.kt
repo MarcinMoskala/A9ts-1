@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.text.format.DateFormat
 import androidx.core.app.NotificationCompat
-import com.a9ts.a9ts.ComposeActivity
+import com.a9ts.a9ts.Activity
 import com.a9ts.a9ts.R
 import com.a9ts.a9ts.RetrofitInstance
 import com.a9ts.a9ts.model.dataclass.Appointment
@@ -93,7 +93,7 @@ suspend fun <T> Task<T>.awaitOrNull(): T? = try {
 
 // toto zda sa pusta iba ked som v appke a nie ked som mimo appky
 fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Context) {
-    val intent = Intent(appContext, ComposeActivity::class.java)
+    val intent = Intent(appContext, Activity::class.java)
 
     //TODO mozno by rovnake notivikacie mali mat rovnake ID... notificationID = message.data["notificationId"]... Tym padom ak by prisla 2x ta ista zobrazi sa raz
     val notificationID = Random.nextInt()
