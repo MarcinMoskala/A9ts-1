@@ -21,15 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.a9ts.a9ts.ComposeViewModel
-import com.a9ts.a9ts.model.Friend
+import com.a9ts.a9ts.model.dataclass.Friend
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 
 
 @Composable
-fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState, authUserId: String) {
+fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState) {
     val search = remember { mutableStateOf("") }
     val friends: List<Friend> by viewModel.addFriendsList.observeAsState(listOf())
 
@@ -77,7 +76,7 @@ fun AddFriend(viewModel: ComposeViewModel, snackbarHostState: SnackbarHostState,
             }
             BlackLine()
         } else {
-            Spacer(androidx.compose.ui.Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
             Text("Start typing name of your friend...")
         }
     }

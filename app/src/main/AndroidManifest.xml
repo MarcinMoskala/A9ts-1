@@ -8,30 +8,21 @@
     <application
         android:name=".ApplicationController"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_obvio"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.A9ts"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".ComposeActivity"
-            android:exported="true"
-            android:label="Compose Activity"
-            android:theme="@style/Theme.A9ts.NoActionBar">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-->
 
         <service
             android:name=".MyFirebaseMessagingService"
@@ -44,7 +35,7 @@
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:value="@drawable/ic_launcher_a9ts_foreground" />
+            android:value="@drawable/ic_launcher_obvio_foreground" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/system_notification_channel_id" />

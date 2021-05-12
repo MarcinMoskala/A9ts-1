@@ -30,7 +30,8 @@ import androidx.navigation.compose.*
 import com.a9ts.a9ts.components.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.ui.BgGrey
+import com.a9ts.a9ts.tools.Constants
+import com.a9ts.a9ts.ui.theme.BgGrey
 import com.a9ts.a9ts.ui.theme.A9tsTheme
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -315,7 +316,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddAppointmentStepOne(viewModel, navHostController, scaffoldState.snackbarHostState)
+                            AddAppointmentStepOne(viewModel, navHostController)
                         }
                     }
 
@@ -356,7 +357,7 @@ class ComposeActivity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddFriend(viewModel, scaffoldState.snackbarHostState, authService.authUserId)
+                            AddFriend(viewModel, scaffoldState.snackbarHostState)
                         }
                     }
 

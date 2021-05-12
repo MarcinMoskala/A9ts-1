@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.model
+package com.a9ts.a9ts.model.dataclass
 
 import com.google.firebase.firestore.DocumentId
 

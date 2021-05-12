@@ -1,5 +1,7 @@
 package com.a9ts.a9ts.model
 
+import com.a9ts.a9ts.model.dataclass.Appointment
+import com.a9ts.a9ts.model.dataclass.Notification
 import com.google.firebase.Timestamp
 
 val mockAppointment = Appointment(

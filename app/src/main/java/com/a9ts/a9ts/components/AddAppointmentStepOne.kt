@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
-import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -20,12 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.ComposeViewModel
-import com.a9ts.a9ts.model.Friend
+import com.a9ts.a9ts.model.dataclass.Friend
 import timber.log.Timber
 
 
 @Composable
-fun AddAppointmentStepOne(viewModel: ComposeViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState) {
+fun AddAppointmentStepOne(viewModel: ComposeViewModel, navHostController: NavHostController) {
     val dbInitialized = remember { mutableStateOf(false) }
     val friends: List<Friend> by viewModel.addAppointmentStepOneFriends.observeAsState(listOf())
 

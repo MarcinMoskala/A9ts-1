@@ -16,16 +16,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.ComposeViewModel
-import com.a9ts.a9ts.dateFormatted
-import com.a9ts.a9ts.getMyIdAppointmentPartnerName
-import com.a9ts.a9ts.model.Appointment
-import com.a9ts.a9ts.model.Notification
+import com.a9ts.a9ts.tools.dateFormatted
+import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
+import com.a9ts.a9ts.model.dataclass.Appointment
+import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
-import com.a9ts.a9ts.timeFormatted
-import com.a9ts.a9ts.ui.A9tsTheme
-import com.a9ts.a9ts.ui.BgGrey
-import com.a9ts.a9ts.ui.LightGrey
-import com.a9ts.a9ts.ui.Shapes
+import com.a9ts.a9ts.tools.timeFormatted
+import com.a9ts.a9ts.ui.theme.A9tsTheme
+import com.a9ts.a9ts.ui.theme.BgGrey
+import com.a9ts.a9ts.ui.theme.LightGrey
+import com.a9ts.a9ts.ui.theme.Shapes
 import kotlinx.coroutines.launch
 import timber.log.Timber
 

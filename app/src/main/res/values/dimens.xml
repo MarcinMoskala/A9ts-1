@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="one_dp">1dp</dimen>
-    <integer name="max_fullname_length">25</integer>
-</resources>

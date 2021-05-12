@@ -1,20 +1,18 @@
-package com.a9ts.a9ts
+package com.a9ts.a9ts.tools
 
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateFormat
-import android.view.View
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import androidx.fragment.app.Fragment
-import com.a9ts.a9ts.Constants.Companion.CHANNEL_ID
-import com.a9ts.a9ts.model.Appointment
-import com.a9ts.a9ts.model.SystemPushNotification
+import com.a9ts.a9ts.ComposeActivity
+import com.a9ts.a9ts.R
+import com.a9ts.a9ts.RetrofitInstance
+import com.a9ts.a9ts.model.dataclass.Appointment
+import com.a9ts.a9ts.model.dataclass.SystemPushNotification
+import com.a9ts.a9ts.tools.Constants.Companion.CHANNEL_ID
 import com.google.android.gms.tasks.Task
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.tasks.await
@@ -24,13 +22,6 @@ import java.time.*
 import java.util.*
 import kotlin.random.Random
 
-fun Fragment.toast(message: String) {
-    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-}
-
-fun AppCompatActivity.toast(message: String) {
-    Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-}
 
 // " Róbert  Joseph  Vereš" -> "robert joseph veres"
 fun String.normalized() = Normalizer.normalize(this, Normalizer.Form.NFD)
@@ -71,7 +62,7 @@ fun String.putLastWordFirst(): String? {
 }
 
 
-fun toUTCTimestamp(localDate: LocalDate, localTime: LocalTime) : Long {
+fun toUTCTimestamp(localDate: LocalDate, localTime: LocalTime): Long {
     val localDateTime = LocalDateTime.of(
         localDate.year,
         localDate.month,
@@ -82,13 +73,6 @@ fun toUTCTimestamp(localDate: LocalDate, localTime: LocalTime) : Long {
 
     val instant: Instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant()
     return instant.toEpochMilli() / 1000
-}
-
-fun toUTCTimestamp(localTimestampSeconds: Long): Long {
-    val localDateTime = LocalDateTime.ofEpochSecond(localTimestampSeconds, 0, ZoneOffset.UTC)
-    val dateTimeWithTimezone = ZonedDateTime.of(localDateTime, ZoneId.systemDefault())
-
-    return dateTimeWithTimezone.toInstant().toEpochMilli() / 1000
 }
 
 suspend fun Task<*>.awaitWithStatus(): Boolean = try {
@@ -109,7 +93,7 @@ suspend fun <T> Task<T>.awaitOrNull(): T? = try {
 
 // toto zda sa pusta iba ked som v appke a nie ked som mimo appky
 fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Context) {
-    val intent = Intent(appContext, MainActivity::class.java)
+    val intent = Intent(appContext, ComposeActivity::class.java)
 
     //TODO mozno by rovnake notivikacie mali mat rovnake ID... notificationID = message.data["notificationId"]... Tym padom ak by prisla 2x ta ista zobrazi sa raz
     val notificationID = Random.nextInt()
@@ -125,7 +109,7 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
     val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
         .setContentTitle(message.notification?.title)
         .setContentText(message.notification?.body)
-        .setSmallIcon(R.drawable.ic_launcher_a9ts_foreground)
+        .setSmallIcon(R.drawable.ic_launcher_obvio_foreground)
         .setPriority(NotificationCompat.PRIORITY_HIGH) //Kvoli API < 26... Inak ide podla CHANNEL Importance
         .setAutoCancel(true) //notification automatically dismisses itself as it takes you to the app
         .setContentIntent(pendingIntent)
@@ -135,17 +119,17 @@ fun NotificationManager.sendNotification(message: RemoteMessage, appContext: Con
 }
 
 
-fun dateAndTimeFormatted(date: Date) : String {
+fun dateAndTimeFormatted(date: Date): String {
     val dateText = DateFormat.format("E dd LLL", date).toString()
     val timeText = DateFormat.format("HH:mm", date).toString()
     return dateText.plus(", ").plus(timeText)
 }
 
 
-fun getMyIdAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String) : String =
-     if (authUserID == invitorUserId) inviteeFullName else invitorFullName
+fun getMyIdAppointmentPartnerName(authUserID: String, invitorUserId: String, invitorFullName: String, inviteeFullName: String): String =
+    if (authUserID == invitorUserId) inviteeFullName else invitorFullName
 
-fun getMyIdAppointmentPartnerName(authUserID: String, appointment: Appointment) : String =
+fun getMyIdAppointmentPartnerName(authUserID: String, appointment: Appointment): String =
     if (authUserID == appointment.invitorUserId) appointment.inviteeName else appointment.invitorName
 
 suspend fun sendSystemPushNotification(systemNotification: SystemPushNotification) {

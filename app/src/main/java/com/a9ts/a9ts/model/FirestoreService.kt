@@ -1,6 +1,8 @@
 package com.a9ts.a9ts.model
 
 import com.a9ts.a9ts.*
+import com.a9ts.a9ts.model.dataclass.*
+import com.a9ts.a9ts.tools.*
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -23,7 +25,7 @@ interface DatabaseService {
 
     suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>? //TODO make it into a sealed class
 
-    suspend fun sendAppointment(authUserId: String, friendUserId: String, dateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>?
+    suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>?
 
     suspend fun getUser(authUserId: String): UserProfile?
     suspend fun getFriends(authUserId: String): List<Friend>?
@@ -55,7 +57,7 @@ class FirestoreService : DatabaseService {
         val myAppointment = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Appointment.COLLECTION).document(appointmentId)
         val appPartnerAppointment = db.collection(UserProfile.COLLECTION).document(appPartnerId).collection(Appointment.COLLECTION).document(appointmentId)
 
-        val notification = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId.toString())
+        val notification = db.collection(UserProfile.COLLECTION).document(authUserId).collection(Notification.COLLECTION).document(notificationId)
 
         return try {
             db.runTransaction { transaction ->

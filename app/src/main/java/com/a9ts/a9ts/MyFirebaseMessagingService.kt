@@ -3,6 +3,7 @@ package com.a9ts.a9ts
 import android.app.NotificationManager
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
+import com.a9ts.a9ts.tools.sendNotification
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 

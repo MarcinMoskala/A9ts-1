@@ -7,6 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.model.*
+import com.a9ts.a9ts.model.dataclass.*
+import com.a9ts.a9ts.tools.dateAndTimeFormatted
+import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
+import com.a9ts.a9ts.tools.sendSystemPushNotification
+import com.a9ts.a9ts.tools.toUTCTimestamp
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
