@@ -7,9 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.dataclass.Friend
-import com.a9ts.a9ts.model.dataclass.SystemPushNotification
-import com.a9ts.a9ts.model.dataclass.UserProfile
-import com.a9ts.a9ts.tools.sendSystemPushNotification
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -31,17 +28,12 @@ class AddFriendViewModel: ViewModel(), KoinComponent {
 
     suspend fun onInviteFriendClicked(userId: String): Boolean {
 
-        val userAndFriendUser: Pair<UserProfile, UserProfile>? = databaseService.sendFriendInvite(authService.authUserId, userId)
-
-        return if (userAndFriendUser != null) {
-            SystemPushNotification( //askmarcin - shouldn't this be in the viewholder?
-                title = "Friend invitation from: ${(userAndFriendUser.first.fullName)}",
-                body = "",
-                token = (userAndFriendUser.second.deviceToken)
-            ).also { sendSystemPushNotification(it) }
-            true
+        if (databaseService.sendFriendInvite(authService.authUserId, userId)) {
+            // TODO UI feedback
+            return true
         } else {
-            false
+
+            return false
         }
     }
 

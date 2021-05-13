@@ -7,10 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.dataclass.Appointment
+import com.a9ts.a9ts.model.dataclass.SystemPushNotification
+import com.a9ts.a9ts.tools.dateAndTimeFormatted
 import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
+import com.a9ts.a9ts.tools.sendSystemPushNotification
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import timber.log.Timber
 
 class AppointmentViewModel : ViewModel(), KoinComponent {
 
@@ -29,8 +33,13 @@ class AppointmentViewModel : ViewModel(), KoinComponent {
 
     fun cancelAppointment(appointment: Appointment) {
         viewModelScope.launch {
-            databaseService.cancelAppointmentRequest(authService.authUserId, appointment)
-            //TODO if toto je false tak nastav Toast<Livedata<String>> na nieco
+            // sends System Notification Too
+            if (databaseService.cancelAppointmentRequest(authService.authUserId, appointment))
+            {
+                // TODO UI feedback
+            } else {
+
+            }
         }
     }
 

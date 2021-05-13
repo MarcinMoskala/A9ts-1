@@ -25,13 +25,13 @@ interface DatabaseService {
 
     suspend fun getNotificationsAndAppointments(authUserId: String): List<Any>? //TODO make it into a sealed class
 
-    suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>?
+    suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Boolean
 
     suspend fun getUser(authUserId: String): UserProfile?
     suspend fun getFriends(authUserId: String): List<Friend>?
     suspend fun getNonFriends(firstCharacters: String, currentUserId: String): List<Friend>?
 
-    suspend fun sendFriendInvite(userId: String, friendUserId: String) : Pair<UserProfile, UserProfile>?
+    suspend fun sendFriendInvite(userId: String, friendUserId: String) : Boolean
 
     suspend fun acceptFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
     suspend fun rejectFriendInvite(acceptingUserId: String, friendUserId: String, notificationId: String): Boolean
@@ -64,7 +64,6 @@ class FirestoreService : DatabaseService {
                 transaction.delete(myAppointment)
                 transaction.delete(appPartnerAppointment)
                 transaction.delete(notification)
-                //TODO mozno pridat este notification aby som sa ja dozvedel ze moja cancellation bola prijata... iba nieco v zmysle ze bola prijata a Appointment deleted
             }.await()
             true
 
@@ -93,7 +92,6 @@ class FirestoreService : DatabaseService {
     }
 
     override suspend fun cancelAppointmentRequest(authUserId: String, appointment: Appointment): Boolean {
-
         try {
             val (notificationReceiverFullName, notificationReceiverId) = db.runTransaction { transaction ->
 
@@ -134,19 +132,15 @@ class FirestoreService : DatabaseService {
                 Pair(notification.fullName, notificationReceiverId)
             }.await()
 
-            val dateAndTime = dateAndTimeFormatted(appointment.dateAndTime.toDate())
-
             SystemPushNotification(
                 title = "Appointment cancelled by $notificationReceiverFullName",
-                body = dateAndTime,
+                body = dateAndTimeFormatted(appointment.dateAndTime.toDate()),
                 token = getUserDeviceToken(notificationReceiverId).toString()
             ).also { sendSystemPushNotification(it) }
 
             return true
-
         } catch (e: FirebaseFirestoreException) {
-            Timber.e("suspend fun acceptFriendInvite: {${e.message}")
-
+            Timber.e("suspend fun cancelAppointmentRequest: {${e.message}")
             return false
         }
     }
@@ -219,7 +213,7 @@ class FirestoreService : DatabaseService {
             }
     }
 
-    override suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Triple<Notification, UserProfile, UserProfile>? =
+    override suspend fun sendAppointment(authUserId: String, friendUserId: String, utcDateTimeInSeconds: Long): Boolean {
         try {
             val authUserDoc = db.collection(UserProfile.COLLECTION).document(authUserId)
             val friendUserDoc = db.collection(UserProfile.COLLECTION).document(friendUserId)
@@ -233,7 +227,7 @@ class FirestoreService : DatabaseService {
             val friendUserNotification =
                 db.collection(UserProfile.COLLECTION).document(friendUserId).collection(Notification.COLLECTION).document()
 
-            val returnData = db.runTransaction { transaction ->
+            val (notification, authUser, friendUser) = db.runTransaction { transaction ->
                 val authUser: UserProfile? = transaction.get(authUserDoc).toObject()
                 val authUserFullName = authUser?.fullName!!
 
@@ -264,14 +258,25 @@ class FirestoreService : DatabaseService {
                 transaction.set(authUserAppointment, authUserAppointmentData)
                 transaction.set(friendUserAppointment, friendUserAppointmentData)
                 transaction.set(friendUserNotification, notification)
+
                 Triple(notification, authUser, friendUser)
             }.await()
 
-            returnData
+
+            SystemPushNotification( //askmarcin this takes 2 seconds, how to make it faster, run somehow in background...
+                title = "Appointment invitation from: ${authUser.fullName}",
+                body = dateAndTimeFormatted(notification.dateAndTime!!.toDate()),
+                token = friendUser.deviceToken
+            ).also { sendSystemPushNotification(it) }
+
+            return true
+
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun sendAppointment: {${e.message}")
-            null
+
+            return false
         }
+    }
 
 
     override suspend fun acceptAppointmentInvitation(authUserId: String, invitorUserId: String?, appointmentId: String?, notificationId: String?): Boolean {
@@ -348,21 +353,21 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    override suspend fun sendFriendInvite(userId: String, friendUserId: String): Pair<UserProfile, UserProfile>? {
+    override suspend fun sendFriendInvite(userId: String, friendUserId: String): Boolean {
         val userProfileDoc = db.collection(UserProfile.COLLECTION).document(userId)
         val friendUserDocProfile = db.collection(UserProfile.COLLECTION).document(friendUserId)
         val friendInvitationNotification = db.collection(UserProfile.COLLECTION).document(friendUserId)
             .collection(Notification.COLLECTION).document()
 
 
-        //Edge case:
+        // Edge case:
         // ak uz mam zapis s tym friendom vo Friends tak return false (lebo tym padom sme friends, uz som ho pozval, alebo on pozval uz mna
         val iAmInvitedAlready = db.collection(UserProfile.COLLECTION).document(userId).collection(Friend.COLLECTION).document(friendUserId).get().await()
 
 
-        if (iAmInvitedAlready.exists()) return null
+        if (iAmInvitedAlready.exists()) return false
 
-        return try {
+        try {
             val (user, friendUser) = db.runTransaction { transaction ->
 
                 val friendUser: UserProfile = transaction.get(friendUserDocProfile).toObject()!!
@@ -389,13 +394,17 @@ class FirestoreService : DatabaseService {
 
             }.await()
 
-            Pair(user, friendUser)
+            SystemPushNotification(
+                title = "Friend invitation from: ${(user.fullName)}",
+                body = "",
+                token = (friendUser.deviceToken)
+            ).also { sendSystemPushNotification(it) }
 
-            //TODO moze sa stat ze uspesne zapise ale neuspesne posle systemNotification...Nie je uplny pruser, ale stoji za zamyslenie
+            return true
 
         } catch (e: FirebaseFirestoreException) {
             Timber.e("suspend fun sendFriendInvite: {${e.message}")
-            null
+            return false
         }
     }
 

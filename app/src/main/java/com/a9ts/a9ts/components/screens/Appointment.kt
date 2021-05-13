@@ -18,6 +18,8 @@ import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.tools.dateAndTimeFormatted
 import com.a9ts.a9ts.ui.theme.LightGrey
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.a9ts.a9ts.model.dataclass.SystemPushNotification
+import com.a9ts.a9ts.tools.sendSystemPushNotification
 
 @Composable
 fun Appointment(appointmentId: String, viewModel: AppointmentViewModel = viewModel()) {
@@ -40,8 +42,6 @@ fun Appointment(appointmentId: String, viewModel: AppointmentViewModel = viewMod
         Spacer(modifier = Modifier.height(24.dp))
         Text(dateAndTime, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
-
-        // TODO poriesit stav a text podla cancelation state
 
         val enabled: Boolean
         val onClick: () -> Unit

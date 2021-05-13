@@ -115,8 +115,6 @@ fun AppointmentRow(appointment: Appointment, authUserId: String, navHostControll
             .background(Color.White)
             .clickable {
                 navHostController.navigate("appointment/${appointment.id}")
-                // TODO: navigate to detail
-                // navHostController.navigate(MainFragmentDirections.actionMainFragmentToDetailFragment(appointment.id!!))
             }
     ) {
         val date = appointment.dateAndTime.toDate()
