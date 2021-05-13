@@ -53,8 +53,8 @@ fun AddAppointmentStepTwo(
                 val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value, activityViewModel)
 
                 if (success) {
-                    navHostController.navigate("main") {
-                        popUpTo("main") { inclusive = true } //without curly doesnt work
+                    navHostController.navigate("agenda") {
+                        popUpTo("agenda") { inclusive = true } //without curly doesnt work
                     }
                 }
             }

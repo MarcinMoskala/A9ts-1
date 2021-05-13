@@ -21,7 +21,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         controller.onNewToken(newToken)
     }
 
-    // TODO zamysliet sa ako handlovat notifikacie ktore pridu kym som v appke... ci ich vobec treba... mozno hej, ak som mimo main fragment
+    // TODO zamysliet sa ako handlovat notifikacie ktore pridu kym som v appke... ci ich vobec treba... mozno hej, ak som mimo Agenda
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 

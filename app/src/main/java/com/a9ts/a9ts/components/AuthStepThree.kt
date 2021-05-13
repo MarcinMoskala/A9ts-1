@@ -48,7 +48,7 @@ fun AuthStepThree(viewModel: ActivityViewModel, navHostController: NavHostContro
             onClick = {
                 scope.launch {
                     if (viewModel.onProfileFullNameSubmitted(fullName.value)) {
-                        navHostController.navigate("main") {
+                        navHostController.navigate("agenda") {
                             popUpTo("authStepOne") { inclusive = true }
                         }
                     }

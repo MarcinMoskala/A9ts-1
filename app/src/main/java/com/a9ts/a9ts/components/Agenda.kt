@@ -10,17 +10,18 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
-import com.a9ts.a9ts.ActivityViewModel
-import com.a9ts.a9ts.tools.dateFormatted
-import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
+import com.a9ts.a9ts.tools.dateFormatted
+import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
 import com.a9ts.a9ts.tools.timeFormatted
 import com.a9ts.a9ts.ui.theme.A9tsTheme
 import com.a9ts.a9ts.ui.theme.BgGrey
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
-fun Main(viewModel: ActivityViewModel, navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String) {
+fun Agenda(navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String, viewModel: AgendaViewModel = viewModel()) {
     val dbInitialized = remember { mutableStateOf(false) }
     // askmarcin - not sure if
     // "val dbInitialized = remember { mutableStateOf(false) }" or
@@ -38,13 +39,15 @@ fun Main(viewModel: ActivityViewModel, navHostController: NavHostController, sna
 
     if (!dbInitialized.value) {
         Timber.d("dbInitialize: false... Initializing DB")
-        viewModel.onMainInit() // askmarcin, this should be done differently I think
+        viewModel.onAgendaInit() // askmarcin, this should be done differently I think
         dbInitialized.value = true
     }
 
-    Column(modifier = Modifier
-        .padding(8.dp)
-        .fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize()
+    ) {
         NotificationsList(viewModel, snackbarHostState)
         AppointmentsList(viewModel, authUserId, navHostController)
     }
@@ -168,7 +171,7 @@ fun AppointmentStateTag(bgColor: Color, text: String) {
 }
 
 @Composable
-fun AppointmentsList(viewModel: ActivityViewModel, authUserId: String, navHostController: NavHostController) {
+fun AppointmentsList(viewModel: AgendaViewModel, authUserId: String, navHostController: NavHostController) {
     val appointments: List<Appointment> by viewModel.appointmentList.observeAsState(listOf())
 
     LazyColumn {
@@ -182,9 +185,11 @@ fun AppointmentsList(viewModel: ActivityViewModel, authUserId: String, navHostCo
 
 
 @Composable
-fun NotificationsList(viewModel: ActivityViewModel, snackbarHostState: SnackbarHostState) {
+fun NotificationsList(viewModel: AgendaViewModel, snackbarHostState: SnackbarHostState) {
     val notificationList: List<Notification> by viewModel.notificationList.observeAsState(listOf())
     val scope = rememberCoroutineScope()
+
+    val context = LocalContext.current
 
     LazyColumn(Modifier.padding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 8.dp)) {
         items(notificationList) { notification ->
@@ -195,24 +200,16 @@ fun NotificationsList(viewModel: ActivityViewModel, snackbarHostState: SnackbarH
                         viewModel.onAppointmentNotificationAccepted(
                             invitorUserId = notification.authUserId,
                             appointmentId = notification.appointmentId,
-                            notificationId = notification.id!!
+                            notificationId = notification.id!!,
+                            snackbarHostState
                         )
-                        // TODO only if success
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message = "✔ Appointment accepted.")
-                        }
                     }, onReject = {
                         viewModel.onAppointmentNotificationRejected(
                             invitorUserId = notification.authUserId,
                             appointmentId = notification.appointmentId,
-                            notificationId = notification.id!!
+                            notificationId = notification.id!!,
+                            snackbarHostState
                         )
-
-                        // TODO only if success
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message = "❌ Appointment rejected.")
-                        }
-
                     }, acceptText = "Agree!", rejectText = "I can't"
                 )
 
@@ -221,12 +218,14 @@ fun NotificationsList(viewModel: ActivityViewModel, snackbarHostState: SnackbarH
                     onAccept = {
                         viewModel.onFriendNotificationAccepted(
                             authUserId = notification.authUserId,
-                            notificationId = notification.id!!
+                            notificationId = notification.id!!,
+                            snackbarHostState
                         )
                     }, onReject = {
                         viewModel.onFriendNotificationRejected(
                             authUserId = notification.authUserId,
-                            notificationId = notification.id!!
+                            notificationId = notification.id!!,
+                            snackbarHostState
                         )
                     }, acceptText = "Add friend", rejectText = "Reject"
                 )
@@ -237,7 +236,8 @@ fun NotificationsList(viewModel: ActivityViewModel, snackbarHostState: SnackbarH
                         viewModel.onCancellationAccepted(
                             appPartnerId = notification.authUserId,
                             appointmentId = notification.appointmentId,
-                            notificationId = notification.id!!
+                            notificationId = notification.id!!,
+                            snackbarHostState
                         )
                     },
                     acceptText = "Ok"

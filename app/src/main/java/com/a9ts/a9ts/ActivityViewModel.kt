@@ -1,7 +1,5 @@
 package com.a9ts.a9ts
 
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,11 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
-import com.a9ts.a9ts.model.dataclass.Appointment
-import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.dataclass.UserProfile
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -29,6 +24,11 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     private val _deviceToken = MutableLiveData<String>()
     val deviceToken: LiveData<String> = _deviceToken
 
+    private var _fullName = MutableLiveData("")
+    val fullName: LiveData<String>
+        get() = _fullName
+
+
     private val _fullTelephoneNumber = MutableLiveData<String>()
     val fullTelephoneNumber: LiveData<String> = _fullTelephoneNumber
 
@@ -40,6 +40,13 @@ class ActivityViewModel : ViewModel(), KoinComponent {
 
     private val _telephoneFormSpinner = MutableLiveData(false)
     val telephoneFormSpinner: LiveData<Boolean> = _telephoneFormSpinner
+
+
+    init {
+        viewModelScope.launch {
+            _fullName.value = databaseService.getUser(authService.authUserId)?.fullName
+        }
+    }
 
     fun onVerificationFailed() {
         _telephoneFormSpinner.value = false
@@ -57,6 +64,7 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     fun onTelephoneNumberKeyPressed() {
         if (telephoneNumberErrorMsg.value.toString().isNotBlank()) _telephoneNumberErrorMsg.value = ""
     }
+
     fun onSubmitTelephoneFormClicked(countryCode: String, telephoneNumber: String) {
         //TODO: more robust error checking
         _countryCodeErrorMsg.value = if (countryCode.trim().isBlank()) "Country code can't be empty." else ""
@@ -86,20 +94,6 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     // AuthStepThree
     private val _autoFilledSMS = MutableLiveData("")
     val autoFilledSMS: LiveData<String> = _autoFilledSMS
-
-
-    // Main
-    private var _appointmentList = MutableLiveData<List<Appointment>>(listOf())
-    val appointmentList: LiveData<List<Appointment>>
-        get() = _appointmentList
-
-    private var _notificationList = MutableLiveData<List<Notification>>(listOf())
-    val notificationList: LiveData<List<Notification>>
-        get() = _notificationList
-
-    private var _fullName = MutableLiveData("")
-    val fullName: LiveData<String>
-        get() = _fullName
 
 
     // UI
@@ -160,73 +154,6 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     }
 
 
-    //Main ------------------------------------------------------------------------------------
-
-    // askmarcin where and how to initiali this?
-    // TODO next
-    fun onMainInit() {
-        Timber.d("fired...")
-        databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
-            _appointmentList.value = appointmentList
-        }
-
-        databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
-            _notificationList.value = notificationList
-        }
-
-        viewModelScope.launch {
-            _fullName.value = databaseService.getUser(authService.authUserId)?.fullName
-        }
-    }
-
-    fun onAppointmentNotificationAccepted(invitorUserId: String, appointmentId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.acceptAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-                Timber.d("✔ Appointment accepted.")
-            }
-        }
-    }
-
-    fun onAppointmentNotificationRejected(invitorUserId: String, appointmentId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-// TODO         _snackMessage.value = "❌ Appointment rejected"
-                Timber.d("❌ Appointment rejected.")
-            }
-        }
-    }
-
-    fun onFriendNotificationAccepted(authUserId: String, notificationId: String) {
-
-        viewModelScope.launch {
-            if (databaseService.acceptFriendInvite(authService.authUserId, authUserId, notificationId)) {
-                Timber.d("✔ Friendship accepted.")
-            }
-        }
-    }
-
-    fun onFriendNotificationRejected(authUserId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.rejectFriendInvite(authService.authUserId, authUserId, notificationId)) {
-                Timber.d("❌ Friendship request rejected.")
-            }
-        }
-    }
-
-    fun onCancellationAccepted(appPartnerId: String, appointmentId: String, notificationId: String) {
-        viewModelScope.launch {
-            if (databaseService.acceptAppointmentCancellation(authService.authUserId, appPartnerId, appointmentId, notificationId)) {
-                Timber.d("Cancellation accepted.")
-            }
-        }
-    }
-
-    fun onLogout(navHostController: NavHostController) {
-        authService.signOut()
-        navHostController.navigate("authStepOne")
-        _toastMessage.value = "You were logged out."
-    }
-
     fun onVerificationCompleted(smsCode: String) {
         _autoFilledSMS.value = smsCode
     }
@@ -235,5 +162,9 @@ class ActivityViewModel : ViewModel(), KoinComponent {
         _toastMessage.value = message
     }
 
-
+    fun onLogout(navHostController: NavHostController) {
+        authService.signOut()
+        navHostController.navigate("authStepOne")
+        setToast("You were logged out.")
+    }
 }

@@ -40,12 +40,11 @@ import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import org.koin.android.ext.android.inject
-import org.koin.core.component.inject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 class Activity : ComponentActivity() {
-    private val viewModel: ActivityViewModel by viewModels()
+    private val activityViewModel: ActivityViewModel by viewModels()
 
     private val authService: AuthService by inject()
     private val databaseService: DatabaseService by inject()
@@ -59,7 +58,7 @@ class Activity : ComponentActivity() {
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
             Timber.d("Auto-fill SMS code: ${credential.smsCode}")
 
-            viewModel.onVerificationCompleted(credential.smsCode!!)
+            activityViewModel.onVerificationCompleted(credential.smsCode!!)
             signInWithPhoneAuthCredential(this@Activity, credential, wait = true)
         }
 
@@ -68,7 +67,7 @@ class Activity : ComponentActivity() {
             Timber.d("onVerificationFailed : ${e.message}")
             when (e) {
                 is FirebaseAuthInvalidCredentialsException -> {
-                    viewModel.onVerificationFailed() // wrong telephone number
+                    activityViewModel.onVerificationFailed() // wrong telephone number
                 }
 
                 is FirebaseTooManyRequestsException -> {
@@ -82,7 +81,7 @@ class Activity : ComponentActivity() {
             Timber.d("Verification code sent to: $storedFullPhoneNumber")
 
             navHostController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
-            viewModel.onCodeSent() // stop the spinner
+            activityViewModel.onCodeSent() // stop the spinner
         }
     }
 
@@ -98,16 +97,16 @@ class Activity : ComponentActivity() {
             activity,
             credential,
             onSuccess = {
-                viewModel.onSignInWithPhoneAuthCredential() // update device token
+                activityViewModel.onSignInWithPhoneAuthCredential() // update device token
 
                 Timber.d("Success: User = ${authService.authUserId}")
 
                 databaseService.hasProfileFilled(
                     authService.authUserId,
-                    onTrue = { // navigate to mainFragment; add Logout to menu
+                    onTrue = { // navigate Agenda
                         Handler(Looper.getMainLooper()).postDelayed({
-                            Timber.d("Navigating to main... User: ${authService.authUserId}")
-                            navHostController.navigate("main")
+                            Timber.d("Navigating to Agenda... User: ${authService.authUserId}")
+                            navHostController.navigate("agenda")
                         }, waitMillis)
                     },
                     onFalse = { // navigate to Step 3
@@ -122,7 +121,7 @@ class Activity : ComponentActivity() {
             },
             onFailure = { exception ->
                 Timber.d("Sign in failure: ${exception?.message}")
-                viewModel.onSignInWithPhoneAuthCredentialFailed(exception)
+                activityViewModel.onSignInWithPhoneAuthCredentialFailed(exception)
             })
     }
 
@@ -131,7 +130,7 @@ class Activity : ComponentActivity() {
 
         createSystemNotificationChannel()
 
-        viewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
+        activityViewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
 
                 Timber.d("TelephonNumber is $fullTelephoneNumber")
@@ -150,7 +149,7 @@ class Activity : ComponentActivity() {
         })
 
         // ---- AuthStep 2 ------------------------------------------------------------------------
-        viewModel.smsAndVerificationId.observe(this, { pair ->
+        activityViewModel.smsAndVerificationId.observe(this, { pair ->
             if (pair.first != "" && pair.second != "") {
                 val smsCode = pair.first
                 val verificationId = pair.second
@@ -162,7 +161,7 @@ class Activity : ComponentActivity() {
 
 
         // ---- Toast -----------------------------------------------------------------------------
-        viewModel.toastMessage.observe(this, { message ->
+        activityViewModel.toastMessage.observe(this, { message ->
             if (message != "") {
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
@@ -177,7 +176,7 @@ class Activity : ComponentActivity() {
             val scaffoldState = rememberScaffoldState()
 
             A9tsTheme {
-                NavHost(navHostController, startDestination = "main")
+                NavHost(navHostController, startDestination = "agenda")
                 {
 
 
@@ -190,7 +189,7 @@ class Activity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                AuthStepOne(viewModel)
+                                AuthStepOne(activityViewModel)
                             }
                         )
                     }
@@ -213,7 +212,7 @@ class Activity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                AuthStepTwo(viewModel, verificationId!!)
+                                AuthStepTwo(activityViewModel, verificationId!!)
                             }
                         )
                     }
@@ -230,15 +229,15 @@ class Activity : ComponentActivity() {
                                 )
                             },
                             content = {
-                                AuthStepThree(viewModel, navHostController)
+                                AuthStepThree(activityViewModel, navHostController)
                             }
                         )
                     }
 
 
-                    // Main
+                    // Agenda
                     composable(
-                        "main"
+                        "agenda"
                     ) {
                         Scaffold(
                             backgroundColor = BgGrey,
@@ -260,7 +259,7 @@ class Activity : ComponentActivity() {
                                                     .align(Alignment.BottomEnd)
                                                     .padding(end = 8.dp)
                                             ) {
-                                                val fullName: String by viewModel.fullName.observeAsState("")
+                                                val fullName: String by activityViewModel.fullName.observeAsState("")
                                                 Icon(
                                                     Icons.Default.MoreVert,
                                                     contentDescription = "",
@@ -281,11 +280,11 @@ class Activity : ComponentActivity() {
                                                         style = MaterialTheme.typography.body1,
                                                     )
                                                     Divider()
-                                                    DropdownMenuItem(onClick = { viewModel.onLogout(navHostController) }) {
+                                                    DropdownMenuItem(onClick = { activityViewModel.onLogout(navHostController) }) {
                                                         Text("Logout", fontWeight = FontWeight.Bold)
                                                     }
 
-                                                    DropdownMenuItem(onClick = { viewModel.onShowDeviceToken() }) {
+                                                    DropdownMenuItem(onClick = { activityViewModel.onShowDeviceToken() }) {
                                                         Text("Show DeviceToken")
                                                     }
                                                 }
@@ -303,7 +302,7 @@ class Activity : ComponentActivity() {
                                 }
                             })
                         {
-                            Main(viewModel, navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+                            Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId)
                         }
                     }
 
@@ -343,7 +342,7 @@ class Activity : ComponentActivity() {
                                 )
                             }
                         ) {
-                            AddAppointmentStepTwo(viewModel, navHostController, friendUserId!!)
+                            AddAppointmentStepTwo(activityViewModel, navHostController, friendUserId!!)
                         }
                     }
 
