@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.components
+package com.a9ts.a9ts.components.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +21,7 @@ import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.model.dataclass.Friend
 import timber.log.Timber
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.a9ts.a9ts.components.BlackLine
 
 
 @Composable

@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.components
+package com.a9ts.a9ts.components.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

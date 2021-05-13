@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.components
+package com.a9ts.a9ts.components.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,6 +25,7 @@ import com.a9ts.a9ts.model.dataclass.Friend
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.a9ts.a9ts.components.BlackLine
 
 
 @Composable

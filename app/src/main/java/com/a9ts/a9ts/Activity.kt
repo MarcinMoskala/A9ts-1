@@ -10,24 +10,16 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import com.a9ts.a9ts.components.*
+import com.a9ts.a9ts.components.screens.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.tools.Constants
@@ -105,15 +97,12 @@ class Activity : ComponentActivity() {
                     authService.authUserId,
                     onTrue = { // navigate Agenda
                         Handler(Looper.getMainLooper()).postDelayed({
-                            Timber.d("Navigating to Agenda... User: ${authService.authUserId}")
                             navHostController.navigate("agenda")
                         }, waitMillis)
                     },
                     onFalse = { // navigate to Step 3
                         Handler(Looper.getMainLooper()).postDelayed({
-                            // TODO: navigate to AuthStep 3
                             navHostController.navigate("authStepThree")
-                            Timber.d("Navigating to AuthStep3...")
                         }, waitMillis)
                     }
                 )
@@ -129,6 +118,9 @@ class Activity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         createSystemNotificationChannel()
+
+        // ---- OBSERVERS -------------------------------------------------------------------------
+        // ---- AuthStep 1 ------------------------------------------------------------------------
 
         activityViewModel.fullTelephoneNumber.observe(this, { fullTelephoneNumber ->
             if (fullTelephoneNumber.isNotBlank()) {
@@ -170,7 +162,6 @@ class Activity : ComponentActivity() {
 
         // --- NAVIGATION -------------------------------------------------------------------------
         // TODO: the navigation should be done with a sealed class, currently has to pass Strings as navigate paramaters
-        // also quite a lot can be extracted, lot of code duplication right now
         setContent {
             navHostController = rememberNavController()
             val scaffoldState = rememberScaffoldState()
@@ -179,25 +170,16 @@ class Activity : ComponentActivity() {
                 NavHost(navHostController, startDestination = "agenda")
                 {
 
-
-                    // AuthStepOne
-                    composable("authStepOne") {
+                    composable(route = "authStepOne") {
                         Scaffold(
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "New Phone") }
-                                )
-                            },
-                            content = {
-                                AuthStepOne(activityViewModel)
-                            }
+                            topBar = { MyTopBar("New Phone") },
+                            content = { AuthStepOne(activityViewModel) }
                         )
                     }
 
 
-                    // AuthStepTwo
                     composable(
-                        "authStepTwo/{verificationId}/{fullPhoneNumber}",
+                        route = "authStepTwo/{verificationId}/{fullPhoneNumber}",
                         arguments = listOf(
                             navArgument("verificationId") { type = NavType.StringType },
                             navArgument("fullPhoneNumber") { type = NavType.StringType })
@@ -206,127 +188,48 @@ class Activity : ComponentActivity() {
                         val fullPhoneNumber = it.arguments?.getString("fullPhoneNumber")
 
                         Scaffold(
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = fullPhoneNumber!!) }
-                                )
-                            },
-                            content = {
-                                AuthStepTwo(activityViewModel, verificationId!!)
-                            }
+                            topBar = { MyTopBar(fullPhoneNumber!!) },
+                            content = { AuthStepTwo(activityViewModel, verificationId!!) }
                         )
                     }
 
-                    // AuthStepThree
-                    composable(
-                        "authStepThree",
-                    ) {
 
+                    composable(route = "authStepThree") {
                         Scaffold(
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "Your profile") }
-                                )
-                            },
-                            content = {
-                                AuthStepThree(activityViewModel, navHostController)
-                            }
+                            topBar = { MyTopBar("Your profile") },
+                            content = { AuthStepThree(activityViewModel, navHostController) }
                         )
                     }
 
 
-                    // Agenda
-                    composable(
-                        "agenda"
-                    ) {
+                    composable(route = "agenda") {
                         Scaffold(
                             backgroundColor = BgGrey,
                             scaffoldState = scaffoldState,
-                            topBar = {
-                                TopAppBar(
-                                    title = {
-                                        Box(Modifier.fillMaxWidth()) {
-                                            var expanded by remember { mutableStateOf(false) }
-
-
-                                            Text(
-                                                text = "My agenda",
-                                                modifier = Modifier.align(Alignment.BottomStart)
-                                            ) // Title
-
-                                            Box(
-                                                Modifier
-                                                    .align(Alignment.BottomEnd)
-                                                    .padding(end = 8.dp)
-                                            ) {
-                                                val fullName: String by activityViewModel.fullName.observeAsState("")
-                                                Icon(
-                                                    Icons.Default.MoreVert,
-                                                    contentDescription = "",
-                                                    tint = Color.White,
-                                                    modifier = Modifier
-                                                        .clickable { expanded = !expanded }
-                                                )
-                                                DropdownMenu(
-                                                    expanded = expanded,
-                                                    onDismissRequest = { expanded = false },
-                                                    offset = DpOffset(6.dp, 6.dp),
-                                                    modifier = Modifier
-                                                        .align(Alignment.BottomEnd)
-                                                ) {
-                                                    Text(
-                                                        text = "I'm $fullName",
-                                                        modifier = Modifier.padding(16.dp),
-                                                        style = MaterialTheme.typography.body1,
-                                                    )
-                                                    Divider()
-                                                    DropdownMenuItem(onClick = { activityViewModel.onLogout(navHostController) }) {
-                                                        Text("Logout", fontWeight = FontWeight.Bold)
-                                                    }
-
-                                                    DropdownMenuItem(onClick = { activityViewModel.onShowDeviceToken() }) {
-                                                        Text("Show DeviceToken")
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-
-                                    )
-                            },
+                            topBar = { MyTopBar(title = "My Agenda", dropdown = true, navHostController, activityViewModel) },
                             floatingActionButton = {
                                 FloatingActionButton(
                                     onClick = { navHostController.navigate("addAppointmentStepOne") }
                                 ) {
                                     Icon(Icons.Filled.Add, "")
                                 }
-                            })
-                        {
-                            Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId)
-                        }
+                            },
+                            content = { Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId) }
+                        )
                     }
 
 
-                    // AddAppointmentStepOne
-                    composable(
-                        "addAppointmentStepOne"
-                    ) {
+                    composable(route = "addAppointmentStepOne") {
                         Scaffold(
                             backgroundColor = BgGrey,
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "New appointment with...") }
-                                )
-                            }
-                        ) {
-                            AddAppointmentStepOne(navHostController)
-                        }
+                            topBar = { MyTopBar("New appointment with...") },
+                            content = { AddAppointmentStepOne(navHostController) }
+                        )
                     }
 
 
-                    // AddAppointmentStepTwo
                     composable(
-                        "addAppointmentStepTwo/{friendFullName}/{friendUserId}",
+                        route = "addAppointmentStepTwo/{friendFullName}/{friendUserId}",
                         arguments = listOf(
                             navArgument("friendFullName") { type = NavType.StringType },
                             navArgument("friendUserId") { type = NavType.StringType })
@@ -336,38 +239,24 @@ class Activity : ComponentActivity() {
 
                         Scaffold(
                             backgroundColor = BgGrey,
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "Appointment with $friendFullName") }
-                                )
-                            }
-                        ) {
-                            AddAppointmentStepTwo(activityViewModel, navHostController, friendUserId!!)
-                        }
+                            topBar = { MyTopBar("Appointment with $friendFullName") },
+                            content = { AddAppointmentStepTwo(activityViewModel, navHostController, friendUserId!!) }
+                        )
                     }
 
 
-                    // AddFriend
-                    composable(
-                        "addFriend"
-                    ) {
+                    composable(route = "addFriend") {
                         Scaffold(
                             backgroundColor = BgGrey,
                             scaffoldState = scaffoldState,
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "Invite friends") }
-                                )
-                            }
-                        ) {
-                            AddFriend(snackbarHostState = scaffoldState.snackbarHostState)
-                        }
+                            topBar = { MyTopBar(title = "Invite friends") },
+                            content = { AddFriend(snackbarHostState = scaffoldState.snackbarHostState) }
+                        )
                     }
 
 
-                    // Appointment
                     composable(
-                        "appointment/{appointmentId}",
+                        route = "appointment/{appointmentId}",
                         arguments = listOf(
                             navArgument("appointmentId") { type = NavType.StringType })
                     ) {
@@ -376,24 +265,22 @@ class Activity : ComponentActivity() {
                         Scaffold(
                             backgroundColor = BgGrey,
                             scaffoldState = scaffoldState,
-                            topBar = {
-                                TopAppBar(
-                                    title = { Text(text = "Appointment") }
-                                )
-                            }
-                        ) {
-                            Appointment(appointmentId!!)
-                        }
+                            topBar = { MyTopBar("Appointment") },
+                            content = { Appointment(appointmentId!!) }
+                        )
                     }
                 }
             }
         }
     }
 
+
+
     private fun clearAllSystemNotifications() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancelAll()
     }
+
 
     private fun createSystemNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // leave here even when redundant, so I don't forget to put it back in case I'll deploy for <26

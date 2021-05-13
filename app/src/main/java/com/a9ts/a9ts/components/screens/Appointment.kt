@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.components
+package com.a9ts.a9ts.components.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button

@@ -1,4 +1,4 @@
-package com.a9ts.a9ts.components
+package com.a9ts.a9ts.components.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
+import com.a9ts.a9ts.components.BlackLine
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
@@ -27,7 +28,6 @@ import com.a9ts.a9ts.ui.theme.A9tsTheme
 import com.a9ts.a9ts.ui.theme.BgGrey
 import com.a9ts.a9ts.ui.theme.LightGrey
 import com.a9ts.a9ts.ui.theme.Shapes
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
