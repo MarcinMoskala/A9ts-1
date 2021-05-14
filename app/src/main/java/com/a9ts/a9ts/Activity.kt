@@ -23,8 +23,8 @@ import com.a9ts.a9ts.components.screens.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.tools.Constants
-import com.a9ts.a9ts.ui.theme.BgGrey
 import com.a9ts.a9ts.ui.theme.A9tsTheme
+import com.a9ts.a9ts.ui.theme.BgGrey
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -93,19 +93,15 @@ class Activity : ComponentActivity() {
 
                 Timber.d("Success: User = ${authService.authUserId}")
 
-                databaseService.hasProfileFilled(
-                    authService.authUserId,
-                    onTrue = { // navigate Agenda
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            navHostController.navigate("agenda")
-                        }, waitMillis)
-                    },
-                    onFalse = { // navigate to Step 3
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            navHostController.navigate("authStepThree")
-                        }, waitMillis)
-                    }
-                )
+                if (databaseService.hasProfileFilled(authService.authUserId)) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        navHostController.navigate("agenda")
+                    }, waitMillis)
+                } else {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        navHostController.navigate("authStepThree")
+                    }, waitMillis)
+                }
                 Timber.d("Sign in success.")
             },
             onFailure = { exception ->
@@ -273,7 +269,6 @@ class Activity : ComponentActivity() {
             }
         }
     }
-
 
 
     private fun clearAllSystemNotifications() {

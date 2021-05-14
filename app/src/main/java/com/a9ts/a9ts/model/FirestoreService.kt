@@ -18,7 +18,7 @@ import timber.log.Timber
 
 interface DatabaseService {
 
-    fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit)
+    suspend fun hasProfileFilled(authUserId: String) : Boolean
 
     suspend fun createUserProfile(user: UserProfile): Boolean
     suspend fun makeFriends(user1: UserProfile, user2: UserProfile): Boolean
@@ -521,21 +521,11 @@ class FirestoreService : DatabaseService {
         }
     }
 
-    override fun hasProfileFilled(authUserId: String, onTrue: () -> Unit, onFalse: () -> Unit) {
-        db.collection(UserProfile.COLLECTION).document(authUserId)
-            .get()
-            .addOnSuccessListener { doc ->
-                if (doc?.get(UserProfile::fullName.name) != null) {
-                    onTrue()
-                    return@addOnSuccessListener
-                }
-
-                onFalse()
-            }
-            .addOnFailureListener {
-                Timber.d("databaseService.hasProfileFilled() failed")
-            }
+    override suspend fun hasProfileFilled(authUserId: String) : Boolean {
+        val user = db.collection(UserProfile.COLLECTION).document(authUserId).get().await()
+        return user?.get(UserProfile::fullName.name) != null
     }
+
 
     override suspend fun createUserProfile(user: UserProfile): Boolean = db.runBatch { batch ->
         val userId = user.authUserId!!
