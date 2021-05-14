@@ -6,18 +6,24 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.components.BlackLine
+import com.a9ts.a9ts.components.MyTopBar
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
@@ -31,26 +37,40 @@ import com.a9ts.a9ts.ui.theme.Shapes
 import timber.log.Timber
 
 @Composable
-fun Agenda(navHostController: NavHostController, snackbarHostState: SnackbarHostState, authUserId: String, viewModel: AgendaViewModel = viewModel()) {
-    val dbInitialized = remember { mutableStateOf(false) }
-    // askmarcin - not sure if
-    // "val dbInitialized = remember { mutableStateOf(false) }" or
-    // "var dbInitialized by remember { mutableStateOf(false) }" is considered better?
+fun Agenda(navHostController: NavHostController, scaffoldState: ScaffoldState, authUserId: String, viewModel: AgendaViewModel = viewModel()) {
+    val fullName by viewModel.fullName.observeAsState("")
 
-    if (!dbInitialized.value) {
-        Timber.d("dbInitialize: false... Initializing DB")
-        viewModel.onAgendaInit() // askmarcin, this should be done differently I think
-        dbInitialized.value = true
-    }
+    Scaffold(
+        backgroundColor = BgGrey,
+        scaffoldState = scaffoldState,
+        topBar = {
+            MyTopBar(
+                title = "My Agenda",
+                dropdown = { AgendaDropDown(
+                    fullName,
+                    { viewModel.onLogout(navHostController, scaffoldState.snackbarHostState) },
+                    { viewModel.onShowDeviceToken(scaffoldState.snackbarHostState) }
+                ) }
+            )},
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navHostController.navigate("addAppointmentStepOne") }
+            ) {
+                Icon(Icons.Filled.Add, "")
+            }
+        },
+        content = {
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxSize()
+            ) {
+                NotificationsList(viewModel, scaffoldState.snackbarHostState)
+                AppointmentsList(viewModel, authUserId, navHostController)
+            }
+//            Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId)
+        })
 
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxSize()
-    ) {
-        NotificationsList(viewModel, snackbarHostState)
-        AppointmentsList(viewModel, authUserId, navHostController)
-    }
 }
 
 @Composable
@@ -245,6 +265,53 @@ fun NotificationsList(viewModel: AgendaViewModel, snackbarHostState: SnackbarHos
     }
 }
 
+
+@Composable
+fun AgendaDropDown(fullName: String, onLogout: () -> Unit, onShowDeviceToken: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        Modifier
+            .padding(end = 8.dp)
+    ) {
+        Icon(
+            Icons.Default.MoreVert,
+            contentDescription = "",
+            tint = Color.White,
+            modifier = Modifier
+                .clickable { expanded = !expanded }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            offset = DpOffset(6.dp, 6.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+        ) {
+            Text(
+                text = "I'm $fullName",
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.body1,
+            )
+            Divider()
+            DropdownMenuItem(
+                onClick = {
+                    onLogout()
+                    //  viewModel.onLogout(navHostController!!) })
+                }) {
+                Text("Logout", fontWeight = FontWeight.Bold)
+            }
+
+            DropdownMenuItem (
+                onClick = {
+                    onShowDeviceToken()
+//                    viewModel.onShowDeviceToken()
+                }) {
+                Text("Show DeviceToken")
+            }
+        }
+    }
+}
 
 @Preview
 @Composable

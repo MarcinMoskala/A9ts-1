@@ -15,9 +15,8 @@ class AddAppointmentStepTwoViewModel : ViewModel(), KoinComponent {
     private val authService: AuthService by inject()
 
     suspend fun onAddAppointmentStepTwoSubmit(friendUserId: String, localDate: LocalDate, localTime: LocalTime, activityViewModel : ActivityViewModel): Boolean {
-
         if (databaseService.sendAppointment(authService.authUserId, friendUserId, toUTCTimestamp(localDate, localTime))) {
-            activityViewModel.setToast("✔ Invite sent to ${friendUser.fullName}")
+            activityViewModel.setToast("✔ Invite sent.")
             return true
         } else {
             activityViewModel.setToast("❌ Invite failed. Try again...")

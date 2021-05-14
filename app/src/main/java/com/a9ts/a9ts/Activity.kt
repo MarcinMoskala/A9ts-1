@@ -31,6 +31,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -51,7 +54,10 @@ class Activity : ComponentActivity() {
             Timber.d("Auto-fill SMS code: ${credential.smsCode}")
 
             activityViewModel.onVerificationCompleted(credential.smsCode!!)
-            signInWithPhoneAuthCredential(this@Activity, credential, wait = true)
+
+            CoroutineScope(IO).launch {
+                signInWithPhoneAuthCredential(credential, wait = true)
+            }
         }
 
         //SMS cant be sent
@@ -59,7 +65,7 @@ class Activity : ComponentActivity() {
             Timber.d("onVerificationFailed : ${e.message}")
             when (e) {
                 is FirebaseAuthInvalidCredentialsException -> {
-                    activityViewModel.onVerificationFailed() // wrong telephone number
+                    activityViewModel.onVerificationFailed() // wroseng telephone number
                 }
 
                 is FirebaseTooManyRequestsException -> {
@@ -71,49 +77,43 @@ class Activity : ComponentActivity() {
 
         override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
             Timber.d("Verification code sent to: $storedFullPhoneNumber")
-
-            navHostController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
             activityViewModel.onCodeSent() // stop the spinner
+            navHostController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
         }
     }
 
-    fun signInWithPhoneAuthCredential(
-        activity: Activity,
-        credential: PhoneAuthCredential,
-        wait: Boolean = false
-    ) {
+    suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait: Boolean = false) {
         val waitMillis = if (wait) 500L else 0L
+
         Timber.d("signInWithPhoneAuthCredential SmsCode: ${credential.smsCode}")
 
-        authService.signInWithPhoneAuthCredential(
-            activity,
-            credential,
-            onSuccess = {
+        val firebaseAuthResult = authService.signInWithPhoneAuthCredential(credential)
+
+        if (firebaseAuthResult.user != null) {
                 activityViewModel.onSignInWithPhoneAuthCredential() // update device token
 
                 Timber.d("Success: User = ${authService.authUserId}")
 
                 if (databaseService.hasProfileFilled(authService.authUserId)) {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        navHostController.navigate("agenda")
-                    }, waitMillis)
+                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate("agenda") }, waitMillis)
                 } else {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        navHostController.navigate("authStepThree")
-                    }, waitMillis)
+                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate("authStepThree") }, waitMillis)
                 }
+
                 Timber.d("Sign in success.")
-            },
-            onFailure = { exception ->
-                Timber.d("Sign in failure: ${exception?.message}")
-                activityViewModel.onSignInWithPhoneAuthCredentialFailed(exception)
-            })
+            } else {
+                Timber.d("Sign in failure.")
+
+                activityViewModel.onSignInWithPhoneAuthCredentialFailed()
+            }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         createSystemNotificationChannel()
+
+
 
         // ---- OBSERVERS -------------------------------------------------------------------------
         // ---- AuthStep 1 ------------------------------------------------------------------------
@@ -143,7 +143,9 @@ class Activity : ComponentActivity() {
                 val verificationId = pair.second
                 val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
 
-                signInWithPhoneAuthCredential(this, credential)
+                CoroutineScope(IO).launch {
+                    signInWithPhoneAuthCredential(credential)
+                }
             }
         })
 
@@ -155,16 +157,22 @@ class Activity : ComponentActivity() {
             }
         })
 
+        // TODO - create a splash screen wating for login, onLogin success -> agenda ELSE -> authStepOne
 
         // --- NAVIGATION -------------------------------------------------------------------------
         // TODO: the navigation should be done with a sealed class, currently has to pass Strings as navigate paramaters
         setContent {
             navHostController = rememberNavController()
-            val scaffoldState = rememberScaffoldState()
+            val scaffoldState = rememberScaffoldState() //TODO hot sure where to hold scaffoldState
 
+
+            // TODO go to agenda - if not logged go to authStepOne
             A9tsTheme {
-                NavHost(navHostController, startDestination = "agenda")
+                NavHost(navHostController, startDestination = "splash")
                 {
+                    composable(route = "splash") {
+                        Splash(navHostController)
+                    }
 
                     composable(route = "authStepOne") {
                         Scaffold(
@@ -172,7 +180,6 @@ class Activity : ComponentActivity() {
                             content = { AuthStepOne(activityViewModel) }
                         )
                     }
-
 
                     composable(
                         route = "authStepTwo/{verificationId}/{fullPhoneNumber}",
@@ -199,18 +206,10 @@ class Activity : ComponentActivity() {
 
 
                     composable(route = "agenda") {
-                        Scaffold(
-                            backgroundColor = BgGrey,
+                        Agenda(
+                            navHostController,
                             scaffoldState = scaffoldState,
-                            topBar = { MyTopBar(title = "My Agenda", dropdown = true, navHostController, activityViewModel) },
-                            floatingActionButton = {
-                                FloatingActionButton(
-                                    onClick = { navHostController.navigate("addAppointmentStepOne") }
-                                ) {
-                                    Icon(Icons.Filled.Add, "")
-                                }
-                            },
-                            content = { Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId) }
+                            authUserId = authService.authUserId
                         )
                     }
 
@@ -218,6 +217,7 @@ class Activity : ComponentActivity() {
                     composable(route = "addAppointmentStepOne") {
                         Scaffold(
                             backgroundColor = BgGrey,
+                            scaffoldState = scaffoldState,
                             topBar = { MyTopBar("New appointment with...") },
                             content = { AddAppointmentStepOne(navHostController) }
                         )
@@ -269,6 +269,8 @@ class Activity : ComponentActivity() {
             }
         }
     }
+
+
 
 
     private fun clearAllSystemNotifications() {

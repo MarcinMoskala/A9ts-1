@@ -8,11 +8,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.navigate
+import com.a9ts.a9ts.ActivityViewModel
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
@@ -29,20 +34,38 @@ class AgendaViewModel : ViewModel(), KoinComponent {
     val notificationList: LiveData<List<Notification>>
         get() = _notificationList
 
+    private var _fullName = MutableLiveData("")
+    val fullName: LiveData<String>
+        get() = _fullName
 
+    init {
+        viewModelScope.launch {
+            databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
+                _appointmentList.value = appointmentList
+            }
 
+            databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
+                _notificationList.value = notificationList
+            }
 
-    fun onAgendaInit() {
-        Timber.d("fired...")
-        databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
-            _appointmentList.value = appointmentList
+            _fullName.value = databaseService.getUser(authService.authUserId)?.fullName
         }
+    }
 
-        databaseService.getNotificationsListener(authService.authUserId) { notificationList ->
-            _notificationList.value = notificationList
+    fun onShowDeviceToken(snackbarHostState: SnackbarHostState) {
+        viewModelScope.launch {
+            val deviceToken = FirebaseMessaging.getInstance().token.await()
+            snackbarHostState.showSnackbar(deviceToken)
         }
+    }
 
+    fun onLogout(navHostController: NavHostController, snackbarHostState: SnackbarHostState) {
+        authService.signOut()
+        navHostController.navigate("authStepOne")
 
+        viewModelScope.launch {
+            snackbarHostState.showSnackbar("You were logged out.")
+        }
     }
 
     fun onAppointmentNotificationAccepted(
@@ -66,7 +89,7 @@ class AgendaViewModel : ViewModel(), KoinComponent {
     ) {
         viewModelScope.launch {
             if (databaseService.rejectAppointmentInvitation(authService.authUserId, invitorUserId, appointmentId, notificationId)) {
-                    snackbarHostState.showSnackbar(message = "❌ Appointment rejected.")
+                snackbarHostState.showSnackbar(message = "❌ Appointment rejected.")
             }
         }
     }

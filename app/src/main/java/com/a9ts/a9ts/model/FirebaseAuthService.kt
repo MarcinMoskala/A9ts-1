@@ -1,18 +1,15 @@
 package com.a9ts.a9ts.model
 
 import android.app.Activity
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
+import kotlinx.coroutines.tasks.await
 
 interface AuthService {
     val authUserId: String
     val isLogged: Boolean
-//    fun getFullUserName(): String
-    fun signInWithPhoneAuthCredential(
-        activity: Activity,
-        credential: PhoneAuthCredential,
-        onSuccess: () -> Unit,
-        onFailure: (Exception?) -> Unit)
+    suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) : AuthResult
 
     fun signOut()
     fun getAuth() : FirebaseAuth
@@ -28,20 +25,11 @@ class FirebaseAuthService : AuthService {
     override val isLogged: Boolean
         get() = auth.uid != null
 
-    override fun signInWithPhoneAuthCredential(
-        activity: Activity,
-        credential: PhoneAuthCredential,
-        onSuccess: () -> Unit,
-        onFailure: (Exception?) -> Unit
-    ) {
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(activity) { task ->
-                if (task.isSuccessful) {
-                    onSuccess()
-                } else {
-                    onFailure(task.exception)
-                }
-            }
+    override suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) : AuthResult {
+        return auth.signInWithCredential(credential).await()
+
+        // TODO - handle the exception: auth.signInWithCredential(credential).exception
+        // askmarcin how should I deal with the exception when I want to use .await()?
     }
 
     override fun signOut() {

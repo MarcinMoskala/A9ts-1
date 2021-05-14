@@ -24,9 +24,7 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     private val _deviceToken = MutableLiveData<String>()
     val deviceToken: LiveData<String> = _deviceToken
 
-    private var _fullName = MutableLiveData("")
-    val fullName: LiveData<String>
-        get() = _fullName
+
 
 
     private val _fullTelephoneNumber = MutableLiveData<String>()
@@ -41,12 +39,6 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     private val _telephoneFormSpinner = MutableLiveData(false)
     val telephoneFormSpinner: LiveData<Boolean> = _telephoneFormSpinner
 
-
-    init {
-        viewModelScope.launch {
-            _fullName.value = databaseService.getUser(authService.authUserId)?.fullName
-        }
-    }
 
     fun onVerificationFailed() {
         _telephoneFormSpinner.value = false
@@ -114,25 +106,15 @@ class ActivityViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun onShowDeviceToken() {
-        viewModelScope.launch {
-            val deviceToken = FirebaseMessaging.getInstance().token.await()
-            _toastMessage.value = deviceToken
-        }
-    }
+
 
     // AuthStepTwo ------------------------------------------------------------------------------
     fun onSmsCodeSubmitted(smsCode: String, verificationId: String) {
         _smsAndVerificationId.value = Pair(smsCode, verificationId)
     }
 
-    fun onSignInWithPhoneAuthCredentialFailed(exception: Exception?) {
-        if (exception is FirebaseAuthInvalidCredentialsException) {
-            _wrongSmsCode.value = true
-        } else {
-            Timber.e(exception)
-        }
-
+    fun onSignInWithPhoneAuthCredentialFailed() {
+        _wrongSmsCode.value = true
     }
 
     fun onSmsCodeKeyPressed() {
@@ -162,9 +144,5 @@ class ActivityViewModel : ViewModel(), KoinComponent {
         _toastMessage.value = message
     }
 
-    fun onLogout(navHostController: NavHostController) {
-        authService.signOut()
-        navHostController.navigate("authStepOne")
-        setToast("You were logged out.")
-    }
+
 }

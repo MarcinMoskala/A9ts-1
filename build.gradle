@@ -11,10 +11,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.0-alpha14'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32"
+        classpath 'com.android.tools.build:gradle:7.0.0-alpha15'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.31"
         classpath 'com.google.gms:google-services:4.3.5' //Firebase
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.5.1' // Crashlytics
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.5.2' // Crashlytics
 
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.3.4"
 
