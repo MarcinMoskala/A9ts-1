@@ -10,21 +10,15 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import com.a9ts.a9ts.components.*
 import com.a9ts.a9ts.components.screens.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.tools.Constants
 import com.a9ts.a9ts.ui.theme.A9tsTheme
-import com.a9ts.a9ts.ui.theme.BgGrey
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -170,16 +164,9 @@ class Activity : ComponentActivity() {
             A9tsTheme {
                 NavHost(navHostController, startDestination = "splash")
                 {
-                    composable(route = "splash") {
-                        Splash(navHostController)
-                    }
+                    composable(route = "splash") { Splash(navHostController) }
 
-                    composable(route = "authStepOne") {
-                        Scaffold(
-                            topBar = { MyTopBar("New Phone") },
-                            content = { AuthStepOne(activityViewModel) }
-                        )
-                    }
+                    composable(route = "authStepOne") { AuthStepOne(activityViewModel) }
 
                     composable(
                         route = "authStepTwo/{verificationId}/{fullPhoneNumber}",
@@ -187,42 +174,18 @@ class Activity : ComponentActivity() {
                             navArgument("verificationId") { type = NavType.StringType },
                             navArgument("fullPhoneNumber") { type = NavType.StringType })
                     ) {
-                        val verificationId = it.arguments?.getString("verificationId")
-                        val fullPhoneNumber = it.arguments?.getString("fullPhoneNumber")
-
-                        Scaffold(
-                            topBar = { MyTopBar(fullPhoneNumber!!) },
-                            content = { AuthStepTwo(activityViewModel, verificationId!!) }
+                        AuthStepTwo(
+                            activityViewModel,
+                            it.arguments?.getString("verificationId")!!,
+                            it.arguments?.getString("fullPhoneNumber")!!
                         )
                     }
 
+                    composable(route = "authStepThree") { AuthStepThree(activityViewModel, navHostController) }
 
-                    composable(route = "authStepThree") {
-                        Scaffold(
-                            topBar = { MyTopBar("Your profile") },
-                            content = { AuthStepThree(activityViewModel, navHostController) }
-                        )
-                    }
+                    composable(route = "agenda") { Agenda(navHostController, scaffoldState = scaffoldState, authUserId = authService.authUserId) }
 
-
-                    composable(route = "agenda") {
-                        Agenda(
-                            navHostController,
-                            scaffoldState = scaffoldState,
-                            authUserId = authService.authUserId
-                        )
-                    }
-
-
-                    composable(route = "addAppointmentStepOne") {
-                        Scaffold(
-                            backgroundColor = BgGrey,
-                            scaffoldState = scaffoldState,
-                            topBar = { MyTopBar("New appointment with...") },
-                            content = { AddAppointmentStepOne(navHostController) }
-                        )
-                    }
-
+                    composable(route = "addAppointmentStepOne") { AddAppointmentStepOne(navHostController) }
 
                     composable(
                         route = "addAppointmentStepTwo/{friendFullName}/{friendUserId}",
@@ -230,39 +193,23 @@ class Activity : ComponentActivity() {
                             navArgument("friendFullName") { type = NavType.StringType },
                             navArgument("friendUserId") { type = NavType.StringType })
                     ) {
-                        val friendFullName = it.arguments?.getString("friendFullName")
-                        val friendUserId = it.arguments?.getString("friendUserId")
-
-                        Scaffold(
-                            backgroundColor = BgGrey,
-                            topBar = { MyTopBar("Appointment with $friendFullName") },
-                            content = { AddAppointmentStepTwo(activityViewModel, navHostController, friendUserId!!) }
-                        )
+                        AddAppointmentStepTwo(
+                            activityViewModel,
+                            navHostController,
+                            it.arguments?.getString("friendUserId")!!,
+                            it.arguments?.getString("friendFullName")!!)
                     }
 
-
-                    composable(route = "addFriend") {
-                        Scaffold(
-                            backgroundColor = BgGrey,
-                            scaffoldState = scaffoldState,
-                            topBar = { MyTopBar(title = "Invite friends") },
-                            content = { AddFriend(snackbarHostState = scaffoldState.snackbarHostState) }
-                        )
-                    }
-
+                    composable(route = "addFriend") { AddFriend(scaffoldState = scaffoldState) }
 
                     composable(
                         route = "appointment/{appointmentId}",
                         arguments = listOf(
                             navArgument("appointmentId") { type = NavType.StringType })
                     ) {
-                        val appointmentId = it.arguments?.getString("appointmentId")
-
-                        Scaffold(
-                            backgroundColor = BgGrey,
-                            scaffoldState = scaffoldState,
-                            topBar = { MyTopBar("Appointment") },
-                            content = { Appointment(appointmentId!!) }
+                        Appointment(
+                            it.arguments?.getString("appointmentId")!!,
+                            scaffoldState = scaffoldState
                         )
                     }
                 }

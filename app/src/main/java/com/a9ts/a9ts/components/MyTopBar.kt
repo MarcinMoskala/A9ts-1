@@ -9,9 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun MyTopBar(
-    title: String,
-    dropdown: @Composable () -> Unit = {}
+fun MyTopBar(title: String, dropdown: @Composable () -> Unit = {}
 ) {
     TopAppBar(
         title = {

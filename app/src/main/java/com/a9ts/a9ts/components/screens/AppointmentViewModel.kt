@@ -1,9 +1,6 @@
 package com.a9ts.a9ts.components.screens
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.dataclass.Appointment
@@ -16,7 +13,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import timber.log.Timber
 
-class AppointmentViewModel : ViewModel(), KoinComponent {
+class AppointmentViewModel(appointmentId: String) : ViewModel(), KoinComponent {
 
     private val databaseService: DatabaseService by inject()
     private val authService: AuthService by inject()
@@ -25,7 +22,7 @@ class AppointmentViewModel : ViewModel(), KoinComponent {
     val appointment: LiveData<Appointment>
         get() = _appointment
 
-    fun onAppointmentDetailInit(appointmentId: String) {
+    init {
         databaseService.getAppointmentListener(appointmentId, authService.authUserId) { appointment ->
             _appointment.value = appointment
         }
@@ -46,6 +43,14 @@ class AppointmentViewModel : ViewModel(), KoinComponent {
     fun getAuthUserIdAppointmentPartnerName(appointment: Appointment): String {
         return getMyIdAppointmentPartnerName(authService.authUserId, appointment)
     }
+}
 
+class AppointmentViewModelFactory(private val appointmentId: String) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(AppointmentViewModel::class.java)) {
+            return AppointmentViewModel(appointmentId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 
 }

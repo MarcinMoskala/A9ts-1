@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.a9ts.a9ts.ActivityViewModel
+import com.a9ts.a9ts.components.MyTopBar
 
 
 @Composable
@@ -24,64 +25,69 @@ fun AuthStepOne(viewModel: ActivityViewModel) {
     val telephoneNumberErrorMsg: String by viewModel.telephoneNumberErrorMsg.observeAsState("")
     val telephoneFormSpinner: Boolean by viewModel.telephoneFormSpinner.observeAsState(false)
 
-    Column(Modifier.padding(16.dp)) {
-        Row {
 
-            OutlinedTextField(
-                value = countryCode.value,
-                singleLine = true,
-                onValueChange = {
-                    countryCode.value = it
-                    viewModel.onCountryCodeKeyPressed()
-                },
-                placeholder = { Text("+421") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.width(70.dp),
-                isError = countryCodeErrorMsg.isNotBlank(),
-                enabled = !telephoneFormSpinner
-            )
+    Scaffold(
+        topBar = { MyTopBar("New Phone") }
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row {
 
-            Spacer(Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = telephoneNumber.value,
-                singleLine = true,
-                onValueChange = {
-                    telephoneNumber.value = it
-                    viewModel.onTelephoneNumberKeyPressed()
-                },
-                placeholder = { Text("9XX XXX XXX") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth(),
-                isError = telephoneNumberErrorMsg.isNotBlank(),
-                enabled = !telephoneFormSpinner
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (countryCodeErrorMsg.isNotBlank() || telephoneNumberErrorMsg.isNotBlank()) {
-            val errorMessage = "$countryCodeErrorMsg $telephoneNumberErrorMsg"
-            Text(errorMessage, color = MaterialTheme.colors.error)
-            Spacer(Modifier.height(8.dp))
-        }
-
-        Button(
-            onClick = {
-                viewModel.onSubmitTelephoneFormClicked(
-                    telephoneNumber = telephoneNumber.value,
-                    countryCode = countryCode.value
+                OutlinedTextField(
+                    value = countryCode.value,
+                    singleLine = true,
+                    onValueChange = {
+                        countryCode.value = it
+                        viewModel.onCountryCodeKeyPressed()
+                    },
+                    placeholder = { Text("+421") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.width(70.dp),
+                    isError = countryCodeErrorMsg.isNotBlank(),
+                    enabled = !telephoneFormSpinner
                 )
-            },
-            modifier = Modifier.align(Alignment.End),
-            enabled = !telephoneFormSpinner
-        ) {
-            Text("GET SMS CODE")
-        }
 
-        if (telephoneFormSpinner) {
-            Spacer(Modifier.height(32.dp))
-            CircularProgressIndicator(strokeWidth = 8.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Spacer(Modifier.width(8.dp))
+
+                OutlinedTextField(
+                    value = telephoneNumber.value,
+                    singleLine = true,
+                    onValueChange = {
+                        telephoneNumber.value = it
+                        viewModel.onTelephoneNumberKeyPressed()
+                    },
+                    placeholder = { Text("9XX XXX XXX") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = telephoneNumberErrorMsg.isNotBlank(),
+                    enabled = !telephoneFormSpinner
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (countryCodeErrorMsg.isNotBlank() || telephoneNumberErrorMsg.isNotBlank()) {
+                val errorMessage = "$countryCodeErrorMsg $telephoneNumberErrorMsg"
+                Text(errorMessage, color = MaterialTheme.colors.error)
+                Spacer(Modifier.height(8.dp))
+            }
+
+            Button(
+                onClick = {
+                    viewModel.onSubmitTelephoneFormClicked(
+                        telephoneNumber = telephoneNumber.value,
+                        countryCode = countryCode.value
+                    )
+                },
+                modifier = Modifier.align(Alignment.End),
+                enabled = !telephoneFormSpinner
+            ) {
+                Text("GET SMS CODE")
+            }
+
+            if (telephoneFormSpinner) {
+                Spacer(Modifier.height(32.dp))
+                CircularProgressIndicator(strokeWidth = 8.dp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
         }
     }
 }

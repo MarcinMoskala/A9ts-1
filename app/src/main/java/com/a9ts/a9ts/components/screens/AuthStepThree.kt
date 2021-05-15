@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -17,49 +18,54 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
 import com.a9ts.a9ts.ActivityViewModel
+import com.a9ts.a9ts.components.MyTopBar
 import kotlinx.coroutines.launch
 
 @Composable
 fun AuthStepThree(viewModel: ActivityViewModel, navHostController: NavHostController) {
 
-    Column(Modifier.padding(16.dp)) {
-        val fullName = remember { mutableStateOf("")}
-        val scope = rememberCoroutineScope()
-        val minFullNameLength = 2
+    Scaffold(
+        topBar = { MyTopBar("Your profile") },
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            val fullName = remember { mutableStateOf("") }
+            val scope = rememberCoroutineScope()
+            val minFullNameLength = 2
 
-        OutlinedTextField(
-            value = fullName.value,
-            singleLine = true,
-            onValueChange = {
-                fullName.value = it
-                viewModel.onTelephoneNumberKeyPressed()
-            },
-            placeholder = { Text("Your full name...") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            modifier = Modifier.fillMaxWidth(),
+            OutlinedTextField(
+                value = fullName.value,
+                singleLine = true,
+                onValueChange = {
+                    fullName.value = it
+                    viewModel.onTelephoneNumberKeyPressed()
+                },
+                placeholder = { Text("Your full name...") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth(),
 //          isError = telephoneNumberErrorMsg.isNotBlank(),
-        )
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Your friends will find you under this name.")
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Your friends will find you under this name.")
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = {
-                scope.launch {
-                    if (viewModel.onProfileFullNameSubmitted(fullName.value)) {
-                        navHostController.navigate("agenda") {
-                            popUpTo("authStepOne") { inclusive = true }
+            Button(
+                onClick = {
+                    scope.launch {
+                        if (viewModel.onProfileFullNameSubmitted(fullName.value)) {
+                            navHostController.navigate("agenda") {
+                                popUpTo("authStepOne") { inclusive = true }
+                            }
                         }
                     }
-                }
-            },
-            modifier = Modifier.align(Alignment.End),
+                },
+                modifier = Modifier.align(Alignment.End),
 //            enabled = !telephoneFormSpinner,
-            enabled = fullName.value.trim().length > minFullNameLength
+                enabled = fullName.value.trim().length > minFullNameLength
 
-        ) {
-            Text("DONE")
+            ) {
+                Text("DONE")
+            }
         }
     }
 }

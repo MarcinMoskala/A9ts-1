@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -16,12 +17,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
-import com.a9ts.a9ts.model.dataclass.Friend
-import timber.log.Timber
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a9ts.a9ts.components.BlackLine
+import com.a9ts.a9ts.components.MyTopBar
+import com.a9ts.a9ts.model.dataclass.Friend
+import com.a9ts.a9ts.ui.theme.BgGrey
+import timber.log.Timber
 
 
 @Composable
@@ -29,37 +32,35 @@ fun AddAppointmentStepOne(
     navHostController: NavHostController,
     viewModel: AddAppointmentStepOneViewModel = viewModel()
 ) {
-    val dbInitialized = remember { mutableStateOf(false) }
     val friends: List<Friend> by viewModel.addAppointmentStepOneFriends.observeAsState(listOf())
 
-    if (!dbInitialized.value) {
-        Timber.d("dbInitialize: false... Initializing DB")
-        viewModel.onAddAppointmentStepOneInit()
-        dbInitialized.value = true
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Scaffold(
+        backgroundColor = BgGrey,
+        topBar = { MyTopBar("New appointment with...") },
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-
-        if (friends.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                items(friends) { friend ->
-                    FriendRow(friend, navHostController)
+            if (friends.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    items(friends) { friend ->
+                        FriendRow(friend, navHostController)
+                    }
                 }
+                BlackLine()
+                Spacer(Modifier.height(16.dp))
             }
-            BlackLine()
-            Spacer(Modifier.height(16.dp))
-        }
 
-        Button(onClick = { navHostController.navigate("addFriend") }) {
-            Text("Invite friend to Obvio")
+            Button(onClick = { navHostController.navigate("addFriend") }) {
+                Text("Invite friend to Obvio")
+            }
         }
     }
 }

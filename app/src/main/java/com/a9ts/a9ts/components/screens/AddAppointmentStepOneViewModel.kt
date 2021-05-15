@@ -10,8 +10,9 @@ import com.a9ts.a9ts.model.dataclass.Friend
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import timber.log.Timber
 
-class AddAppointmentStepOneViewModel : ViewModel(), KoinComponent{
+class AddAppointmentStepOneViewModel : ViewModel(), KoinComponent {
     private val databaseService: DatabaseService by inject()
     private val authService: AuthService by inject()
 
@@ -19,7 +20,8 @@ class AddAppointmentStepOneViewModel : ViewModel(), KoinComponent{
     val addAppointmentStepOneFriends: LiveData<List<Friend>>
         get() = _addAppointmentStepOneFriends
 
-    fun onAddAppointmentStepOneInit() {
+    init {
+        Timber.d("init {} called")
         viewModelScope.launch {
             _addAppointmentStepOneFriends.value = databaseService.getFriends(authService.authUserId)
         }

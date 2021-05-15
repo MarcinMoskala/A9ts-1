@@ -6,10 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -26,53 +23,62 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.a9ts.a9ts.components.BlackLine
+import com.a9ts.a9ts.components.MyTopBar
+import com.a9ts.a9ts.ui.theme.BgGrey
 
 
 @Composable
-fun AddFriend(snackbarHostState: SnackbarHostState, viewModel: AddFriendViewModel = viewModel()) {
+fun AddFriend(scaffoldState: ScaffoldState, viewModel: AddFriendViewModel = viewModel()) {
     val search = remember { mutableStateOf("") }
     val friends: List<Friend> by viewModel.addFriendsList.observeAsState(listOf())
 
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Scaffold(
+        backgroundColor = BgGrey,
+        scaffoldState = scaffoldState,
+        topBar = { MyTopBar(title = "Invite friends") },
     ) {
 
-        Box {
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .padding(top = 8.dp)
-                    .background(Color.White, shape = RoundedCornerShape(4.dp))
-            )
-            OutlinedTextField(
-                value = search.value,
-                singleLine = true,
-                onValueChange = {
-                    search.value = it
-                    viewModel.onFriendSearchChange(it)
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-        if (friends.isNotEmpty()) {
-            Spacer(Modifier.height(16.dp))
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                items(friends) { friend ->
-                    FriendRow(friend, viewModel, snackbarHostState)
-                }
+            Box {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .padding(top = 8.dp)
+                        .background(Color.White, shape = RoundedCornerShape(4.dp))
+                )
+                OutlinedTextField(
+                    value = search.value,
+                    singleLine = true,
+                    onValueChange = {
+                        search.value = it
+                        viewModel.onFriendSearchChange(it)
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            BlackLine()
-        } else {
-            Spacer(Modifier.height(16.dp))
-            Text("Start typing name of your friend...")
+
+            if (friends.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    items(friends) { friend ->
+                        FriendRow(friend, viewModel, scaffoldState.snackbarHostState)
+                    }
+                }
+                BlackLine()
+            } else {
+                Spacer(Modifier.height(16.dp))
+                Text("Start typing name of your friend...")
+            }
         }
     }
 }

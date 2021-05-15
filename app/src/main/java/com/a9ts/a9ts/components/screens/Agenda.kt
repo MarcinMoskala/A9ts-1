@@ -68,7 +68,6 @@ fun Agenda(navHostController: NavHostController, scaffoldState: ScaffoldState, a
                 NotificationsList(viewModel, scaffoldState.snackbarHostState)
                 AppointmentsList(viewModel, authUserId, navHostController)
             }
-//            Agenda(navHostController, scaffoldState.snackbarHostState, authService.authUserId)
         })
 
 }

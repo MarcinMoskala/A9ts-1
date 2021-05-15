@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
 import com.a9ts.a9ts.ActivityViewModel
+import com.a9ts.a9ts.components.MyTopBar
+import com.a9ts.a9ts.ui.theme.BgGrey
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.buttons
 import com.vanpra.composematerialdialogs.datetime.datepicker
@@ -25,41 +28,49 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AddAppointmentStepTwo(
     activityViewModel: ActivityViewModel,
     navHostController: NavHostController,
     friendUserId: String,
+    friendFullName : String,
     viewModel: AddAppointmentStepTwoViewModel = viewModel()
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+
+
+    Scaffold(
+        backgroundColor = BgGrey,
+        topBar = { MyTopBar("Appointment with $friendFullName") },
     ) {
-        val localDate = remember { mutableStateOf(LocalDate.now()) }
-        val localTime = remember { mutableStateOf(LocalTime.now()) }
-        val scope = rememberCoroutineScope()
 
-        MyDateField(localDate)
-        MyTimeField(localTime)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val localDate = remember { mutableStateOf(LocalDate.now()) }
+            val localTime = remember { mutableStateOf(LocalTime.now()) }
+            val scope = rememberCoroutineScope()
+
+            MyDateField(localDate)
+            MyTimeField(localTime)
 
 
-        Button(onClick = {
-            scope.launch {
-                val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value, activityViewModel)
+            Button(onClick = {
+                scope.launch {
+                    val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value, activityViewModel)
 
-                if (success) {
-                    navHostController.navigate("agenda") {
-                        popUpTo("agenda") { inclusive = true } //without curly doesnt work
+                    if (success) {
+                        navHostController.navigate("agenda") {
+                            popUpTo("agenda") { inclusive = true } //without curly doesnt work
+                        }
                     }
                 }
+            }) {
+                Text("Send invitation")
             }
-        }) {
-            Text("Send invitation")
         }
     }
 }

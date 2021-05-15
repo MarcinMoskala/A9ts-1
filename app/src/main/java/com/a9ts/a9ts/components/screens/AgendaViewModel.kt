@@ -39,6 +39,7 @@ class AgendaViewModel : ViewModel(), KoinComponent {
         get() = _fullName
 
     init {
+        Timber.d("init {} called")
         viewModelScope.launch {
             databaseService.getAppointmentsListener(authService.authUserId) { appointmentList ->
                 _appointmentList.value = appointmentList
