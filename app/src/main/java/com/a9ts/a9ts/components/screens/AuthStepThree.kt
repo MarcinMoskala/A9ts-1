@@ -19,6 +19,7 @@ import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
 import com.a9ts.a9ts.ActivityViewModel
 import com.a9ts.a9ts.components.MyTopBar
+import com.a9ts.a9ts.tools.Route
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,8 +54,8 @@ fun AuthStepThree(viewModel: ActivityViewModel, navHostController: NavHostContro
                 onClick = {
                     scope.launch {
                         if (viewModel.onProfileFullNameSubmitted(fullName.value)) {
-                            navHostController.navigate("agenda") {
-                                popUpTo("authStepOne") { inclusive = true }
+                            navHostController.navigate(Route.AGENDA) {
+                                popUpTo(Route.AUTH_STEP_ONE) { inclusive = true }
                             }
                         }
                     }

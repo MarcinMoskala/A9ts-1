@@ -23,6 +23,7 @@ import androidx.navigation.compose.navigate
 import com.a9ts.a9ts.components.BlackLine
 import com.a9ts.a9ts.components.MyTopBar
 import com.a9ts.a9ts.model.dataclass.Friend
+import com.a9ts.a9ts.tools.Route
 import com.a9ts.a9ts.ui.theme.BgGrey
 import timber.log.Timber
 
@@ -58,7 +59,7 @@ fun AddAppointmentStepOne(
                 Spacer(Modifier.height(16.dp))
             }
 
-            Button(onClick = { navHostController.navigate("addFriend") }) {
+            Button(onClick = { navHostController.navigate(Route.ADD_FRIEND) }) {
                 Text("Invite friend to Obvio")
             }
         }
@@ -78,7 +79,7 @@ private fun FriendRow(friend: Friend, navHostController: NavHostController) {
                 if (friend.state == Friend.STATE_I_INVITED) {
                     showInvitationNotYetAccepted.value = true
                 } else {
-                    navHostController.navigate("addAppointmentStepTwo/${friend.fullName}/${friend.authUserId}")
+                    navHostController.navigate("${Route.ADD_APPOINTMENT_STEP_TWO}/${friend.fullName}/${friend.authUserId}")
                 }
             }) {
         BlackLine()

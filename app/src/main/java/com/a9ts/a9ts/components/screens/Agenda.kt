@@ -27,6 +27,7 @@ import com.a9ts.a9ts.components.MyTopBar
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
 import com.a9ts.a9ts.model.mockAppointmentNotification
+import com.a9ts.a9ts.tools.Route
 import com.a9ts.a9ts.tools.dateFormatted
 import com.a9ts.a9ts.tools.getMyIdAppointmentPartnerName
 import com.a9ts.a9ts.tools.timeFormatted
@@ -133,7 +134,7 @@ fun AppointmentRow(appointment: Appointment, authUserId: String, navHostControll
             .fillMaxWidth()
             .background(Color.White)
             .clickable {
-                navHostController.navigate("appointment/${appointment.id}")
+                navHostController.navigate("${Route.APPOINTMENT}/${appointment.id}")
             }
     ) {
         val date = appointment.dateAndTime.toDate()

@@ -3,7 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'com.google.gms.google-services' //firebase
     id 'com.google.firebase.crashlytics'
-    id 'androidx.navigation.safeargs.kotlin'
+    id 'androidx.navigation.safeargs.kotlin' // TODO probably not needed anymore
     id 'kotlin-kapt'
 
 }
@@ -43,7 +43,7 @@ android {
         jvmTarget = '1.8'
     }
     buildFeatures {
-        dataBinding true
+        dataBinding true // TODO probably not needed anymore
         compose true
     }
 

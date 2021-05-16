@@ -15,6 +15,7 @@ import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.model.dataclass.Appointment
 import com.a9ts.a9ts.model.dataclass.Notification
+import com.a9ts.a9ts.tools.Route
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -62,7 +63,7 @@ class AgendaViewModel : ViewModel(), KoinComponent {
 
     fun onLogout(navHostController: NavHostController, snackbarHostState: SnackbarHostState) {
         authService.signOut()
-        navHostController.navigate("authStepOne")
+        navHostController.navigate(Route.AUTH_STEP_ONE)
 
         viewModelScope.launch {
             snackbarHostState.showSnackbar("You were logged out.")

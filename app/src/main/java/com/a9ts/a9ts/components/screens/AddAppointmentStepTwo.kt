@@ -18,6 +18,7 @@ import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
 import com.a9ts.a9ts.ActivityViewModel
 import com.a9ts.a9ts.components.MyTopBar
+import com.a9ts.a9ts.tools.Route
 import com.a9ts.a9ts.ui.theme.BgGrey
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.buttons
@@ -63,8 +64,8 @@ fun AddAppointmentStepTwo(
                     val success = viewModel.onAddAppointmentStepTwoSubmit(friendUserId, localDate.value, localTime.value, activityViewModel)
 
                     if (success) {
-                        navHostController.navigate("agenda") {
-                            popUpTo("agenda") { inclusive = true } //without curly doesnt work
+                        navHostController.navigate(Route.AGENDA) {
+                            popUpTo(Route.AGENDA) { inclusive = true } //without curly doesnt work
                         }
                     }
                 }

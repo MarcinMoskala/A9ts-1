@@ -15,6 +15,7 @@ import com.a9ts.a9ts.components.MyTopBar
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.navigate
 import androidx.navigation.compose.popUpTo
+import com.a9ts.a9ts.tools.Route
 
 @Composable
 fun Splash(navHostController: NavHostController, viewModel: SplashViewModel = viewModel()) {
@@ -22,7 +23,7 @@ fun Splash(navHostController: NavHostController, viewModel: SplashViewModel = vi
 
     if (redirectTo.isNotEmpty()) {
         navHostController.navigate(redirectTo) {
-            popUpTo("splash") { inclusive = true }
+            popUpTo(Route.SPLASH) { inclusive = true }
         }
 
     }

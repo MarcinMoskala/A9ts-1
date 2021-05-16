@@ -18,6 +18,7 @@ import com.a9ts.a9ts.components.screens.*
 import com.a9ts.a9ts.model.AuthService
 import com.a9ts.a9ts.model.DatabaseService
 import com.a9ts.a9ts.tools.Constants
+import com.a9ts.a9ts.tools.Route
 import com.a9ts.a9ts.ui.theme.A9tsTheme
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -72,7 +73,7 @@ class Activity : ComponentActivity() {
         override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
             Timber.d("Verification code sent to: $storedFullPhoneNumber")
             activityViewModel.onCodeSent() // stop the spinner
-            navHostController.navigate("authStepTwo/$verificationId/$storedFullPhoneNumber")
+            navHostController.navigate("${Route.AUTH_STEP_TWO}/$verificationId/$storedFullPhoneNumber")
         }
     }
 
@@ -89,9 +90,9 @@ class Activity : ComponentActivity() {
                 Timber.d("Success: User = ${authService.authUserId}")
 
                 if (databaseService.hasProfileFilled(authService.authUserId)) {
-                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate("agenda") }, waitMillis)
+                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AGENDA) }, waitMillis)
                 } else {
-                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate("authStepThree") }, waitMillis)
+                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AUTH_STEP_THREE) }, waitMillis)
                 }
 
                 Timber.d("Sign in success.")
@@ -107,6 +108,9 @@ class Activity : ComponentActivity() {
 
         createSystemNotificationChannel()
 
+        // TODO
+        // init mAuth = FirebaseAuth.getInstance();
+        // init FirebaseAuth.AuthStateListener
 
 
         // ---- OBSERVERS -------------------------------------------------------------------------
@@ -164,12 +168,12 @@ class Activity : ComponentActivity() {
             A9tsTheme {
                 NavHost(navHostController, startDestination = "splash")
                 {
-                    composable(route = "splash") { Splash(navHostController) }
+                    composable(Route.SPLASH) { Splash(navHostController) }
 
-                    composable(route = "authStepOne") { AuthStepOne(activityViewModel) }
+                    composable(Route.AUTH_STEP_ONE) { AuthStepOne(activityViewModel) }
 
                     composable(
-                        route = "authStepTwo/{verificationId}/{fullPhoneNumber}",
+                        route = "${Route.ADD_APPOINTMENT_STEP_TWO}/{verificationId}/{fullPhoneNumber}",
                         arguments = listOf(
                             navArgument("verificationId") { type = NavType.StringType },
                             navArgument("fullPhoneNumber") { type = NavType.StringType })
@@ -181,14 +185,14 @@ class Activity : ComponentActivity() {
                         )
                     }
 
-                    composable(route = "authStepThree") { AuthStepThree(activityViewModel, navHostController) }
+                    composable(Route.AUTH_STEP_THREE) { AuthStepThree(activityViewModel, navHostController) }
 
-                    composable(route = "agenda") { Agenda(navHostController, scaffoldState = scaffoldState, authUserId = authService.authUserId) }
+                    composable(Route.AGENDA) { Agenda(navHostController, scaffoldState = scaffoldState, authUserId = authService.authUserId) }
 
-                    composable(route = "addAppointmentStepOne") { AddAppointmentStepOne(navHostController) }
+                    composable(Route.ADD_APPOINTMENT_STEP_ONE) { AddAppointmentStepOne(navHostController) }
 
                     composable(
-                        route = "addAppointmentStepTwo/{friendFullName}/{friendUserId}",
+                        route = "${Route.ADD_APPOINTMENT_STEP_TWO}/{friendFullName}/{friendUserId}",
                         arguments = listOf(
                             navArgument("friendFullName") { type = NavType.StringType },
                             navArgument("friendUserId") { type = NavType.StringType })
@@ -200,10 +204,10 @@ class Activity : ComponentActivity() {
                             it.arguments?.getString("friendFullName")!!)
                     }
 
-                    composable(route = "addFriend") { AddFriend(scaffoldState = scaffoldState) }
+                    composable(Route.ADD_FRIEND) { AddFriend(scaffoldState = scaffoldState) }
 
                     composable(
-                        route = "appointment/{appointmentId}",
+                        route = "${Route.APPOINTMENT}/{appointmentId}",
                         arguments = listOf(
                             navArgument("appointmentId") { type = NavType.StringType })
                     ) {
