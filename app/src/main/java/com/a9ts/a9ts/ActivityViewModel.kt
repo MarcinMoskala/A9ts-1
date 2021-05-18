@@ -24,7 +24,8 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     private val _deviceToken = MutableLiveData<String>()
     val deviceToken: LiveData<String> = _deviceToken
 
-
+//    private val _authState = MutableLiveData<Boolean?>(null)
+//    val authState : LiveData<Boolean?> = _authState
 
 
     private val _fullTelephoneNumber = MutableLiveData<String>()
@@ -39,6 +40,10 @@ class ActivityViewModel : ViewModel(), KoinComponent {
     private val _telephoneFormSpinner = MutableLiveData(false)
     val telephoneFormSpinner: LiveData<Boolean> = _telephoneFormSpinner
 
+
+//    fun onAuthStateChanged(isLogged: Boolean) {
+//        _authState.value = isLogged
+//    }
 
     fun onVerificationFailed() {
         _telephoneFormSpinner.value = false

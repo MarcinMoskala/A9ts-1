@@ -23,11 +23,9 @@ data class Appointment(
 ) {
 
     companion object  {
-
         const val STATE_I_AM_INVITED = 0
         const val STATE_I_INVITED = 1
         const val STATE_ACCEPTED = 2
         const val COLLECTION = "appointment"
-
     }
 }

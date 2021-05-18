@@ -4,13 +4,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material.*
+import androidx.compose.material.rememberScaffoldState
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -78,35 +76,41 @@ class Activity : ComponentActivity() {
     }
 
     suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential, wait: Boolean = false) {
-        val waitMillis = if (wait) 500L else 0L
+//        val waitMillis = if (wait) 500L else 0L
+
+        // FirebaseAuth setIgnoreNextLogin(true)
 
         Timber.d("signInWithPhoneAuthCredential SmsCode: ${credential.smsCode}")
 
         val firebaseAuthResult = authService.signInWithPhoneAuthCredential(credential)
 
         if (firebaseAuthResult.user != null) {
-                activityViewModel.onSignInWithPhoneAuthCredential() // update device token
+            activityViewModel.onSignInWithPhoneAuthCredential() // update device token
 
-                Timber.d("Success: User = ${authService.authUserId}")
+            Timber.d("Success: User = ${authService.authUserId}")
 
-                if (databaseService.hasProfileFilled(authService.authUserId)) {
-                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AGENDA) }, waitMillis)
-                } else {
-                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AUTH_STEP_THREE) }, waitMillis)
-                }
+//                if (databaseService.hasProfileFilled(authService.authUserId)) {
+//                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AGENDA) }, waitMillis)
+//                } else {
+//                    Handler(Looper.getMainLooper()).postDelayed({ navHostController.navigate(Route.AUTH_STEP_THREE) }, waitMillis)
+//                }
 
-                Timber.d("Sign in success.")
-            } else {
-                Timber.d("Sign in failure.")
+            Timber.d("Sign in success.")
+        } else {
+            // FirebaseAuth setIgnoreNextLogin(false)
 
-                activityViewModel.onSignInWithPhoneAuthCredentialFailed()
-            }
+            Timber.d("Sign in failure.")
+
+            activityViewModel.onSignInWithPhoneAuthCredentialFailed()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         createSystemNotificationChannel()
+//      authService.startAuthStateListener(activityViewModel)
+
 
         // TODO
         // init mAuth = FirebaseAuth.getInstance();
@@ -155,17 +159,24 @@ class Activity : ComponentActivity() {
             }
         })
 
-        // TODO - create a splash screen wating for login, onLogin success -> agenda ELSE -> authStepOne
+        // ---- authStateChanged ------------------------------------------------------------------
+//        activityViewModel.authState.observe(this, { authState ->
+//            if (authState != null) {
+//                if (authState) {
+//                    navHostController.navigate(Route.AGENDA)
+//                } else {
+//                    navHostController.navigate(Route.AUTH_STEP_ONE)
+//                }
+//            }
+//        })
+
 
         // --- NAVIGATION -------------------------------------------------------------------------
-        // TODO: the navigation should be done with a sealed class, currently has to pass Strings as navigate paramaters
         setContent {
-            navHostController = rememberNavController()
-            val scaffoldState = rememberScaffoldState() //TODO hot sure where to hold scaffoldState
-
-
-            // TODO go to agenda - if not logged go to authStepOne
             A9tsTheme {
+                navHostController = rememberNavController()
+                val scaffoldState = rememberScaffoldState() //TODO hot sure where to hold scaffoldState
+
                 NavHost(navHostController, startDestination = "splash")
                 {
                     composable(Route.SPLASH) { Splash(navHostController) }
@@ -173,7 +184,7 @@ class Activity : ComponentActivity() {
                     composable(Route.AUTH_STEP_ONE) { AuthStepOne(activityViewModel) }
 
                     composable(
-                        route = "${Route.ADD_APPOINTMENT_STEP_TWO}/{verificationId}/{fullPhoneNumber}",
+                        route = "${Route.AUTH_STEP_TWO}/{verificationId}/{fullPhoneNumber}",
                         arguments = listOf(
                             navArgument("verificationId") { type = NavType.StringType },
                             navArgument("fullPhoneNumber") { type = NavType.StringType })
@@ -201,7 +212,8 @@ class Activity : ComponentActivity() {
                             activityViewModel,
                             navHostController,
                             it.arguments?.getString("friendUserId")!!,
-                            it.arguments?.getString("friendFullName")!!)
+                            it.arguments?.getString("friendFullName")!!
+                        )
                     }
 
                     composable(Route.ADD_FRIEND) { AddFriend(scaffoldState = scaffoldState) }
@@ -220,8 +232,6 @@ class Activity : ComponentActivity() {
             }
         }
     }
-
-
 
 
     private fun clearAllSystemNotifications() {

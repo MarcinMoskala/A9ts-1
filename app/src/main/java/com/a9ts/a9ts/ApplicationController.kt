@@ -15,6 +15,7 @@ class ApplicationController : Application() {
         }
 
         startKoin {
+            // androidLogger()
             androidContext(this@ApplicationController)
             modules(listOf(appModule))
         }

@@ -1,6 +1,6 @@
 package com.a9ts.a9ts.model
 
-import android.app.Activity
+import com.a9ts.a9ts.ActivityViewModel
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
@@ -9,11 +9,12 @@ import kotlinx.coroutines.tasks.await
 interface AuthService {
     val authUserId: String
     val isLogged: Boolean
-    suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) : AuthResult
+    suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential): AuthResult
 
     fun signOut()
-    fun getAuth() : FirebaseAuth
-    fun getPhoneNumber() : String
+    fun getAuth(): FirebaseAuth
+    fun getPhoneNumber(): String
+//    fun startAuthStateListener(activityViewModel: ActivityViewModel)
 }
 
 class FirebaseAuthService : AuthService {
@@ -25,7 +26,7 @@ class FirebaseAuthService : AuthService {
     override val isLogged: Boolean
         get() = auth.uid != null
 
-    override suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) : AuthResult {
+    override suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential): AuthResult {
         return auth.signInWithCredential(credential).await()
 
         // TODO - handle the exception: auth.signInWithCredential(credential).exception
@@ -46,7 +47,16 @@ class FirebaseAuthService : AuthService {
         return auth.currentUser?.phoneNumber.toString()
     }
 
-//    override fun getFullUserName(): String {
-//        return auth.currentUser?.displayName.toString()
+//    override fun startAuthStateListener(activityViewModel: ActivityViewModel) {
+//        auth.addAuthStateListener {
+//            if (it.currentUser != null) {
+//                activityViewModel.onAuthStateChanged(true)
+//            } else {
+//                activityViewModel.onAuthStateChanged(false)
+//            }
+//        }
 //    }
 }
+
+
+
